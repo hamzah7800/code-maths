@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unblocked Games Hub</title>
+    <style>
+        /* Global Styles */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            background: linear-gradient(45deg, #ff6f61, #ffc107, #4caf50, #2196f3);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            height: 100vh;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            flex-direction: column;
+            overflow-x: hidden;
+            padding-top: 20px;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Search Bar */
+        #searchContainer {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #searchBox {
+            width: 70%;
+            padding: 12px;
+            border-radius: 5px;
+            border: none;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            font-size: 16px;
+        }
+
+        #searchButton {
+            padding: 12px 20px;
+            background-color: #FF4500;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #searchButton:hover {
+            background-color: #CC3700;
+        }
+
+        /* Game List */
+        .game-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+            margin-top: 40px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .game {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .game:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.9);
+        }
+
+        .game h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .game a {
+            display: inline-block;
+            background-color: #FF4500;
+            padding: 10px 20px;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .game a:hover {
+            background-color: #CC3700;
+        }
+
+        .game p {
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        /* Mobile and Tablet Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            #searchContainer {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            #searchBox {
+                width: 100%;
+            }
+
+            .game-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Gradient Animation */
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Dark Mode */
+        .dark-mode {
+            background: #333;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Unblocked Games Hub</h1>
+
+    <!-- Theme Toggle -->
+    <button id="themeButton" onclick="toggleTheme()">
+        <span id="themeIcon">🌙</span>
+        <span id="themeText">Dark Mode</span>
+    </button>
+
+    <!-- Search Bar -->
+    <div id="searchContainer">
+        <input type="text" id="searchBox" placeholder="Search anything...">
+        <button id="searchButton" onclick="searchAnything()">🔍 Search</button>
+    </div>
+
+    <!-- Game List -->
+    <div class="game-container" id="gameList">
+        <!-- Dynamic Game Cards Will Be Injected Here -->
+    </div>
+
+    <script>
+        // Game Data
+        const games = [
+            {
+                name: "Flappy Bird",
+                category: "Arcade",
+                rating: "★★★★☆",
+                description: "Flappy Bird is a fun, addictive arcade game. Can you fly the bird through the pipes?",
+                link: "games/flappybird/index.html"
+            },
+            {
+                name: "2048",
+                category: "Puzzle",
+                rating: "★★★★★",
+                description: "2048 is a popular puzzle game where you combine tiles to reach the number 2048.",
+                link: "games/2048/index.html"
+            },
+            {
+                name: "Chess",
+                category: "Strategy",
+                rating: "★★★★★",
+                description: "Classic chess game. Play with a friend or against the AI.",
+                link: "games/chess/index.html"
+            },
+            {
+                name: "Snake",
+                category: "Arcade",
+                rating: "★★★★☆",
+                description: "The classic snake game! Eat the food and grow longer while avoiding the walls.",
+                link: "games/snake/index.html"
+            }
+        ];
+
+        // Render Game Cards Dynamically
+        function renderGames() {
+            const gameList = document.getElementById("gameList");
+            gameList.innerHTML = ""; // Clear existing games
+
+            games.forEach(game => {
+                const gameElement = document.createElement("div");
+                gameElement.classList.add("game");
+                gameElement.setAttribute("data-name", game.name);
+                gameElement.setAttribute("data-category", game.category);
+                gameElement.setAttribute("data-rating", game.rating);
+
+                gameElement.innerHTML = `
+                    <h3>${game.name}</h3>
+                    <p>${game.description}</p>
+                    <a href="${game.link}" target="_blank">Play ${game.name}</a>
+                    <div class="rating">
+                        Rating: <span>${game.rating}</span>
+                    </div>
+                `;
+
+                gameList.appendChild(gameElement);
+            });
+        }
+
+        // Search Functionality
+        function searchAnything() {
+            const searchQuery = document.getElementById("searchBox").value.toLowerCase();
+            const gameList = document.getElementById("gameList");
+            const games = gameList.getElementsByClassName("game");
+
+            for (let i = 0; i < games.length; i++) {
+                const game = games[i];
+                const gameName = game.getAttribute("data-name").toLowerCase();
+                const gameCategory = game.getAttribute("data-category").toLowerCase();
+
+                if (gameName.includes(searchQuery) || gameCategory.includes(searchQuery)) {
+                    game.style.display = "block";
+                } else {
+                    game.style.display = "none";
+                }
+            }
+        }
+
+        // Theme Toggle
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById("themeIcon");
+            const themeText = document.getElementById("themeText");
+
+            body.classList.toggle("dark-mode");
+
+            if (body.classList.contains("dark-mode")) {
+                themeIcon.textContent = "🌞";
+                themeText.textContent = "Light Mode";
+            } else {
+                themeIcon.textContent = "🌙";
+                themeText.textContent = "Dark Mode";
+            }
+        }
+
+        // Initial Game Rendering
+        window.onload = renderGames;
+    </script>
+</body>
+
+</html>
