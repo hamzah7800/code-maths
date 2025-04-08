@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unblocked Games Hub</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      color: #fff;
+      background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #00ff00, #00bfff, #0000ff, #8a00d4);
+      background-size: 400% 400%;
+      animation: gradientAnimation 10s ease infinite;
+    }
+
+    h1 {
+      font-size: 3rem;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    /* Login Section */
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+    }
+
+    .login-container h2 {
+      margin-bottom: 15px;
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: none;
+      background: rgba(255, 255, 255, 0.8);
+      font-size: 16px;
+    }
+
+    .login-button {
+      width: 100%;
+      padding: 12px;
+      background-color: #ff4500;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .login-button:hover {
+      background-color: #e63900;
+    }
+
+    #error-message {
+      color: red;
+      margin-top: 10px;
+    }
+
+    /* Games Section */
+    #gameSection {
+      display: none;
+    }
+
+    #darkModeButton {
+      padding: 12px;
+      background-color: #333;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+
+    #darkModeButton:hover {
+      background-color: #e63900;
+    }
+
+    #searchContainer {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    #searchBox {
+      width: 100%;
+      max-width: 300px;
+      padding: 12px;
+      border-radius: 5px;
+      border: none;
+      background-color: rgba(0, 0, 0, 0.6);
+      color: white;
+      font-size: 16px;
+    }
+
+    #searchButton {
+      padding: 14px 22px;
+      background-color: #e63900;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+    }
+
+    #categoryFilterContainer {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .categoryButton {
+      padding: 10px;
+      background-color: #333;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+      border: none;
+    }
+
+    .categoryButton:hover {
+      background-color: #e63900;
+    }
+
+    #gameList {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      width: 90%;
+      max-width: 1000px;
+      margin: 0 auto;
+      margin-top: 30px;
+    }
+
+    .game {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 20px 15px;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+      transition: transform 0.3s;
+    }
+
+    .game:hover {
+      transform: scale(1.05);
+    }
+
+    .game a {
+      display: inline-block;
+      background-color: #ff4500;
+      padding: 10px 20px;
+      color: white;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+
+    @keyframes gradientAnimation {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    .dark-mode {
+      background: #222;
+    }
+  </style>
+</head>
+<body>
+  <h1>Unblocked Games Hub</h1>
+
+  <!-- Login Section -->
+  <div id="loginContainer" class="login-container">
+    <h2>Login</h2>
+    <input type="text" id="username" class="login-input" placeholder="Username" required />
+    <input type="password" id="password" class="login-input" placeholder="Password" required />
+    <button class="login-button" onclick="validateLogin()">Login</button>
+    <p id="error-message"></p>
+  </div>
+
+  <!-- Games Section -->
+  <div id="gameSection">
+    <button id="darkModeButton">Toggle Dark Mode</button>
+
+    <div id="searchContainer">
+      <input type="text" id="searchBox" placeholder="Search the web..." aria-label="Search input" required />
+      <button id="searchButton" onclick="searchWeb()" disabled aria-label="Search button">🔍 Search</button>
+    </div>
+
+    <div id="categoryFilterContainer">
+      <button class="categoryButton" onclick="loadGames('All')">All Categories</button>
+      <button class="categoryButton" onclick="loadGames('Arcade')">Arcade</button>
+      <button class="categoryButton" onclick="loadGames('Puzzle')">Puzzle</button>
+      <button class="categoryButton" onclick="loadGames('Sports')">Sports</button>
+      <button class="categoryButton" onclick="loadGames('Sandbox')">Sandbox</button>
+      <button class="categoryButton" onclick="loadGames('Shooter')">Shooter</button>
+      <button class="categoryButton" onclick="loadGames('Strategy')">Strategy</button>
+      <button class="categoryButton" onclick="loadGames('Platformer')">Platformer</button>
+      <button class="categoryButton" onclick="loadGames('Fighting')">Fighting</button>
+    </div>
+
+    <div id="gameList"></div>
+  </div>
+
+  <script>
+    // Validate login credentials and unlock the game section on success
+    function validateLogin() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const errorMessage = document.getElementById("error-message");
+
+      if (username === "hamzah" && password === "1989") {
+        alert("Login successful!");
+        // Hide the login container and show the games section
+        document.getElementById("loginContainer").style.display = "none";
+        document.getElementById("gameSection").style.display = "block";
+      } else {
+        errorMessage.textContent = "Invalid username or password. Try again.";
+      }
+    }
+
+    // Setup dark mode toggle functionality
+    function setupDarkMode() {
+      document.getElementById("darkModeButton").addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+      });
+    }
+
+    // Launch a Bing search in a new window/tab
+    function searchWeb() {
+      const query = document.getElementById("searchBox").value.trim();
+      if (query) {
+        const searchUrl = "https://www.bing.com/search?q=" + encodeURIComponent(query);
+        window.open(searchUrl, "_blank", "noopener,noreferrer");
+      } else {
+        alert("Please enter a search term.");
+      }
+    }
+
+    // Array of games and their details
+    const games = [
+      { id: 'flappybird', name: 'Flappy Bird', category: 'Arcade', description: 'Fly the bird through pipes!', url: 'games/flappybird/index.html' },
+      { id: '2048', name: '2048', category: 'Puzzle', description: 'Combine tiles to reach 2048.', url: 'games/2048/index.html' },
+      { id: 'snake', name: 'Snake', category: 'Arcade', description: 'Control the snake and eat to grow!', url: 'games/snake/index.html' },
+      { id: 'tetris', name: 'Tetris', category: 'Puzzle', description: 'Fit the falling blocks!', url: 'games/tetris/index.html' },
+      { id: 'pong', name: 'Pong', category: 'Sports', description: 'The classic ping-pong game!', url: 'games/pong/index.html' },
+      { id: 'minecraft', name: 'Minecraft', category: 'Sandbox', description: 'Build and explore infinite worlds.', url: 'games/minecraft/index.html' },
+      { id: 'pacman', name: 'Pac-Man', category: 'Arcade', description: 'Classic maze chase game.', url: 'games/pacman/index.html' },
+      { id: 'space-invaders', name: 'Space Invaders', category: 'Shooter', description: 'Defend against alien invaders!', url: 'games/space-invaders/index.html' },
+      { id: 'super-mario', name: 'Super Mario', category: 'Platformer', description: 'Run and jump through classic levels.', url: 'games/super-mario/index.html' },
+      { id: 'crossy-road', name: 'Crossy Road', category: 'Arcade', description: 'Help the character cross the road safely.', url: 'games/crossy-road/index.html' },
+      { id: 'chess', name: 'Chess', category: 'Strategy', description: 'Play chess against AI or a friend.', url: 'games/chess/index.html' },
+      { id: 'checkers', name: 'Checkers', category: 'Strategy', description: 'Classic checkers game.', url: 'games/checkers/index.html' },
+      { id: 'galaga', name: 'Galaga', category: 'Shooter', description: 'Retro space shooter game.', url: 'games/galaga/index.html' },
+      { id: 'car-racing', name: 'Car Racing', category: 'Sports', description: 'Race to the finish line!', url: 'games/car-racing/index.html' },
+      { id: 'street-fighter', name: 'Street Fighter', category: 'Fighting', description: 'Battle against strong opponents in this classic fighter game.', url: 'games/street-fighter/index.html' },
+      { id: 'advanced-parkour', name: 'Advanced Parkour', category: 'Platformer', description: 'Leap, slide, and run through challenging urban environments!', url: 'games/advanced-parkour/index.html' },
+      { id: 'doodle-jump', name: 'Doodle Jump', category: 'Arcade', description: 'Bounce your way to the top in this endless arcade jumper!', url: 'games/doodle-jump/index.html' },
+      { id: 'afterblast', name: 'Afterblast', category: 'Shooter', description: 'Survive intense battles in a futuristic arena!', url: 'games/afterblast/index.html' },
+      { id: 'agar-io', name: 'Agar.io', category: 'Sandbox', description: 'Absorb cells to grow larger in this multiplayer game!', url: 'games/agar-io/index.html' }
+    ];
+
+
+    // Load games into the game list based on the selected category
+    function loadGames(category = 'All') {
+      const gameList = document.getElementById("gameList");
+      gameList.innerHTML = "";
+      const filteredGames = category === 'All' ? games : games.filter(game => game.category === category);
+      filteredGames.forEach(game => {
+        gameList.innerHTML += `
+          <div class="game">
+            <h3>${game.name}</h3>
+            <p>${game.description}</p>
+            <a href="${game.url}" target="_blank">Play Now</a>
+          </div>
+        `;
+      });
+    }
+
+    // Set up initial behaviors when the DOM is ready
+    document.addEventListener("DOMContentLoaded", () => {
+      setupDarkMode();
+      loadGames();
+      document.getElementById("searchBox").addEventListener("input", () => {
+        document.getElementById("searchButton").disabled = document.getElementById("searchBox").value.trim() === "";
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #70c5ce;
+  font-family: Arial, sans-serif;
+}
+
+canvas {
+  display: block;
+  background: #70c5ce;
+}
+
+#ui {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  font-size: 24px;
+  text-align: center;
+  pointer-events: none;
+}
+
+#gameOver {
+  font-size: 32px;
+  margin-top: 20px;
+}
+
+.hidden {
+  display: none;
+}
