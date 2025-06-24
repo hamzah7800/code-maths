@@ -1,0 +1,11 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #333;
+}
+
+#gameCanvas {
+  display: block;
+  background: linear-gradient(135deg, #87ceeb, #5c94fc);
+}
