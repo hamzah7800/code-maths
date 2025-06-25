@@ -3,38 +3,56 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Infinite Parkour Runner</title>
+<title>3D Infinite Parkour Runner</title>
 <style>
-  body {
-    margin: 0; overflow: hidden; background: #222;
-    font-family: Arial, sans-serif;
+  body, html { margin: 0; overflow: hidden; background: #20232a; font-family: Arial, sans-serif; }
+  #score {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
     color: white;
+    font-size: 28px;
+    font-weight: bold;
     user-select: none;
+    z-index: 10;
   }
-  #gameCanvas {
-    display: block;
-    margin: 0 auto;
-    background: #444;
-    touch-action: none;
+  #gameOverScreen {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 40px;
+    font-size: 32px;
+    border-radius: 10px;
+    display: none;
+    z-index: 20;
+    text-align: center;
+  }
+  #restartBtn {
+    margin-top: 20px;
+    background: #0a0;
+    border: none;
+    padding: 12px 24px;
+    font-size: 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: white;
   }
   #ui {
     position: fixed;
-    bottom: 20px;
+    bottom: 15px;
     left: 50%;
     transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
     display: flex;
-    gap: 30px;
-  }
-  #jumpBtn {
-    width: 80px;
-    height: 80px;
-    background: #0a0;
-    border-radius: 50%;
-    font-size: 24px;
-    text-align: center;
-    line-height: 80px;
-    user-select: none;
-    touch-action: manipulation;
+    justify-content: space-between;
+    padding: 0 15px;
+    pointer-events: none;
+    z-index: 15;
   }
   #joystick {
     width: 120px;
@@ -42,6 +60,7 @@
     background: rgba(255,255,255,0.1);
     border-radius: 50%;
     position: relative;
+    pointer-events: auto;
     touch-action: none;
   }
   #stick {
@@ -52,220 +71,175 @@
     position: absolute;
     left: 30px;
     top: 30px;
-    touch-action: none;
+    pointer-events: none;
   }
-  #scoreboard {
-    position: fixed;
-    top: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 28px;
-  }
-  #gameOver {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 36px;
-    background: rgba(0,0,0,0.85);
-    padding: 40px;
-    border-radius: 12px;
-    display: none;
-    text-align: center;
-  }
-  #restartBtn {
-    margin-top: 20px;
-    padding: 10px 20px;
-    font-size: 24px;
-    cursor: pointer;
+  #jumpBtn {
+    width: 80px;
+    height: 80px;
     background: #0a0;
-    border: none;
-    border-radius: 8px;
-    color: white;
+    border-radius: 50%;
+    font-size: 24px;
+    text-align: center;
+    line-height: 80px;
+    user-select: none;
+    pointer-events: auto;
+    touch-action: manipulation;
+    cursor: pointer;
+    user-select: none;
   }
 </style>
 </head>
 <body>
 
-<canvas id="gameCanvas" width="480" height="640"></canvas>
-
-<div id="scoreboard">Score: 0</div>
-
-<div id="ui">
-  <div id="joystick">
-    <div id="stick"></div>
-  </div>
-  <div id="jumpBtn">Jump</div>
-</div>
-
-<div id="gameOver">
+<div id="score">Score: 0</div>
+<div id="gameOverScreen">
   <div>You Died!<br/>Score: <span id="finalScore">0</span></div>
   <button id="restartBtn">Restart</button>
 </div>
 
+<div id="ui">
+  <div id="joystick"><div id="stick"></div></div>
+  <div id="jumpBtn">Jump</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+
 <script>
 (() => {
-  const canvas = document.getElementById('gameCanvas');
-  const ctx = canvas.getContext('2d');
-  const scoreboard = document.getElementById('scoreboard');
-  const gameOverScreen = document.getElementById('gameOver');
-  const finalScoreText = document.getElementById('finalScore');
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x20232a);
+
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 5, 10);
+
+  const renderer = new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  // Lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  scene.add(ambientLight);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  dirLight.position.set(0, 10, 10);
+  scene.add(dirLight);
+
+  // Player cube
+  const playerSize = 1;
+  const playerGeometry = new THREE.BoxGeometry(playerSize, playerSize * 2, playerSize);
+  const playerMaterial = new THREE.MeshStandardMaterial({color: 0x00ff00});
+  const player = new THREE.Mesh(playerGeometry, playerMaterial);
+  player.position.set(0, playerSize, 0);
+  scene.add(player);
+
+  // Floor/platforms
+  const platformWidth = 4;
+  const platformDepth = 8;
+  const platformHeight = 0.5;
+  const platforms = [];
+
+  // Materials for platforms & traps
+  const normalMat = new THREE.MeshStandardMaterial({color: 0x444444});
+  const spikeMat = new THREE.MeshStandardMaterial({color: 0xff4444});
+  const lavaMat = new THREE.MeshStandardMaterial({color: 0xffa500});
+
+  // Game variables
+  let forwardSpeed = 0.15;
+  let lateralSpeed = 0.1;
+  let jumpSpeed = 0.25;
+  let gravity = 0.015;
+  let velocityY = 0;
+  let onGround = true;
+
+  // Controls variables
+  let moveX = 0; // -1 left, 0 none, 1 right
+
+  // Score and distance
+  let distance = 0;
+
+  // Camera follow offset
+  const camOffset = new THREE.Vector3(0, 5, 10);
+
+  // UI elements
+  const scoreEl = document.getElementById('score');
+  const gameOverScreen = document.getElementById('gameOverScreen');
+  const finalScoreEl = document.getElementById('finalScore');
   const restartBtn = document.getElementById('restartBtn');
-  const jumpBtn = document.getElementById('jumpBtn');
   const joystick = document.getElementById('joystick');
   const stick = document.getElementById('stick');
+  const jumpBtn = document.getElementById('jumpBtn');
 
-  const width = canvas.width;
-  const height = canvas.height;
-
-  // Player variables
-  const player = {
-    x: width/2,
-    y: height - 100,
-    width: 30,
-    height: 50,
-    velocityX: 0,
-    velocityY: 0,
-    speed: 3,
-    jumpForce: 10,
-    gravity: 0.5,
-    onGround: false,
-  };
-
-  // Platforms and traps
-  const platforms = [];
-  const platformWidth = 100;
-  const platformHeight = 20;
-  const gapMin = 80;
-  const gapMax = 150;
-
-  // Game state
-  let cameraY = 0;
-  let score = 0;
-  let running = true;
-
-  // Joystick state
+  // Joystick vars
+  const joystickCenter = {x: 60, y: 60};
   let joystickActive = false;
-  let joystickCenter = {x: 60, y: 60};
   let joystickPos = {x: 60, y: 60};
   let joystickMaxRadius = 40;
-  let moveDirection = 0; // -1 left, 0 none, 1 right
 
-  // Initialize first platforms (start flat)
-  function initPlatforms() {
-    platforms.length = 0;
-    let startY = height - 60;
-    let x = width/2 - platformWidth/2;
-    for(let i=0; i<10; i++) {
-      platforms.push({
-        x: x,
-        y: startY - i * (platformHeight + 100),
-        width: platformWidth,
-        height: platformHeight,
-        type: 'normal'
-      });
-    }
+  // Initialize platforms forward
+  let platformZ = 0;
+  function createPlatform(z, type='normal', x=0) {
+    const geometry = new THREE.BoxGeometry(platformWidth, platformHeight, platformDepth);
+    let material = normalMat;
+    if(type === 'spike') material = spikeMat;
+    else if(type === 'lava') material = lavaMat;
+
+    const platform = new THREE.Mesh(geometry, material);
+    platform.position.set(x, 0, z);
+    platform.userData.type = type;
+    scene.add(platform);
+    platforms.push(platform);
   }
 
-  // Randomly add trap platforms in the infinite run
-  function addPlatform() {
-    // Last platform
-    const last = platforms[platforms.length - 1];
-    let newY = last.y - (platformHeight + (gapMin + Math.random() * (gapMax-gapMin)));
+  for(let i=0; i<15; i++) createPlatform(i * -platformDepth);
 
-    // X position random but limited to screen width
-    let newX = Math.random() * (width - platformWidth);
-
-    // Randomly decide trap type
+  // Randomly add trap platforms
+  function addNextPlatform() {
+    platformZ -= platformDepth;
     const trapChance = Math.random();
     let type = 'normal';
-    if (trapChance < 0.25) type = 'spike';
-    else if (trapChance < 0.4) type = 'lava';
+    if (trapChance < 0.2) type = 'spike';
+    else if (trapChance < 0.35) type = 'lava';
 
-    platforms.push({x: newX, y: newY, width: platformWidth, height: platformHeight, type});
+    // Random X: -platformWidth, 0, or +platformWidth (3 lanes)
+    const laneX = [-platformWidth, 0, platformWidth][Math.floor(Math.random() * 3)];
+
+    createPlatform(platformZ, type, laneX);
   }
 
-  // Remove platforms below the camera view
+  // Remove old platforms far behind
   function cleanupPlatforms() {
-    while(platforms.length > 0 && platforms[0].y > cameraY + height + 50) {
-      platforms.shift();
-    }
-  }
-
-  // Draw functions
-  function drawPlayer() {
-    ctx.fillStyle = '#0f0';
-    ctx.fillRect(player.x, player.y - cameraY, player.width, player.height);
-  }
-
-  function drawPlatforms() {
-    for(let p of platforms) {
-      if (p.type === 'normal') ctx.fillStyle = '#666';
-      else if (p.type === 'spike') ctx.fillStyle = '#f00';
-      else if (p.type === 'lava') ctx.fillStyle = '#f90';
-      ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
-
-      if (p.type === 'spike') {
-        // Draw spikes as triangles
-        const spikeCount = 5;
-        const spikeWidth = p.width / spikeCount;
-        ctx.fillStyle = '#a00';
-        for(let i=0; i<spikeCount; i++) {
-          const spikeX = p.x + i * spikeWidth;
-          ctx.beginPath();
-          ctx.moveTo(spikeX, p.y - cameraY + p.height);
-          ctx.lineTo(spikeX + spikeWidth/2, p.y - cameraY);
-          ctx.lineTo(spikeX + spikeWidth, p.y - cameraY + p.height);
-          ctx.fill();
-        }
-      }
-      if (p.type === 'lava') {
-        // Draw lava waves
-        ctx.fillStyle = '#fa0';
-        for(let i=0; i<5; i++) {
-          ctx.beginPath();
-          let waveX = p.x + i * (p.width / 5);
-          let waveY = p.y - cameraY + p.height - 5 * Math.sin(Date.now() / 200 + i);
-          ctx.moveTo(waveX, waveY);
-          ctx.quadraticCurveTo(waveX + 15, waveY - 15, waveX + 30, waveY);
-          ctx.lineTo(waveX + 30, p.y - cameraY + p.height);
-          ctx.lineTo(waveX, p.y - cameraY + p.height);
-          ctx.fill();
-        }
+    for(let i=platforms.length-1; i>=0; i--) {
+      if(platforms[i].position.z > player.position.z + 15) {
+        scene.remove(platforms[i]);
+        platforms.splice(i,1);
       }
     }
   }
 
-  // Check collision between player and platform
-  function isColliding(a, b) {
-    return !(a.x > b.x + b.width ||
-             a.x + a.width < b.x ||
-             a.y > b.y + b.height ||
-             a.y + a.height < b.y);
+  // Collision detection between player and platform traps
+  function checkTrapCollision() {
+    for(let plat of platforms) {
+      const dx = Math.abs(plat.position.x - player.position.x);
+      const dz = Math.abs(plat.position.z - player.position.z);
+      const dy = player.position.y - platformHeight / 2; // Player base Y approx
+
+      if(dx < platformWidth/1.8 && dz < platformDepth/1.8) {
+        if (plat.userData.type === 'spike' || plat.userData.type === 'lava') {
+          if(dy < platformHeight + 0.5) return true;
+        }
+      }
+    }
+    return false;
   }
 
-  // Player-platform collision for ground check
-  function checkGround() {
-    player.onGround = false;
-    for(let p of platforms) {
-      // Check if player feet is on platform top and within platform x bounds
-      let playerFeet = {x: player.x, y: player.y + player.height, width: player.width, height: 5};
-      let platformTop = {x: p.x, y: p.y, width: p.width, height: 5};
-      if (isColliding(playerFeet, platformTop) && player.velocityY >= 0) {
-        player.onGround = true;
-        player.y = p.y - player.height;
-        player.velocityY = 0;
-
-        // Check trap hit
-        if(p.type === 'spike' || p.type === 'lava') {
-          gameOver();
-        }
-        return;
-      }
+  // Player jump logic
+  function jump() {
+    if(onGround) {
+      velocityY = jumpSpeed;
+      onGround = false;
     }
   }
 
-  // Joystick touch handlers
+  // Joystick handlers
   function joystickStart(e) {
     e.preventDefault();
     joystickActive = true;
@@ -274,7 +248,7 @@
     if(!joystickActive) return;
     e.preventDefault();
     let touch = e.touches ? e.touches[0] : e;
-    let rect = joystick.getBoundingClientRect();
+    const rect = joystick.getBoundingClientRect();
     let x = touch.clientX - rect.left;
     let y = touch.clientY - rect.top;
 
@@ -283,53 +257,24 @@
     let dist = Math.sqrt(dx*dx + dy*dy);
     let angle = Math.atan2(dy, dx);
 
-    let maxRadius = joystickMaxRadius;
-    if(dist > maxRadius) dist = maxRadius;
+    if(dist > joystickMaxRadius) dist = joystickMaxRadius;
     joystickPos.x = joystickCenter.x + Math.cos(angle) * dist;
     joystickPos.y = joystickCenter.y + Math.sin(angle) * dist;
 
     stick.style.left = (joystickPos.x - stick.offsetWidth/2) + 'px';
     stick.style.top = (joystickPos.y - stick.offsetHeight/2) + 'px';
 
-    // Horizontal movement only
-    moveDirection = dx < -10 ? -1 : dx > 10 ? 1 : 0;
+    // Only horizontal movement from dx
+    moveX = dx < -10 ? -1 : dx > 10 ? 1 : 0;
   }
   function joystickEnd(e) {
     joystickActive = false;
-    moveDirection = 0;
+    moveX = 0;
     joystickPos.x = joystickCenter.x;
     joystickPos.y = joystickCenter.y;
     stick.style.left = (joystickPos.x - stick.offsetWidth/2) + 'px';
     stick.style.top = (joystickPos.y - stick.offsetHeight/2) + 'px';
   }
-
-  // Jump button handler
-  function jump() {
-    if(player.onGround) {
-      player.velocityY = -player.jumpForce;
-      player.onGround = false;
-    }
-  }
-
-  // Game over
-  function gameOver() {
-    running = false;
-    finalScoreText.textContent = Math.floor(score);
-    gameOverScreen.style.display = 'block';
-  }
-
-  // Restart
-  restartBtn.onclick = () => {
-    running = true;
-    gameOverScreen.style.display = 'none';
-    score = 0;
-    player.x = width/2;
-    player.y = height - 100;
-    player.velocityX = 0;
-    player.velocityY = 0;
-    cameraY = 0;
-    initPlatforms();
-  };
 
   // Event listeners
   joystick.addEventListener('touchstart', joystickStart);
@@ -339,67 +284,98 @@
   window.addEventListener('mousemove', joystickMove);
   window.addEventListener('mouseup', joystickEnd);
 
-  jumpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); });
-  jumpBtn.addEventListener('mousedown', jump);
+  jumpBtn.addEventListener('touchstart', e => { e.preventDefault(); jump(); });
+  jumpBtn.addEventListener('mousedown', e => { e.preventDefault(); jump(); });
 
-  // Init
-  initPlatforms();
+  // Game state
+  let dead = false;
+
+  // Restart game
+  function restart() {
+    // Reset player
+    player.position.set(0, playerSize, 0);
+    velocityY = 0;
+    onGround = true;
+    moveX = 0;
+    distance = 0;
+    platformZ = 0;
+    dead = false;
+    scoreEl.textContent = 'Score: 0';
+    gameOverScreen.style.display = 'none';
+
+    // Remove old platforms
+    for(let p of platforms) scene.remove(p);
+    platforms.length = 0;
+    for(let i=0; i<15; i++) createPlatform(i * -platformDepth);
+  }
+
+  restartBtn.onclick = restart;
 
   // Game loop
-  function gameLoop() {
-    if(!running) {
-      requestAnimationFrame(gameLoop);
+  function animate() {
+    if(dead) {
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
       return;
     }
 
-    ctx.clearRect(0, 0, width, height);
+    // Move player forward
+    player.position.z -= forwardSpeed;
 
-    // Player auto move forward (upwards)
-    player.y -= 2;
+    // Lateral move with clamp for 3 lanes [-platformWidth,0,platformWidth]
+    player.position.x += moveX * lateralSpeed;
+    if(player.position.x < -platformWidth) player.position.x = -platformWidth;
+    if(player.position.x > platformWidth) player.position.x = platformWidth;
 
-    // Horizontal move from joystick
-    player.x += moveDirection * player.speed;
+    // Apply gravity and jump
+    velocityY -= gravity;
+    player.position.y += velocityY;
 
-    // Gravity
-    player.velocityY += player.gravity;
-    player.y += player.velocityY;
-
-    // Keep player in screen horizontally
-    if(player.x < 0) player.x = 0;
-    if(player.x + player.width > width) player.x = width - player.width;
-
-    checkGround();
-
-    // Move camera up if player is higher than half canvas
-    if(player.y - cameraY < height/2) {
-      cameraY = player.y - height/2;
+    // Check ground collision (platform is at y=0 + half height)
+    if(player.position.y <= playerSize) {
+      player.position.y = playerSize;
+      velocityY = 0;
+      onGround = true;
     }
 
-    // Generate new platforms if needed
-    while(platforms[platforms.length -1].y > cameraY - height) {
-      addPlatform();
+    // Add new platforms ahead
+    if(platformZ > player.position.z - platformDepth * 15) {
+      addNextPlatform();
     }
 
     cleanupPlatforms();
 
-    drawPlatforms();
-    drawPlayer();
+    // Update camera behind player
+    camera.position.lerp(new THREE.Vector3(player.position.x, player.position.y + 3, player.position.z + 10), 0.1);
+    camera.lookAt(player.position.x, player.position.y, player.position.z);
 
-    // Update score by distance travelled (negative y is up)
-    score = -player.y + (height - 100);
-    scoreboard.textContent = "Score: " + Math.floor(score);
+    // Increase score by distance traveled
+    distance += forwardSpeed;
+    scoreEl.textContent = 'Score: ' + Math.floor(distance);
 
-    // Death conditions
-    if(player.y - cameraY > height) {
-      gameOver();
+    // Check death conditions
+    if(player.position.y < -5 || checkTrapCollision()) {
+      dead = true;
+      finalScoreEl.textContent = Math.floor(distance);
+      gameOverScreen.style.display = 'block';
     }
 
-    requestAnimationFrame(gameLoop);
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
   }
 
-  requestAnimationFrame(gameLoop);
+  animate();
+
+  // Resize handler
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
 })();
 </script>
 
 </body>
+</html>
+
 </html>
