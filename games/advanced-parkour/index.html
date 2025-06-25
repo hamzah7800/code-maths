@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>3D Infinite Parkour Runner</title>
+<title>3D Infinite Parkour Runner - Advanced</title>
 <style>
   body, html { margin: 0; overflow: hidden; background: #20232a; font-family: Arial, sans-serif; }
   #score {
@@ -16,6 +16,24 @@
     font-weight: bold;
     user-select: none;
     z-index: 10;
+  }
+  #fuelBarContainer {
+    position: fixed;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 20px;
+    border: 2px solid white;
+    border-radius: 10px;
+    overflow: hidden;
+    user-select: none;
+    z-index: 11;
+  }
+  #fuelBar {
+    height: 100%;
+    width: 100%;
+    background: #0a0;
   }
   #gameOverScreen {
     position: fixed;
@@ -44,28 +62,25 @@
   #ui {
     position: fixed;
     bottom: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    max-width: 480px;
-    display: flex;
-    justify-content: space-between;
-    padding: 0 15px;
+    left: 15px;
+    width: 140px;
+    height: 140px;
     pointer-events: none;
     z-index: 15;
   }
   #joystick {
-    width: 120px;
-    height: 120px;
+    width: 140px;
+    height: 140px;
     background: rgba(255,255,255,0.1);
     border-radius: 50%;
     position: relative;
     pointer-events: auto;
     touch-action: none;
+    user-select: none;
   }
   #stick {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
     background: #ccc;
     border-radius: 50%;
     position: absolute;
@@ -74,24 +89,28 @@
     pointer-events: none;
   }
   #jumpBtn {
-    width: 80px;
-    height: 80px;
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 90px;
+    height: 90px;
     background: #0a0;
     border-radius: 50%;
-    font-size: 24px;
+    font-size: 28px;
     text-align: center;
-    line-height: 80px;
+    line-height: 90px;
     user-select: none;
     pointer-events: auto;
     touch-action: manipulation;
     cursor: pointer;
-    user-select: none;
   }
 </style>
 </head>
 <body>
 
 <div id="score">Score: 0</div>
+<div id="fuelBarContainer"><div id="fuelBar"></div></div>
+
 <div id="gameOverScreen">
   <div>You Died!<br/>Score: <span id="finalScore">0</span></div>
   <button id="restartBtn">Restart</button>
@@ -99,8 +118,8 @@
 
 <div id="ui">
   <div id="joystick"><div id="stick"></div></div>
-  <div id="jumpBtn">Jump</div>
 </div>
+<div id="jumpBtn">Jump</div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
 
@@ -110,21 +129,21 @@
   scene.background = new THREE.Color(0x20232a);
 
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 5, 10);
+  camera.position.set(0, 7, 15);
 
   const renderer = new THREE.WebGLRenderer({antialias:true});
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
   // Lighting
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
   scene.add(ambientLight);
-  const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
-  dirLight.position.set(0, 10, 10);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+  dirLight.position.set(0, 15, 15);
   scene.add(dirLight);
 
   // Player cube
-  const playerSize = 1;
+  const playerSize = 1.5;
   const playerGeometry = new THREE.BoxGeometry(playerSize, playerSize * 2, playerSize);
   const playerMaterial = new THREE.MeshStandardMaterial({color: 0x00ff00});
   const player = new THREE.Mesh(playerGeometry, playerMaterial);
@@ -132,35 +151,44 @@
   scene.add(player);
 
   // Floor/platforms
-  const platformWidth = 4;
-  const platformDepth = 8;
-  const platformHeight = 0.5;
+  const platformWidth = 6;
+  const platformDepth = 10;
+  const platformHeight = 0.6;
   const platforms = [];
 
   // Materials for platforms & traps
-  const normalMat = new THREE.MeshStandardMaterial({color: 0x444444});
+  const normalMat = new THREE.MeshStandardMaterial({color: 0x555555});
   const spikeMat = new THREE.MeshStandardMaterial({color: 0xff4444});
   const lavaMat = new THREE.MeshStandardMaterial({color: 0xffa500});
 
   // Game variables
-  let forwardSpeed = 0.15;
-  let lateralSpeed = 0.1;
-  let jumpSpeed = 0.25;
+  let forwardSpeed = 0.22;
+  let lateralSpeed = 0.15;
+  let jumpSpeed = 0.33;
   let gravity = 0.015;
   let velocityY = 0;
   let onGround = true;
+  let jumpCount = 0;
+  const maxJumps = 3; // triple jump
+  let flying = false;
+  const maxFuel = 100;
+  let fuel = maxFuel;
+  const fuelConsumption = 0.8;
+  const fuelRecovery = 0.4;
 
   // Controls variables
   let moveX = 0; // -1 left, 0 none, 1 right
+  let jumpPressed = false;
 
   // Score and distance
   let distance = 0;
 
   // Camera follow offset
-  const camOffset = new THREE.Vector3(0, 5, 10);
+  const camOffset = new THREE.Vector3(0, 7, 15);
 
   // UI elements
   const scoreEl = document.getElementById('score');
+  const fuelBar = document.getElementById('fuelBar');
   const gameOverScreen = document.getElementById('gameOverScreen');
   const finalScoreEl = document.getElementById('finalScore');
   const restartBtn = document.getElementById('restartBtn');
@@ -169,10 +197,10 @@
   const jumpBtn = document.getElementById('jumpBtn');
 
   // Joystick vars
-  const joystickCenter = {x: 60, y: 60};
+  const joystickCenter = {x: 70, y: 70};
   let joystickActive = false;
-  let joystickPos = {x: 60, y: 60};
-  let joystickMaxRadius = 40;
+  let joystickPos = {x: 70, y: 70};
+  let joystickMaxRadius = 55;
 
   // Initialize platforms forward
   let platformZ = 0;
@@ -196,8 +224,8 @@
     platformZ -= platformDepth;
     const trapChance = Math.random();
     let type = 'normal';
-    if (trapChance < 0.2) type = 'spike';
-    else if (trapChance < 0.35) type = 'lava';
+    if (trapChance < 0.25) type = 'spike';
+    else if (trapChance < 0.45) type = 'lava';
 
     // Random X: -platformWidth, 0, or +platformWidth (3 lanes)
     const laneX = [-platformWidth, 0, platformWidth][Math.floor(Math.random() * 3)];
@@ -208,7 +236,7 @@
   // Remove old platforms far behind
   function cleanupPlatforms() {
     for(let i=platforms.length-1; i>=0; i--) {
-      if(platforms[i].position.z > player.position.z + 15) {
+      if(platforms[i].position.z > player.position.z + 20) {
         scene.remove(platforms[i]);
         platforms.splice(i,1);
       }
@@ -224,18 +252,35 @@
 
       if(dx < platformWidth/1.8 && dz < platformDepth/1.8) {
         if (plat.userData.type === 'spike' || plat.userData.type === 'lava') {
-          if(dy < platformHeight + 0.5) return true;
+          if(dy < platformHeight + 0.6) return true;
         }
       }
     }
     return false;
   }
 
-  // Player jump logic
+  // Player jump logic with triple jump and flying
   function jump() {
     if(onGround) {
       velocityY = jumpSpeed;
       onGround = false;
+      jumpCount = 1;
+    } else if (jumpCount < maxJumps) {
+      velocityY = jumpSpeed;
+      jumpCount++;
+    }
+    jumpPressed = true;
+  }
+
+  // Flying logic: hold jump mid-air to fly up while fuel > 0
+  function handleFlying() {
+    if(!onGround && jumpPressed && fuel > 0) {
+      flying = true;
+      velocityY = jumpSpeed * 0.6; // slow ascent
+      fuel -= fuelConsumption;
+      if(fuel < 0) fuel = 0;
+    } else {
+      flying = false;
     }
   }
 
@@ -265,7 +310,7 @@
     stick.style.top = (joystickPos.y - stick.offsetHeight/2) + 'px';
 
     // Only horizontal movement from dx
-    moveX = dx < -10 ? -1 : dx > 10 ? 1 : 0;
+    moveX = dx < -15 ? -1 : dx > 15 ? 1 : 0;
   }
   function joystickEnd(e) {
     joystickActive = false;
@@ -286,6 +331,8 @@
 
   jumpBtn.addEventListener('touchstart', e => { e.preventDefault(); jump(); });
   jumpBtn.addEventListener('mousedown', e => { e.preventDefault(); jump(); });
+  jumpBtn.addEventListener('touchend', e => { e.preventDefault(); jumpPressed = false; });
+  jumpBtn.addEventListener('mouseup', e => { e.preventDefault(); jumpPressed = false; });
 
   // Game state
   let dead = false;
@@ -296,11 +343,14 @@
     player.position.set(0, playerSize, 0);
     velocityY = 0;
     onGround = true;
+    jumpCount = 0;
     moveX = 0;
     distance = 0;
     platformZ = 0;
+    fuel = maxFuel;
     dead = false;
     scoreEl.textContent = 'Score: 0';
+    fuelBar.style.width = '100%';
     gameOverScreen.style.display = 'none';
 
     // Remove old platforms
@@ -327,8 +377,11 @@
     if(player.position.x < -platformWidth) player.position.x = -platformWidth;
     if(player.position.x > platformWidth) player.position.x = platformWidth;
 
-    // Apply gravity and jump
-    velocityY -= gravity;
+    // Flying logic before gravity
+    handleFlying();
+
+    // Apply gravity if not flying
+    if(!flying) velocityY -= gravity;
     player.position.y += velocityY;
 
     // Check ground collision (platform is at y=0 + half height)
@@ -336,6 +389,10 @@
       player.position.y = playerSize;
       velocityY = 0;
       onGround = true;
+      jumpCount = 0;
+      // Recover fuel on ground
+      fuel += fuelRecovery;
+      if(fuel > maxFuel) fuel = maxFuel;
     }
 
     // Add new platforms ahead
@@ -346,23 +403,33 @@
     cleanupPlatforms();
 
     // Update camera behind player
-    camera.position.lerp(new THREE.Vector3(player.position.x, player.position.y + 3, player.position.z + 10), 0.1);
+    camera.position.lerp(new THREE.Vector3(player.position.x, player.position.y + 5, player.position.z + 15), 0.1);
     camera.lookAt(player.position.x, player.position.y, player.position.z);
 
-    // Increase score by distance traveled
-    distance += forwardSpeed;
+    // Increase score by distance traveled (speed scaled)
+    distance += forwardSpeed * 1.5;
     scoreEl.textContent = 'Score: ' + Math.floor(distance);
 
+    // Update fuel bar
+    fuelBar.style.width = (fuel / maxFuel * 100) + '%';
+
     // Check death conditions
-    if(player.position.y < -5 || checkTrapCollision()) {
+    if(player.position.y < -8 || checkTrapCollision()) {
       dead = true;
       finalScoreEl.textContent = Math.floor(distance);
       gameOverScreen.style.display = 'block';
     }
 
+    // Gradually increase difficulty (speed up to max)
+    if(forwardSpeed < 0.5) forwardSpeed += 0.00005;
+    if(lateralSpeed < 0.3) lateralSpeed += 0.00003;
+    if(jumpSpeed < 0.5) jumpSpeed += 0.00002;
+
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
   }
+
+  restart();
 
   animate();
 
@@ -376,6 +443,4 @@
 </script>
 
 </body>
-</html>
-
 </html>
