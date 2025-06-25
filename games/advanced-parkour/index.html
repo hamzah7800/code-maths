@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Infinite Parkour Runner</title>
+<style>
+  body {
+    margin: 0; overflow: hidden; background: #222;
+    font-family: Arial, sans-serif;
+    color: white;
+    user-select: none;
+  }
+  #gameCanvas {
+    display: block;
+    margin: 0 auto;
+    background: #444;
+    touch-action: none;
+  }
+  #ui {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 30px;
+  }
+  #jumpBtn {
+    width: 80px;
+    height: 80px;
+    background: #0a0;
+    border-radius: 50%;
+    font-size: 24px;
+    text-align: center;
+    line-height: 80px;
+    user-select: none;
+    touch-action: manipulation;
+  }
+  #joystick {
+    width: 120px;
+    height: 120px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    position: relative;
+    touch-action: none;
+  }
+  #stick {
+    width: 60px;
+    height: 60px;
+    background: #ccc;
+    border-radius: 50%;
+    position: absolute;
+    left: 30px;
+    top: 30px;
+    touch-action: none;
+  }
+  #scoreboard {
+    position: fixed;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 28px;
+  }
+  #gameOver {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 36px;
+    background: rgba(0,0,0,0.85);
+    padding: 40px;
+    border-radius: 12px;
+    display: none;
+    text-align: center;
+  }
+  #restartBtn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 24px;
+    cursor: pointer;
+    background: #0a0;
+    border: none;
+    border-radius: 8px;
+    color: white;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="gameCanvas" width="480" height="640"></canvas>
+
+<div id="scoreboard">Score: 0</div>
+
+<div id="ui">
+  <div id="joystick">
+    <div id="stick"></div>
+  </div>
+  <div id="jumpBtn">Jump</div>
+</div>
+
+<div id="gameOver">
+  <div>You Died!<br/>Score: <span id="finalScore">0</span></div>
+  <button id="restartBtn">Restart</button>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const scoreboard = document.getElementById('scoreboard');
+  const gameOverScreen = document.getElementById('gameOver');
+  const finalScoreText = document.getElementById('finalScore');
+  const restartBtn = document.getElementById('restartBtn');
+  const jumpBtn = document.getElementById('jumpBtn');
+  const joystick = document.getElementById('joystick');
+  const stick = document.getElementById('stick');
+
+  const width = canvas.width;
+  const height = canvas.height;
+
+  // Player variables
+  const player = {
+    x: width/2,
+    y: height - 100,
+    width: 30,
+    height: 50,
+    velocityX: 0,
+    velocityY: 0,
+    speed: 3,
+    jumpForce: 10,
+    gravity: 0.5,
+    onGround: false,
+  };
+
+  // Platforms and traps
+  const platforms = [];
+  const platformWidth = 100;
+  const platformHeight = 20;
+  const gapMin = 80;
+  const gapMax = 150;
+
+  // Game state
+  let cameraY = 0;
+  let score = 0;
+  let running = true;
+
+  // Joystick state
+  let joystickActive = false;
+  let joystickCenter = {x: 60, y: 60};
+  let joystickPos = {x: 60, y: 60};
+  let joystickMaxRadius = 40;
+  let moveDirection = 0; // -1 left, 0 none, 1 right
+
+  // Initialize first platforms (start flat)
+  function initPlatforms() {
+    platforms.length = 0;
+    let startY = height - 60;
+    let x = width/2 - platformWidth/2;
+    for(let i=0; i<10; i++) {
+      platforms.push({
+        x: x,
+        y: startY - i * (platformHeight + 100),
+        width: platformWidth,
+        height: platformHeight,
+        type: 'normal'
+      });
+    }
+  }
+
+  // Randomly add trap platforms in the infinite run
+  function addPlatform() {
+    // Last platform
+    const last = platforms[platforms.length - 1];
+    let newY = last.y - (platformHeight + (gapMin + Math.random() * (gapMax-gapMin)));
+
+    // X position random but limited to screen width
+    let newX = Math.random() * (width - platformWidth);
+
+    // Randomly decide trap type
+    const trapChance = Math.random();
+    let type = 'normal';
+    if (trapChance < 0.25) type = 'spike';
+    else if (trapChance < 0.4) type = 'lava';
+
+    platforms.push({x: newX, y: newY, width: platformWidth, height: platformHeight, type});
+  }
+
+  // Remove platforms below the camera view
+  function cleanupPlatforms() {
+    while(platforms.length > 0 && platforms[0].y > cameraY + height + 50) {
+      platforms.shift();
+    }
+  }
+
+  // Draw functions
+  function drawPlayer() {
+    ctx.fillStyle = '#0f0';
+    ctx.fillRect(player.x, player.y - cameraY, player.width, player.height);
+  }
+
+  function drawPlatforms() {
+    for(let p of platforms) {
+      if (p.type === 'normal') ctx.fillStyle = '#666';
+      else if (p.type === 'spike') ctx.fillStyle = '#f00';
+      else if (p.type === 'lava') ctx.fillStyle = '#f90';
+      ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
+
+      if (p.type === 'spike') {
+        // Draw spikes as triangles
+        const spikeCount = 5;
+        const spikeWidth = p.width / spikeCount;
+        ctx.fillStyle = '#a00';
+        for(let i=0; i<spikeCount; i++) {
+          const spikeX = p.x + i * spikeWidth;
+          ctx.beginPath();
+          ctx.moveTo(spikeX, p.y - cameraY + p.height);
+          ctx.lineTo(spikeX + spikeWidth/2, p.y - cameraY);
+          ctx.lineTo(spikeX + spikeWidth, p.y - cameraY + p.height);
+          ctx.fill();
+        }
+      }
+      if (p.type === 'lava') {
+        // Draw lava waves
+        ctx.fillStyle = '#fa0';
+        for(let i=0; i<5; i++) {
+          ctx.beginPath();
+          let waveX = p.x + i * (p.width / 5);
+          let waveY = p.y - cameraY + p.height - 5 * Math.sin(Date.now() / 200 + i);
+          ctx.moveTo(waveX, waveY);
+          ctx.quadraticCurveTo(waveX + 15, waveY - 15, waveX + 30, waveY);
+          ctx.lineTo(waveX + 30, p.y - cameraY + p.height);
+          ctx.lineTo(waveX, p.y - cameraY + p.height);
+          ctx.fill();
+        }
+      }
+    }
+  }
+
+  // Check collision between player and platform
+  function isColliding(a, b) {
+    return !(a.x > b.x + b.width ||
+             a.x + a.width < b.x ||
+             a.y > b.y + b.height ||
+             a.y + a.height < b.y);
+  }
+
+  // Player-platform collision for ground check
+  function checkGround() {
+    player.onGround = false;
+    for(let p of platforms) {
+      // Check if player feet is on platform top and within platform x bounds
+      let playerFeet = {x: player.x, y: player.y + player.height, width: player.width, height: 5};
+      let platformTop = {x: p.x, y: p.y, width: p.width, height: 5};
+      if (isColliding(playerFeet, platformTop) && player.velocityY >= 0) {
+        player.onGround = true;
+        player.y = p.y - player.height;
+        player.velocityY = 0;
+
+        // Check trap hit
+        if(p.type === 'spike' || p.type === 'lava') {
+          gameOver();
+        }
+        return;
+      }
+    }
+  }
+
+  // Joystick touch handlers
+  function joystickStart(e) {
+    e.preventDefault();
+    joystickActive = true;
+  }
+  function joystickMove(e) {
+    if(!joystickActive) return;
+    e.preventDefault();
+    let touch = e.touches ? e.touches[0] : e;
+    let rect = joystick.getBoundingClientRect();
+    let x = touch.clientX - rect.left;
+    let y = touch.clientY - rect.top;
+
+    let dx = x - joystickCenter.x;
+    let dy = y - joystickCenter.y;
+    let dist = Math.sqrt(dx*dx + dy*dy);
+    let angle = Math.atan2(dy, dx);
+
+    let maxRadius = joystickMaxRadius;
+    if(dist > maxRadius) dist = maxRadius;
+    joystickPos.x = joystickCenter.x + Math.cos(angle) * dist;
+    joystickPos.y = joystickCenter.y + Math.sin(angle) * dist;
+
+    stick.style.left = (joystickPos.x - stick.offsetWidth/2) + 'px';
+    stick.style.top = (joystickPos.y - stick.offsetHeight/2) + 'px';
+
+    // Horizontal movement only
+    moveDirection = dx < -10 ? -1 : dx > 10 ? 1 : 0;
+  }
+  function joystickEnd(e) {
+    joystickActive = false;
+    moveDirection = 0;
+    joystickPos.x = joystickCenter.x;
+    joystickPos.y = joystickCenter.y;
+    stick.style.left = (joystickPos.x - stick.offsetWidth/2) + 'px';
+    stick.style.top = (joystickPos.y - stick.offsetHeight/2) + 'px';
+  }
+
+  // Jump button handler
+  function jump() {
+    if(player.onGround) {
+      player.velocityY = -player.jumpForce;
+      player.onGround = false;
+    }
+  }
+
+  // Game over
+  function gameOver() {
+    running = false;
+    finalScoreText.textContent = Math.floor(score);
+    gameOverScreen.style.display = 'block';
+  }
+
+  // Restart
+  restartBtn.onclick = () => {
+    running = true;
+    gameOverScreen.style.display = 'none';
+    score = 0;
+    player.x = width/2;
+    player.y = height - 100;
+    player.velocityX = 0;
+    player.velocityY = 0;
+    cameraY = 0;
+    initPlatforms();
+  };
+
+  // Event listeners
+  joystick.addEventListener('touchstart', joystickStart);
+  joystick.addEventListener('touchmove', joystickMove);
+  joystick.addEventListener('touchend', joystickEnd);
+  joystick.addEventListener('mousedown', joystickStart);
+  window.addEventListener('mousemove', joystickMove);
+  window.addEventListener('mouseup', joystickEnd);
+
+  jumpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); });
+  jumpBtn.addEventListener('mousedown', jump);
+
+  // Init
+  initPlatforms();
+
+  // Game loop
+  function gameLoop() {
+    if(!running) {
+      requestAnimationFrame(gameLoop);
+      return;
+    }
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Player auto move forward (upwards)
+    player.y -= 2;
+
+    // Horizontal move from joystick
+    player.x += moveDirection * player.speed;
+
+    // Gravity
+    player.velocityY += player.gravity;
+    player.y += player.velocityY;
+
+    // Keep player in screen horizontally
+    if(player.x < 0) player.x = 0;
+    if(player.x + player.width > width) player.x = width - player.width;
+
+    checkGround();
+
+    // Move camera up if player is higher than half canvas
+    if(player.y - cameraY < height/2) {
+      cameraY = player.y - height/2;
+    }
+
+    // Generate new platforms if needed
+    while(platforms[platforms.length -1].y > cameraY - height) {
+      addPlatform();
+    }
+
+    cleanupPlatforms();
+
+    drawPlatforms();
+    drawPlayer();
+
+    // Update score by distance travelled (negative y is up)
+    score = -player.y + (height - 100);
+    scoreboard.textContent = "Score: " + Math.floor(score);
+
+    // Death conditions
+    if(player.y - cameraY > height) {
+      gameOver();
+    }
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  requestAnimationFrame(gameLoop);
+})();
+</script>
+
+</body>
+</html>
