@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>3D Infinite Parkour Runner - Advanced</title>
+<title>3D Infinite Parkour Runner - With Power-ups</title>
 <style>
   body, html { margin: 0; overflow: hidden; background: #20232a; font-family: Arial, sans-serif; }
   #score {
@@ -160,6 +160,7 @@
   const normalMat = new THREE.MeshStandardMaterial({color: 0x555555});
   const spikeMat = new THREE.MeshStandardMaterial({color: 0xff4444});
   const lavaMat = new THREE.MeshStandardMaterial({color: 0xffa500});
+  const powerupMat = new THREE.MeshStandardMaterial({color: 0x00ffff, emissive: 0x00ffff, emissiveIntensity: 0.7});
 
   // Game variables
   let forwardSpeed = 0.22;
@@ -175,6 +176,11 @@
   let fuel = maxFuel;
   const fuelConsumption = 0.8;
   const fuelRecovery = 0.4;
+
+  // Speed boost power-up
+  let speedBoostActive = false;
+  let speedBoostTimer = 0;
+  const speedBoostDuration = 300; // frames (~5 seconds)
 
   // Controls variables
   let moveX = 0; // -1 left, 0 none, 1 right
@@ -202,6 +208,9 @@
   let joystickPos = {x: 70, y: 70};
   let joystickMaxRadius = 55;
 
+  // Power-up objects storage
+  const powerups = [];
+
   // Initialize platforms forward
   let platformZ = 0;
   function createPlatform(z, type='normal', x=0) {
@@ -219,7 +228,17 @@
 
   for(let i=0; i<15; i++) createPlatform(i * -platformDepth);
 
-  // Randomly add trap platforms
+  // Create a power-up at given position
+  function createPowerup(x, z) {
+    const geometry = new THREE.OctahedronGeometry(0.8, 0);
+    const powerup = new THREE.Mesh(geometry, powerupMat);
+    powerup.position.set(x, 1.5, z);
+    powerup.userData.type = 'powerup';
+    scene.add(powerup);
+    powerups.push(powerup);
+  }
+
+  // Randomly add trap platforms and sometimes powerups
   function addNextPlatform() {
     platformZ -= platformDepth;
     const trapChance = Math.random();
@@ -231,6 +250,16 @@
     const laneX = [-platformWidth, 0, platformWidth][Math.floor(Math.random() * 3)];
 
     createPlatform(platformZ, type, laneX);
+
+    // 20% chance to spawn powerup on a normal platform (not on traps)
+    if(type === 'normal' && Math.random() < 0.2) {
+      // Spawn powerup in random lane, but not same lane as platform
+      let puLaneX = laneX;
+      while (puLaneX === laneX) {
+        puLaneX = [-platformWidth, 0, platformWidth][Math.floor(Math.random() * 3)];
+      }
+      createPowerup(puLaneX, platformZ);
+    }
   }
 
   // Remove old platforms far behind
@@ -241,196 +270,303 @@
         platforms.splice(i,1);
       }
     }
-  }
-
-  // Collision detection between player and platform traps
-  function checkTrapCollision() {
-    for(let plat of platforms) {
-      const dx = Math.abs(plat.position.x - player.position.x);
-      const dz = Math.abs(plat.position.z - player.position.z);
-      const dy = player.position.y - platformHeight / 2; // Player base Y approx
-
-      if(dx < platformWidth/1.8 && dz < platformDepth/1.8) {
-        if (plat.userData.type === 'spike' || plat.userData.type === 'lava') {
-          if(dy < platformHeight + 0.6) return true;
-        }
+    for(let i=powerups.length-1; i>=0; i--) {
+      if(powerups[i].position.z > player.position.z + 20) {
+        scene.remove(powerups[i]);
+        powerups.splice(i,1);
       }
     }
-    return false;
   }
 
-  // Player jump logic with triple jump and flying
-  function jump() {
-    if(onGround) {
-      velocityY = jumpSpeed;
-      onGround = false;
-      jumpCount = 1;
-    } else if (jumpCount < maxJumps) {
-      velocityY = jumpSpeed;
-      jumpCount++;
+  // Collision detection between player and platforms/traps/powerups (simple AABB)
+  function checkCollision(obj) {
+    const pMin = {
+      x: player.position.x - playerSize/2,
+      y: player.position.y - playerSize,
+      z: player.position.z - playerSize/2
+    };
+    const pMax = {
+      x: player.position.x + playerSize/2,
+      y: player.position.y + playerSize,
+      z: player.position.z + playerSize/2
+    };
+
+    const oMin = {
+      x: obj.position.x - platformWidth/2,
+      y: obj.position.y - platformHeight/2,
+      z: obj.position.z - platformDepth/2
+    };
+    const oMax = {
+      x: obj.position.x + platformWidth/2,
+      y: obj.position.y + platformHeight/2,
+      z: obj.position.z + platformDepth/2
+    };
+
+    // Check overlap in x, y, z
+    const overlapX = pMax.x > oMin.x && pMin.x < oMax.x;
+    const overlapY = pMax.y > oMin.y && pMin.y < oMax.y;
+    const overlapZ = pMax.z > oMin.z && pMin.z < oMax.z;
+
+    return overlapX && overlapY && overlapZ;
+  }
+
+  // Check collision with powerups (smaller size)
+  function checkPowerupCollision(pu) {
+    const dist = player.position.distanceTo(pu.position);
+    return dist < 1.7;
+  }
+
+  // Powerup animation rotation speed
+  const powerupRotationSpeed = 0.05;
+
+  // Animate powerups spinning
+  function animatePowerups() {
+    for(const pu of powerups) {
+      pu.rotation.x += powerupRotationSpeed;
+      pu.rotation.y += powerupRotationSpeed;
     }
-    jumpPressed = true;
   }
 
-  // Flying logic: hold jump mid-air to fly up while fuel > 0
-  function handleFlying() {
-    if(!onGround && jumpPressed && fuel > 0) {
-      flying = true;
-      velocityY = jumpSpeed * 0.6; // slow ascent
-      fuel -= fuelConsumption;
-      if(fuel < 0) fuel = 0;
-    } else {
-      flying = false;
-    }
+  // Game over handling
+  function gameOver() {
+    finalScoreEl.textContent = Math.floor(distance);
+    gameOverScreen.style.display = 'block';
+    isGameOver = true;
   }
 
-  // Joystick handlers
-  function joystickStart(e) {
-    e.preventDefault();
-    joystickActive = true;
-  }
-  function joystickMove(e) {
-    if(!joystickActive) return;
-    e.preventDefault();
-    let touch = e.touches ? e.touches[0] : e;
-    const rect = joystick.getBoundingClientRect();
-    let x = touch.clientX - rect.left;
-    let y = touch.clientY - rect.top;
-
-    let dx = x - joystickCenter.x;
-    let dy = y - joystickCenter.y;
-    let dist = Math.sqrt(dx*dx + dy*dy);
-    let angle = Math.atan2(dy, dx);
-
-    if(dist > joystickMaxRadius) dist = joystickMaxRadius;
-    joystickPos.x = joystickCenter.x + Math.cos(angle) * dist;
-    joystickPos.y = joystickCenter.y + Math.sin(angle) * dist;
-
-    stick.style.left = (joystickPos.x - stick.offsetWidth/2) + 'px';
-    stick.style.top = (joystickPos.y - stick.offsetHeight/2) + 'px';
-
-    // Only horizontal movement from dx
-    moveX = dx < -15 ? -1 : dx > 15 ? 1 : 0;
-  }
-  function joystickEnd(e) {
-    joystickActive = false;
-    moveX = 0;
-    joystickPos.x = joystickCenter.x;
-    joystickPos.y = joystickCenter.y;
-    stick.style.left = (joystickPos.x - stick.offsetWidth/2) + 'px';
-    stick.style.top = (joystickPos.y - stick.offsetHeight/2) + 'px';
-  }
-
-  // Event listeners
-  joystick.addEventListener('touchstart', joystickStart);
-  joystick.addEventListener('touchmove', joystickMove);
-  joystick.addEventListener('touchend', joystickEnd);
-  joystick.addEventListener('mousedown', joystickStart);
-  window.addEventListener('mousemove', joystickMove);
-  window.addEventListener('mouseup', joystickEnd);
-
-  jumpBtn.addEventListener('touchstart', e => { e.preventDefault(); jump(); });
-  jumpBtn.addEventListener('mousedown', e => { e.preventDefault(); jump(); });
-  jumpBtn.addEventListener('touchend', e => { e.preventDefault(); jumpPressed = false; });
-  jumpBtn.addEventListener('mouseup', e => { e.preventDefault(); jumpPressed = false; });
-
-  // Game state
-  let dead = false;
-
-  // Restart game
+  // Reset game state
   function restart() {
-    // Reset player
+    // Remove all platforms and powerups
+    platforms.forEach(p => scene.remove(p));
+    platforms.length = 0;
+    powerups.forEach(p => scene.remove(p));
+    powerups.length = 0;
+
+    // Create initial platforms
+    platformZ = 0;
+    for(let i=0; i<15; i++) createPlatform(i * -platformDepth);
+
     player.position.set(0, playerSize, 0);
     velocityY = 0;
     onGround = true;
     jumpCount = 0;
-    moveX = 0;
-    distance = 0;
-    platformZ = 0;
+    flying = false;
     fuel = maxFuel;
-    dead = false;
-    scoreEl.textContent = 'Score: 0';
+    forwardSpeed = 0.22;
+    lateralSpeed = 0.15;
+    jumpSpeed = 0.33;
+    distance = 0;
+    scoreEl.textContent = "Score: 0";
     fuelBar.style.width = '100%';
+    speedBoostActive = false;
+    speedBoostTimer = 0;
+    isGameOver = false;
     gameOverScreen.style.display = 'none';
-
-    // Remove old platforms
-    for(let p of platforms) scene.remove(p);
-    platforms.length = 0;
-    for(let i=0; i<15; i++) createPlatform(i * -platformDepth);
   }
 
-  restartBtn.onclick = restart;
+  // Update fuel bar
+  function updateFuelBar() {
+    fuelBar.style.width = (fuel / maxFuel * 100) + '%';
+    if(fuel > maxFuel) fuel = maxFuel;
+    if(fuel < 0) fuel = 0;
+  }
 
-  // Game loop
+  // Player glow effect for speed boost
+  function updatePlayerGlow() {
+    if(speedBoostActive) {
+      const intensity = Math.sin(Date.now() * 0.01) * 0.6 + 0.6;
+      playerMaterial.emissive.setRGB(0, intensity, intensity);
+    } else {
+      playerMaterial.emissive.setRGB(0,0,0);
+    }
+  }
+
+  // Track if game ended
+  let isGameOver = false;
+
+  // Main animation loop
   function animate() {
-    if(dead) {
+    if(isGameOver) {
       renderer.render(scene, camera);
       requestAnimationFrame(animate);
       return;
     }
 
-    // Move player forward
-    player.position.z -= forwardSpeed;
+    // Move player forward automatically
+    let currentForwardSpeed = forwardSpeed;
+    if(speedBoostActive) currentForwardSpeed *= 1.7;
 
-    // Lateral move with clamp for 3 lanes [-platformWidth,0,platformWidth]
-    player.position.x += moveX * lateralSpeed;
-    if(player.position.x < -platformWidth) player.position.x = -platformWidth;
-    if(player.position.x > platformWidth) player.position.x = platformWidth;
+    player.position.z -= currentForwardSpeed;
 
-    // Flying logic before gravity
-    handleFlying();
+    // Apply lateral movement from joystick
+    player.position.x += lateralSpeed * moveX;
 
-    // Apply gravity if not flying
-    if(!flying) velocityY -= gravity;
+    // Clamp player X between lanes
+    const laneLimit = platformWidth * 1.5;
+    if(player.position.x < -laneLimit) player.position.x = -laneLimit;
+    if(player.position.x > laneLimit) player.position.x = laneLimit;
+
+    // Gravity and jumping/flying
+    if(!onGround) {
+      if(flying && fuel > 0 && jumpPressed) {
+        velocityY = Math.min(velocityY + 0.02, 0.3);
+        fuel -= fuelConsumption;
+      } else {
+        velocityY -= gravity;
+        if(fuel < maxFuel) fuel += fuelRecovery;
+      }
+    }
     player.position.y += velocityY;
 
-    // Check ground collision (platform is at y=0 + half height)
-    if(player.position.y <= playerSize) {
-      player.position.y = playerSize;
-      velocityY = 0;
-      onGround = true;
-      jumpCount = 0;
-      // Recover fuel on ground
-      fuel += fuelRecovery;
-      if(fuel > maxFuel) fuel = maxFuel;
+    // Check if landed on platform
+    onGround = false;
+    for(const plat of platforms) {
+      const abovePlatform = (player.position.y - playerSize/2) >= (plat.position.y + platformHeight/2);
+      const closeZ = Math.abs(player.position.z - plat.position.z) < platformDepth / 2 + playerSize / 2;
+      const closeX = Math.abs(player.position.x - plat.position.x) < platformWidth / 2 + playerSize / 2;
+
+      if(abovePlatform && player.position.y > plat.position.y + platformHeight/2 && closeZ && closeX && velocityY <= 0) {
+        player.position.y = plat.position.y + platformHeight/2 + playerSize/2;
+        velocityY = 0;
+        onGround = true;
+        jumpCount = 0;
+        flying = false;
+        break;
+      }
     }
 
-    // Add new platforms ahead
-    if(platformZ > player.position.z - platformDepth * 15) {
+    // If below floor, game over
+    if(player.position.y < -5) gameOver();
+
+    // Check collision with traps
+    for(const plat of platforms) {
+      if(checkCollision(plat)) {
+        if(plat.userData.type === 'spike' || plat.userData.type === 'lava') {
+          gameOver();
+          break;
+        }
+      }
+    }
+
+    // Check collision with powerups
+    for(let i = powerups.length - 1; i >= 0; i--) {
+      const pu = powerups[i];
+      if(checkPowerupCollision(pu)) {
+        // Activate speed boost powerup
+        speedBoostActive = true;
+        speedBoostTimer = speedBoostDuration;
+        scene.remove(pu);
+        powerups.splice(i, 1);
+      }
+    }
+
+    // Power-up timer countdown
+    if(speedBoostActive) {
+      speedBoostTimer--;
+      if(speedBoostTimer <= 0) {
+        speedBoostActive = false;
+      }
+    }
+
+    // Add new platforms when player passes halfway
+    if(platforms.length > 0 && player.position.z < platforms[platforms.length - 1].position.z + (platformDepth * 7)) {
       addNextPlatform();
     }
 
     cleanupPlatforms();
+    animatePowerups();
+    updateFuelBar();
+    updatePlayerGlow();
 
-    // Update camera behind player
-    camera.position.lerp(new THREE.Vector3(player.position.x, player.position.y + 5, player.position.z + 15), 0.1);
-    camera.lookAt(player.position.x, player.position.y, player.position.z);
+    // Update score (distance run)
+    distance += currentForwardSpeed;
+    scoreEl.textContent = "Score: " + Math.floor(distance);
 
-    // Increase score by distance traveled (speed scaled)
-    distance += forwardSpeed * 1.5;
-    scoreEl.textContent = 'Score: ' + Math.floor(distance);
-
-    // Update fuel bar
-    fuelBar.style.width = (fuel / maxFuel * 100) + '%';
-
-    // Check death conditions
-    if(player.position.y < -8 || checkTrapCollision()) {
-      dead = true;
-      finalScoreEl.textContent = Math.floor(distance);
-      gameOverScreen.style.display = 'block';
-    }
-
-    // Gradually increase difficulty (speed up to max)
-    if(forwardSpeed < 0.5) forwardSpeed += 0.00005;
-    if(lateralSpeed < 0.3) lateralSpeed += 0.00003;
-    if(jumpSpeed < 0.5) jumpSpeed += 0.00002;
+    // Camera follows player smoothly
+    const desiredPos = player.position.clone().add(camOffset);
+    camera.position.lerp(desiredPos, 0.1);
+    camera.lookAt(player.position);
 
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
   }
 
-  restart();
+  // Input handlers
+  function onJumpStart() {
+    if(isGameOver) return;
+    if(jumpCount < maxJumps) {
+      velocityY = jumpSpeed;
+      jumpCount++;
+      onGround = false;
+    }
+    jumpPressed = true;
+  }
+  function onJumpEnd() {
+    jumpPressed = false;
+    flying = false;
+  }
 
+  jumpBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    onJumpStart();
+  });
+  jumpBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    onJumpEnd();
+  });
+  jumpBtn.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    onJumpStart();
+  });
+  jumpBtn.addEventListener('mouseup', (e) => {
+    e.preventDefault();
+    onJumpEnd();
+  });
+
+  restartBtn.addEventListener('click', () => {
+    restart();
+  });
+
+  // Joystick control
+  joystick.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    joystickActive = true;
+    joystickPos.x = e.clientX;
+    joystickPos.y = e.clientY;
+  });
+
+  window.addEventListener('pointermove', (e) => {
+    if(!joystickActive) return;
+    e.preventDefault();
+
+    const rect = joystick.getBoundingClientRect();
+    let deltaX = e.clientX - (rect.left + joystickCenter.x);
+    let deltaY = e.clientY - (rect.top + joystickCenter.y);
+
+    // Clamp stick movement radius
+    const dist = Math.sqrt(deltaX*deltaX + deltaY*deltaY);
+    if(dist > joystickMaxRadius) {
+      deltaX *= joystickMaxRadius / dist;
+      deltaY *= joystickMaxRadius / dist;
+    }
+
+    // Move stick visual
+    stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+
+    // Calculate horizontal movement (-1 to 1)
+    moveX = deltaX / joystickMaxRadius;
+  });
+
+  window.addEventListener('pointerup', (e) => {
+    if(!joystickActive) return;
+    e.preventDefault();
+    joystickActive = false;
+    moveX = 0;
+    stick.style.transform = 'translate(0, 0)';
+  });
+
+  // Initialize game
+  restart();
   animate();
 
   // Resize handler
