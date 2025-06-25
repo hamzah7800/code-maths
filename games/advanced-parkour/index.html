@@ -3,292 +3,198 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>3D Infinite Parkour Runner - With Power-ups</title>
+<title>3D Parkour Runner - Animated</title>
 <style>
   body, html { margin: 0; overflow: hidden; background: #20232a; font-family: Arial, sans-serif; }
-  #score {
-    position: fixed;
-    top: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: white;
-    font-size: 28px;
-    font-weight: bold;
-    user-select: none;
-    z-index: 10;
-  }
-  #fuelBarContainer {
-    position: fixed;
-    top: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 200px;
-    height: 20px;
-    border: 2px solid white;
-    border-radius: 10px;
-    overflow: hidden;
-    user-select: none;
-    z-index: 11;
-  }
-  #fuelBar {
-    height: 100%;
-    width: 100%;
-    background: #0a0;
-  }
-  #gameOverScreen {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0,0,0,0.8);
-    color: white;
-    padding: 40px;
-    font-size: 32px;
-    border-radius: 10px;
-    display: none;
-    z-index: 20;
-    text-align: center;
-  }
-  #restartBtn {
-    margin-top: 20px;
-    background: #0a0;
-    border: none;
-    padding: 12px 24px;
-    font-size: 24px;
-    border-radius: 8px;
-    cursor: pointer;
-    color: white;
-  }
-  #ui {
-    position: fixed;
-    bottom: 15px;
-    left: 15px;
-    width: 140px;
-    height: 140px;
-    pointer-events: none;
-    z-index: 15;
-  }
-  #joystick {
-    width: 140px;
-    height: 140px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 50%;
-    position: relative;
-    pointer-events: auto;
-    touch-action: none;
-    user-select: none;
-  }
-  #stick {
-    width: 80px;
-    height: 80px;
-    background: #ccc;
-    border-radius: 50%;
-    position: absolute;
-    left: 30px;
-    top: 30px;
-    pointer-events: none;
-  }
-  #jumpBtn {
-    position: fixed;
-    bottom: 25px;
-    right: 25px;
-    width: 90px;
-    height: 90px;
-    background: #0a0;
-    border-radius: 50%;
-    font-size: 28px;
-    text-align: center;
-    line-height: 90px;
-    user-select: none;
-    pointer-events: auto;
-    touch-action: manipulation;
-    cursor: pointer;
-  }
+  #score { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); color: white; font-size: 28px; font-weight: bold; z-index:10; }
+  #fuelBarContainer { position: fixed; top: 50px; left:50%; transform:translateX(-50%); width:200px; height:20px; border:2px solid white; border-radius:10px; overflow:hidden; z-index:11; }
+  #fuelBar { height:100%; width:100%; background:#0a0; }
+  #gameOverScreen { position:fixed;top:50%;left:50%;transform:translate(-50%,-50%); background:rgba(0,0,0,0.8);color:white;padding:40px;font-size:32px;border-radius:10px;display:none;z-index:20;text-align:center; }
+  #restartBtn { margin-top:20px;background:#0a0;border:none;padding:12px 24px;font-size:24px;border-radius:8px;cursor:pointer;color:white; }
+  #ui { position:fixed; bottom:15px; left:15px; width:140px; height:140px; pointer-events:none; z-index:15; }
+  #joystick { width:140px;height:140px;background:rgba(255,255,255,0.1);border-radius:50%;pointer-events:auto;touch-action:none; }
+  #stick { width:80px;height:80px;background:#ccc;border-radius:50%;position:absolute;left:30px;top:30px;pointer-events:none; }
+  #jumpBtn { position:fixed; bottom:25px; right:25px; width:90px; height:90px; background:#0a0; border-radius:50%; font-size:28px; text-align:center; line-height:90px; pointer-events:auto; touch-action:manipulation; cursor:pointer; }
 </style>
 </head>
 <body>
-
 <div id="score">Score: 0</div>
 <div id="fuelBarContainer"><div id="fuelBar"></div></div>
-
-<div id="gameOverScreen">
-  <div>You Died!<br/>Score: <span id="finalScore">0</span></div>
-  <button id="restartBtn">Restart</button>
-</div>
-
-<div id="ui">
-  <div id="joystick"><div id="stick"></div></div>
-</div>
+<div id="gameOverScreen"><div>You Died!<br/>Score: <span id="finalScore">0</span></div><button id="restartBtn">Restart</button></div>
+<div id="ui"><div id="joystick"><div id="stick"></div></div></div>
 <div id="jumpBtn">Jump</div>
-
 <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-
 <script>
 (() => {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x20232a);
+  const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 1000);
+  camera.position.set(0,7,15);
+  const renderer = new THREE.WebGLRenderer({antialias:true}); renderer.setSize(innerWidth,innerHeight); document.body.appendChild(renderer.domElement);
 
-  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 7, 15);
+  const ambient = new THREE.AmbientLight(0xffffff,0.9); scene.add(ambient);
+  const dir = new THREE.DirectionalLight(0xffffff,0.6); dir.position.set(0,15,15); scene.add(dir);
 
-  const renderer = new THREE.WebGLRenderer({antialias:true});
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
-
-  // Lighting
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
-  scene.add(ambientLight);
-  const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
-  dirLight.position.set(0, 15, 15);
-  scene.add(dirLight);
-
-  // Player cube
-  const playerSize = 1.5;
-  const playerGeometry = new THREE.BoxGeometry(playerSize, playerSize * 2, playerSize);
-  const playerMaterial = new THREE.MeshStandardMaterial({color: 0x00ff00});
-  const player = new THREE.Mesh(playerGeometry, playerMaterial);
-  player.position.set(0, playerSize, 0);
+  const playerSize=1.5;
+  const pGeo=new THREE.BoxGeometry(playerSize,playerSize*2,playerSize);
+  const pMat=new THREE.MeshStandardMaterial({color:0x00ff00});
+  const player=new THREE.Mesh(pGeo,pMat);
+  player.position.set(0,playerSize,0);
   scene.add(player);
 
-  // Floor/platforms
-  const platformWidth = 6;
-  const platformDepth = 10;
-  const platformHeight = 0.6;
-  const platforms = [];
+  const platformW=6, platformD=10, platformH=0.6;
+  const platforms=[];
+  const nm=new THREE.MeshStandardMaterial({color:0x555555});
+  const sm=new THREE.MeshStandardMaterial({color:0xff4444});
+  const lm=new THREE.MeshStandardMaterial({color:0xffa500});
 
-  // Materials for platforms & traps
-  const normalMat = new THREE.MeshStandardMaterial({color: 0x555555});
-  const spikeMat = new THREE.MeshStandardMaterial({color: 0xff4444});
-  const lavaMat = new THREE.MeshStandardMaterial({color: 0xffa500});
-  const powerupMat = new THREE.MeshStandardMaterial({color: 0x00ffff, emissive: 0x00ffff, emissiveIntensity: 0.7});
+  let forwardSpeed=0.22, lateralSpeed=0.15, jumpSpeed=0.33, gravity=0.015;
+  let vY=0, onGround=true, jumpCount=0, maxJ=3, flying=false;
+  const maxFuel=100, fuelConsumption=0.8, fuelRecovery=0.4;
+  let fuel=maxFuel, moveX=0, jumpPressed=false, distance=0, platformZ=0;
+  let dead=false;
 
-  // Game variables
-  let forwardSpeed = 0.22;
-  let lateralSpeed = 0.15;
-  let jumpSpeed = 0.33;
-  let gravity = 0.015;
-  let velocityY = 0;
-  let onGround = true;
-  let jumpCount = 0;
-  const maxJumps = 3; // triple jump
-  let flying = false;
-  const maxFuel = 100;
-  let fuel = maxFuel;
-  const fuelConsumption = 0.8;
-  const fuelRecovery = 0.4;
+  const scoreEl=document.getElementById('score'), fuelBar=document.getElementById('fuelBar'),
+        gameOver=document.getElementById('gameOverScreen'), finalS=document.getElementById('finalScore'),
+        restartBtn=document.getElementById('restartBtn'), joystick=document.getElementById('joystick'),
+        stick=document.getElementById('stick'), jumpBtn=document.getElementById('jumpBtn');
 
-  // Speed boost power-up
-  let speedBoostActive = false;
-  let speedBoostTimer = 0;
-  const speedBoostDuration = 300; // frames (~5 seconds)
+  const jc={x:70,y:70}, jmR=55; let jsAct=false, jsPos={x:70,y:70};
 
-  // Controls variables
-  let moveX = 0; // -1 left, 0 none, 1 right
-  let jumpPressed = false;
+  const trapAnimClocks = [];
 
-  // Score and distance
-  let distance = 0;
-
-  // Camera follow offset
-  const camOffset = new THREE.Vector3(0, 7, 15);
-
-  // UI elements
-  const scoreEl = document.getElementById('score');
-  const fuelBar = document.getElementById('fuelBar');
-  const gameOverScreen = document.getElementById('gameOverScreen');
-  const finalScoreEl = document.getElementById('finalScore');
-  const restartBtn = document.getElementById('restartBtn');
-  const joystick = document.getElementById('joystick');
-  const stick = document.getElementById('stick');
-  const jumpBtn = document.getElementById('jumpBtn');
-
-  // Joystick vars
-  const joystickCenter = {x: 70, y: 70};
-  let joystickActive = false;
-  let joystickPos = {x: 70, y: 70};
-  let joystickMaxRadius = 55;
-
-  // Power-up objects storage
-  const powerups = [];
-
-  // Initialize platforms forward
-  let platformZ = 0;
-  function createPlatform(z, type='normal', x=0) {
-    const geometry = new THREE.BoxGeometry(platformWidth, platformHeight, platformDepth);
-    let material = normalMat;
-    if(type === 'spike') material = spikeMat;
-    else if(type === 'lava') material = lavaMat;
-
-    const platform = new THREE.Mesh(geometry, material);
-    platform.position.set(x, 0, z);
-    platform.userData.type = type;
-    scene.add(platform);
-    platforms.push(platform);
+  function createPlat(z,type='normal',x=0){
+    const geo=new THREE.BoxGeometry(platformW,platformH,platformD);
+    const mat=type==='spike'?sm:type==='lava'?lm:nm;
+    const pm=new THREE.Mesh(geo,mat);
+    pm.position.set(x,0,z);
+    pm.userData={type,typeClock:new THREE.Clock()};
+    if(type!=='normal') trapAnimClocks.push(pm);
+    scene.add(pm);
+    platforms.push(pm);
   }
 
-  for(let i=0; i<15; i++) createPlatform(i * -platformDepth);
+  for(let i=0;i<15;i++) createPlat(i*-platformD);
 
-  // Create a power-up at given position
-  function createPowerup(x, z) {
-    const geometry = new THREE.OctahedronGeometry(0.8, 0);
-    const powerup = new THREE.Mesh(geometry, powerupMat);
-    powerup.position.set(x, 1.5, z);
-    powerup.userData.type = 'powerup';
-    scene.add(powerup);
-    powerups.push(powerup);
+  function addPlat(){
+    platformZ-=platformD;
+    const pC=Math.random(), type=pC<0.25?'spike':pC<0.45?'lava':'normal';
+    const lane=[-platformW,0,platformW][Math.floor(Math.random()*3)];
+    createPlat(platformZ,type,lane);
   }
 
-  // Randomly add trap platforms and sometimes powerups
-  function addNextPlatform() {
-    platformZ -= platformDepth;
-    const trapChance = Math.random();
-    let type = 'normal';
-    if (trapChance < 0.25) type = 'spike';
-    else if (trapChance < 0.45) type = 'lava';
-
-    // Random X: -platformWidth, 0, or +platformWidth (3 lanes)
-    const laneX = [-platformWidth, 0, platformWidth][Math.floor(Math.random() * 3)];
-
-    createPlatform(platformZ, type, laneX);
-
-    // 20% chance to spawn powerup on a normal platform (not on traps)
-    if(type === 'normal' && Math.random() < 0.2) {
-      // Spawn powerup in random lane, but not same lane as platform
-      let puLaneX = laneX;
-      while (puLaneX === laneX) {
-        puLaneX = [-platformWidth, 0, platformWidth][Math.floor(Math.random() * 3)];
-      }
-      createPowerup(puLaneX, platformZ);
-    }
-  }
-
-  // Remove old platforms far behind
-  function cleanupPlatforms() {
-    for(let i=platforms.length-1; i>=0; i--) {
-      if(platforms[i].position.z > player.position.z + 20) {
+  function cleanPlats(){
+    for(let i=platforms.length-1;i>=0;i--){
+      if(platforms[i].position.z > player.position.z+20){
         scene.remove(platforms[i]);
         platforms.splice(i,1);
       }
     }
-    for(let i=powerups.length-1; i>=0; i--) {
-      if(powerups[i].position.z > player.position.z + 20) {
-        scene.remove(powerups[i]);
-        powerups.splice(i,1);
-      }
-    }
   }
 
-  // Collision detection between player and platforms/traps/powerups (simple AABB)
-  function checkCollision(obj) {
-    const pMin = {
-      x: player.position.x - playerSize/2,
-      y: player.position.y - playerSize,
-      z: player.position.z - playerSize/2
-    };
-    const pMax = {
-      x: player.position.x + playerSize/2,
-      y: player.position.y + playerSize,
-      z: player.position.z + playerSize/2
-    };
+  function checkTrap(){
+    return platforms.some(p=>{
+      const dx=Math.abs(p.position.x-player.position.x);
+      const dz=Math.abs(p.position.z-player.position.z);
+      const dy=player.position.y-platformH/2;
+      if(dx<platformW/1.8 && dz<platformD/1.8 && (p.userData.type==='spike'||p.userData.type==='lava') && dy<platformH+0.6) return true;
+    });
+  }
 
-    const oMin = {
+  function jump(){
+    if(onGround){ vY=jumpSpeed; onGround=false; jumpCount=1; animateJump(); }
+    else if(jumpCount<maxJ){ vY=jumpSpeed; jumpCount++; animateJump(); }
+    jumpPressed=true;
+  }
+
+  function animateJump(){
+    new TWEEN.Tween(player.scale)
+      .to({y:1.2,x:0.8,z:0.8},100).yoyo(true).repeat(1).start();
+  }
+
+  function handleFly(){
+    if(!onGround&&jumpPressed&&fuel>0){ flying=true; vY=jumpSpeed*0.6; fuel=Math.max(fuel-fuelConsumption,0); player.material.emissive.setRGB(0, fuel/maxFuel, 0); }
+    else { flying=false; player.material.emissive.setRGB(0,0,0); }
+  }
+
+  function animateTraps(delta){
+    trapAnimClocks.forEach(p=>{
+      const t=Math.sin(p.userData.typeClock.getElapsedTime()*3)*0.3;
+      if(p.userData.type==='spike') p.position.y=t;
+      if(p.userData.type==='lava') p.material.color.offsetHSL(0.01,0,0);
+    });
+  }
+
+  joystick.addEventListener('touchstart',e=>{ e.preventDefault(); jsAct=true; });
+  joystick.addEventListener('touchmove',e=>{
+    if(!jsAct)return;e.preventDefault();
+    const t=e.touches?e.touches[0]:e, rect=joystick.getBoundingClientRect();
+    let dx=t.clientX-rect.left-jc.x, dy=t.clientY-rect.top-jc.y;
+    const dist=Math.min(Math.hypot(dx,dy),jmR), ang=Math.atan2(dy,dx);
+    jsPos.x=jc.x+Math.cos(ang)*dist; jsPos.y=jc.y+Math.sin(ang)*dist;
+    stick.style.left=jsPos.x-stick.offsetWidth/2+'px';
+    stick.style.top=jsPos.y-stick.offsetHeight/2+'px';
+    moveX=dx<-15?-1:dx>15?1:0;
+  });
+  joystick.addEventListener('touchend',e=>{
+    jsAct=false; moveX=0; jsPos={...jc};
+    stick.style.left=jc.x-stick.offsetWidth/2+'px';
+    stick.style.top=jc.y-stick.offsetHeight/2+'px';
+  });
+  joystick.addEventListener('mousedown',e=>joystick.dispatchEvent(new TouchEvent('touchstart',{changedTouches:[{clientX:e.clientX,clientY:e.clientY}]})));
+  window.addEventListener('mousemove',e=>joystick.dispatchEvent(new TouchEvent('touchmove',{changedTouches:[{clientX:e.clientX,clientY:e.clientY}]})));
+  window.addEventListener('mouseup',e=>joystick.dispatchEvent(new TouchEvent('touchend',{changedTouches:[{clientX:e.clientX,clientY:e.clientY}]})));
+
+  jumpBtn.addEventListener('touchstart',e=>{e.preventDefault();jump();});
+  jumpBtn.addEventListener('mousedown',e=>{e.preventDefault();jump();});
+  jumpBtn.addEventListener('touchend',e=>{jumpPressed=false;});
+  jumpBtn.addEventListener('mouseup',e=>{jumpPressed=false;});
+
+  restartBtn.onclick=()=>{
+    player.position.set(0,playerSize,0); vY=0; onGround=true; jumpCount=0;
+    moveX=0; distance=0; platformZ=0; fuel=maxFuel; dead=false;
+    scoreEl.textContent='Score:0'; fuelBar.style.width='100%'; gameOver.style.display='none';
+    platforms.forEach(p=>scene.remove(p)); platforms.length=0;
+    for(let i=0;i<15;i++)createPlat(i*-platformD);
+  };
+
+  const clock=new THREE.Clock();
+
+  function animate(){
+    const dt=clock.getDelta();
+    if(!dead){
+      player.position.z -= forwardSpeed;
+      player.position.x += moveX*lateralSpeed;
+      player.position.x = Math.max(-platformW, Math.min(platformW, player.position.x));
+      handleFly();
+      if(!flying) vY -= gravity;
+      player.position.y += vY;
+      if(player.position.y<=playerSize){
+        player.position.y=playerSize; vY=0; onGround=true; jumpCount=0; fuel=Math.min(fuel+fuelRecovery,maxFuel); }
+      while(platformZ>player.position.z-platformD*15) addPlat();
+      cleanPlats();
+      animateTraps(dt);
+      camera.position.lerp(new THREE.Vector3(player.position.x,player.position.y+5,player.position.z+15),0.1);
+      camera.lookAt(player.position);
+      distance += forwardSpeed*1.5;
+      scoreEl.textContent='Score:'+Math.floor(distance);
+      fuelBar.style.width=(fuel/maxFuel*100)+'%';
+      if(player.position.y<-8||checkTrap()){
+        dead=true; finalS.textContent=Math.floor(distance); gameOver.style.display='block';
+      }
+      forwardSpeed=Math.min(0.5,forwardSpeed+0.00005);
+      lateralSpeed=Math.min(0.3,lateralSpeed+0.00003);
+      jumpSpeed=Math.min(0.5,jumpSpeed+0.00002);
+    }
+    requestAnimationFrame(animate);
+    TWEEN.update();
+    renderer.render(scene,camera);
+  }
+
+  animate();
+  window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+</body>
+</html>
