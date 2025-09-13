@@ -1,31 +1,20 @@
 body {
-  margin: 0;
-  overflow: hidden;
-  background: #70c5ce;
-  font-family: Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #f0f8ff; /* AliceBlue */
+    margin: 0;
+    color: #333;
 }
 
 canvas {
-  display: block;
-  background: #70c5ce;
+    border: 2px solid #000;
+    background-color: #70c5ce; /* Classic sky blue */
 }
 
-#ui {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #fff;
-  font-size: 24px;
-  text-align: center;
-  pointer-events: none;
-}
-
-#gameOver {
-  font-size: 32px;
-  margin-top: 20px;
-}
-
-.hidden {
-  display: none;
+p {
+    margin: 5px 0;
 }
