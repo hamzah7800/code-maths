@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Agar-like — single-file</title>
+  <style>
+    html,body{height:100%;margin:0;background:#0b1220;color:#ddd;font-family:Inter,Arial}
+    #game{display:block;width:100%;height:100vh;background:linear-gradient(180deg,#07101a,#0b1220)}
+    #ui{position:fixed;left:12px;top:12px;z-index:10}
+    #info{background:rgba(0,0,0,0.35);padding:8px 10px;border-radius:8px}
+    button{margin-left:8px}
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="ui"><div id="info"><strong>Agar-like</strong> — Move with mouse / arrow keys. <button id="respawn">Respawn</button></div></div>
+
+<script>
+// Agar.io-like local game (single file)
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let W = canvas.width = innerWidth;
+let H = canvas.height = innerHeight;
+window.addEventListener('resize', ()=>{W=canvas.width=innerWidth;H=canvas.height=innerHeight});
+
+const WORLD_SIZE = 3000;
+
+class Entity {
+  constructor(x,y,r,color){
+    this.x=x;this.y=y;this.r=r;this.color=color;this.mass=r*r;this.vx=0;this.vy=0;
+  }
+}
+
+let player = null;
+function spawnPlayer(){
+  player = new Entity(rand(WORLD_SIZE), rand(WORLD_SIZE), 18, randColor());
+}
+
+// Pellets
+const pellets = [];
+function spawnPellet(){
+  pellets.push(new Entity(rand(WORLD_SIZE), rand(WORLD_SIZE), 4+Math.random()*2, '#ffca66'));
+}
+for(let i=0;i<1200;i++) spawnPellet();
+
+// Bots
+const bots = [];
+function spawnBot(){
+  bots.push({cell:new Entity(rand(WORLD_SIZE), rand(WORLD_SIZE), 14+Math.random()*8, randColor()), target:null});
+}
+for(let i=0;i<25;i++) spawnBot();
+
+function rand(n){return Math.random()*n}
+function randColor(){
+  const palette=['#4bc0c8','#6ad37a','#ff7b7b','#c68cff','#ffd36b'];
+  return palette[~~(Math.random()*palette.length)];
+}
+
+let mouseX=0, mouseY=0;let mouseDown=false;let keys={};
+canvas.addEventListener('mousemove', e=>{const rect=canvas.getBoundingClientRect();mouseX=e.clientX-rect.left;mouseY=e.clientY-rect.top});
+canvas.addEventListener('mousedown', ()=>mouseDown=true);
+canvas.addEventListener('mouseup', ()=>mouseDown=false);
+window.addEventListener('keydown',e=>{keys[e.key]=true});
+window.addEventListener('keyup',e=>{keys[e.key]=false});
+
+let camX=0, camY=0, camScale=1;
+
+let last = performance.now();
+function loop(t){
+  const dt = Math.min(0.05,(t-last)/1000);
+  update(dt);
+  render();
+  last=t;
+  requestAnimationFrame(loop);
+}
+
+function update(dt){
+  if(!player) spawnPlayer();
+
+  const targetWorldX = camX + (mouseX - W/2)/camScale;
+  const targetWorldY = camY + (mouseY - H/2)/camScale;
+
+  let kbvx=0,kbvy=0;
+  if(keys.ArrowUp||keys.w) kbvy-=1; if(keys.ArrowDown||keys.s) kbvy+=1; if(keys.ArrowLeft||keys.a) kbvx-=1; if(keys.ArrowRight||keys.d) kbvx+=1;
+
+  let dirx = targetWorldX - player.x;
+  let diry = targetWorldY - player.y;
+  const len = Math.hypot(dirx,diry)||1;
+  dirx/=len; diry/=len;
+  const speedBase = 180 / Math.sqrt(player.r);
+  player.vx += (dirx*0.9 + kbvx*0.6) * speedBase * dt;
+  player.vy += (diry*0.9 + kbvy*0.6) * speedBase * dt;
+
+  player.vx *= 0.92; player.vy *= 0.92;
+  player.x += player.vx * dt*60; player.y += player.vy * dt*60;
+
+  player.x = clamp(player.x, 0, WORLD_SIZE); player.y = clamp(player.y, 0, WORLD_SIZE);
+
+  // Bots AI
+  for(const b of bots){
+    if(!b || !b.cell) continue; // safety check
+    const cell=b.cell;
+    if(!b.target || Math.random()<0.005) b.target = pellets[~~(Math.random()*pellets.length)];
+    if(b.target){
+      let dx = b.target.x - cell.x; let dy = b.target.y - cell.y; let L = Math.hypot(dx,dy)||1; dx/=L; dy/=L;
+      cell.vx += dx*0.3; cell.vy += dy*0.3;
+    }
+    cell.vx *= 0.95; cell.vy *= 0.95;
+    cell.x += cell.vx*dt*60; cell.y += cell.vy*dt*60;
+    cell.x = clamp(cell.x, 0, WORLD_SIZE); cell.y = clamp(cell.y, 0, WORLD_SIZE);
+  }
+
+  // Pellet collision
+  for(let i=pellets.length-1;i>=0;i--){
+    const p = pellets[i];
+    if(dist2(p,player) < (p.r+player.r)*(p.r+player.r)){
+      player.r = Math.sqrt(player.r*player.r + p.r*p.r * 0.8);
+      pellets.splice(i,1); spawnPellet(); continue;
+    }
+    for(const b of bots){
+      if(!b || !b.cell) continue;
+      if(dist2(p,b.cell) < (p.r+b.cell.r)*(p.r+b.cell.r)){
+        b.cell.r = Math.sqrt(b.cell.r*b.cell.r + p.r*p.r * 0.8);
+        pellets.splice(i,1); spawnPellet(); break;
+      }
+    }
+  }
+
+  function handleEat(a,b){
+    if(!a||!b) return;
+    if(a.r > b.r*1.12 && dist2(a,b) < (a.r)*(a.r)){
+      a.r = Math.sqrt(a.r*a.r + b.r*b.r*0.9);
+      if(b===player){ spawnPlayer(); }
+      else{
+        const idx = bots.findIndex(x=>x && x.cell===b);
+        if(idx!==-1) bots.splice(idx,1);
+      }
+    }
+  }
+
+  for(const b of bots){ if(!b||!b.cell) continue; handleEat(player, b.cell); handleEat(b.cell, player); }
+  for(let i=0;i<bots.length;i++) for(let j=i+1;j<bots.length;j++){
+    const bi=bots[i], bj=bots[j];
+    if(!bi||!bi.cell||!bj||!bj.cell) continue;
+    handleEat(bi.cell, bj.cell); handleEat(bj.cell, bi.cell);
+  }
+
+  camX += (player.x - camX) * 0.1;
+  camY += (player.y - camY) * 0.1;
+  camScale = 1.2 / Math.log10(player.r+10);
+  camScale = clamp(camScale, 0.35, 1.2);
+
+  if(mouseDown){
+    const angle = Math.atan2(diry,dirx);
+    const speed = 6 + player.r*0.02;
+    const ejectR = Math.max(6, player.r*0.45);
+    player.r = Math.max(8, Math.sqrt(player.r*player.r - ejectR*ejectR));
+    const e = new Entity(player.x + Math.cos(angle)*(player.r+ejectR+4), player.y + Math.sin(angle)*(player.r+ejectR+4), ejectR, player.color);
+    e.vx = Math.cos(angle)*speed; e.vy = Math.sin(angle)*speed;
+    bots.push({cell:e, target:null});
+    mouseDown=false;
+  }
+
+  for(const b of bots){
+    if(!b||!b.cell) continue;
+    if(b.cell.vx||b.cell.vy){
+      b.cell.x += b.cell.vx*dt*60; b.cell.y += b.cell.vy*dt*60;
+      b.cell.vx*=0.98; b.cell.vy*=0.98;
+    }
+  }
+}
+
+function render(){
+  ctx.clearRect(0,0,W,H);
+  ctx.save();
+  ctx.translate(W/2, H/2);
+  ctx.scale(camScale, camScale);
+  ctx.translate(-camX, -camY);
+
+  const grid = 200;
+  ctx.globalAlpha = 0.08;
+  ctx.beginPath();
+  for(let x=0;x<=WORLD_SIZE;x+=grid){ ctx.moveTo(x,0); ctx.lineTo(x,WORLD_SIZE); }
+  for(let y=0;y<=WORLD_SIZE;y+=grid){ ctx.moveTo(0,y); ctx.lineTo(WORLD_SIZE,y); }
+  ctx.strokeStyle='#ffffff'; ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  for(const p of pellets){ drawCircle(p.x, p.y, p.r, p.color); }
+  for(const b of bots){ if(b&&b.cell) drawCircle(b.cell.x, b.cell.y, b.cell.r, b.cell.color); }
+  if(player) drawCircle(player.x, player.y, player.r, player.color, true);
+
+  ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=6; ctx.strokeRect(0,0,WORLD_SIZE,WORLD_SIZE);
+
+  ctx.restore();
+
+  ctx.fillStyle='#fff'; ctx.font='18px Inter,Arial'; ctx.fillText('Mass: '+~~(player.r*player.r||0), 16, H-18);
+}
+
+function drawCircle(x,y,r,color,glow=false){
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.closePath();
+  if(glow){
+    const g = ctx.createRadialGradient(x,y,r*0.2,x,y,r*2);
+    g.addColorStop(0, color); g.addColorStop(1,'rgba(255,255,255,0)'); ctx.fillStyle=g; ctx.globalAlpha=0.95; ctx.fill(); ctx.globalAlpha=1;
+    ctx.lineWidth=3; ctx.strokeStyle=shadeColor(color, -20); ctx.stroke();
+  } else {
+    ctx.fillStyle=color; ctx.fill(); ctx.lineWidth=1; ctx.strokeStyle=shadeColor(color,-10); ctx.stroke();
+  }
+}
+
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function dist2(a,b){const dx=a.x-b.x, dy=a.y-b.y; return dx*dx+dy*dy;}
+function shadeColor(col, percent){
+  const f=parseInt(col.slice(1),16),t=percent<0?0:255,p=Math.abs(percent)/100;
+  const R=f>>16,G=f>>8&0x00FF,B=f&0x0000FF;
+  const nr=Math.round((t-R)*p)+R, ng=Math.round((t-G)*p)+G, nb=Math.round((t-B)*p)+B;
+  return '#'+(nr<<16 | ng<<8 | nb).toString(16).padStart(6,'0');
+}
+
+// UI buttons
+document.getElementById('respawn').addEventListener('click', ()=>{spawnPlayer();});
+
+requestAnimationFrame(loop);
+
+</script>
+</body>
+</html>
