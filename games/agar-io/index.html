@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Agar-like — single-file</title>
+  <title>Agar-like — single-file with Run</title>
   <style>
     html,body{height:100%;margin:0;background:#0b1220;color:#ddd;font-family:Inter,Arial}
     #game{display:block;width:100%;height:100vh;background:linear-gradient(180deg,#07101a,#0b1220)}
@@ -14,10 +14,10 @@
 </head>
 <body>
   <canvas id="game"></canvas>
-  <div id="ui"><div id="info"><strong>Agar-like</strong> — Move with mouse / arrow keys. <button id="respawn">Respawn</button></div></div>
+  <div id="ui"><div id="info"><strong>Agar-like</strong> — Move with mouse / arrow keys. <button id="respawn">Respawn</button> — Hold <b>R</b> to Run</div></div>
 
 <script>
-// Agar.io-like local game (single file)
+// Agar.io-like local game (single file) with Run feature
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -93,6 +93,15 @@ function update(dt){
   player.vx += (dirx*0.9 + kbvx*0.6) * speedBase * dt;
   player.vy += (diry*0.9 + kbvy*0.6) * speedBase * dt;
 
+  // --- RUN / DASH (hold R) ---
+  if(keys.r || keys.R){
+    const dashPower = 450; // speed multiplier for run
+    player.vx += dirx * dashPower * dt;
+    player.vy += diry * dashPower * dt;
+    // Slight size penalty while running
+    player.r = Math.max(8, Math.sqrt(player.r*player.r - 0.3));
+  }
+
   player.vx *= 0.92; player.vy *= 0.92;
   player.x += player.vx * dt*60; player.y += player.vy * dt*60;
 
@@ -100,7 +109,7 @@ function update(dt){
 
   // Bots AI
   for(const b of bots){
-    if(!b || !b.cell) continue; // safety check
+    if(!b || !b.cell) continue;
     const cell=b.cell;
     if(!b.target || Math.random()<0.005) b.target = pellets[~~(Math.random()*pellets.length)];
     if(b.target){
