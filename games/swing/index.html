@@ -1,0 +1,336 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Stickman Spider Swing - Multi Anchor & Web</title>
+<style>
+  body, html {
+    margin: 0; padding: 0; overflow: hidden;
+    background: linear-gradient(to top, #001022 0%, #87ceeb 100%);
+    font-family: Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  canvas {
+    display: block;
+    background: transparent;
+    touch-action: none;
+  }
+  #score {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    text-shadow: 0 0 5px #000;
+    user-select: none;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div id="score">Score: 0</div>
+<canvas id="game"></canvas>
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Constants
+  const gravity = 0.6;
+  const ropeMaxLength = 350;
+  const maxAngularVelocity = 0.3;
+  const swingForce = 0.0014;
+  const friction = 0.995;
+  const grabRange = 80; // range to latch on new anchor
+  const buildingWidth = 80;
+  const buildingMinHeight = 150;
+  const buildingMaxHeight = 350;
+  const buildingGapMin = 150;
+  const buildingGapMax = 350;
+
+  // Game state
+  let isSwinging = true;
+  let isHolding = false;
+  let score = 0;
+  let cameraX = 0;
+
+  // Buildings (anchors) generation
+  let buildings = [];
+
+  function generateBuildings() {
+    buildings = [];
+    let x = 100;
+    for (let i = 0; i < 40; i++) {
+      const height = buildingMinHeight + Math.random() * (buildingMaxHeight - buildingMinHeight);
+      buildings.push({
+        x,
+        y: canvas.height - height,
+        height,
+        width: buildingWidth,
+      });
+      x += buildingWidth + (buildingGapMin + Math.random() * (buildingGapMax - buildingGapMin));
+    }
+  }
+
+  generateBuildings();
+
+  // Current rope anchor index
+  let currentAnchorIndex = 0;
+
+  // Spider pendulum state (angle from vertical)
+  let angle = Math.PI / 4;
+  let angularVelocity = 0;
+  let angularAcceleration = 0;
+
+  // Spider position and velocity
+  let spider = {
+    x: 0,
+    y: 0,
+    radius: 20,
+    vx: 0,
+    vy: 0,
+  };
+
+  // Get current anchor
+  function getAnchor() {
+    return buildings[currentAnchorIndex];
+  }
+
+  function updateSpiderPosFromAngle() {
+    const anchor = getAnchor();
+    spider.x = anchor.x + anchor.width / 2 + ropeMaxLength * Math.sin(angle);
+    spider.y = anchor.y + ropeMaxLength * Math.cos(angle);
+  }
+
+  // Input handlers
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (isSwinging) isHolding = true;
+  });
+  canvas.addEventListener('touchend', e => {
+    e.preventDefault();
+    if (isSwinging) {
+      isHolding = false;
+      isSwinging = false;
+      // Launch spider: convert angular velocity to linear velocity
+      spider.vx = angularVelocity * ropeMaxLength * Math.cos(angle + Math.PI / 2);
+      spider.vy = angularVelocity * ropeMaxLength * Math.sin(angle + Math.PI / 2);
+    }
+  });
+
+  // Mouse fallback
+  canvas.addEventListener('mousedown', e => {
+    if (isSwinging) isHolding = true;
+  });
+  canvas.addEventListener('mouseup', e => {
+    if (isSwinging) {
+      isHolding = false;
+      isSwinging = false;
+      spider.vx = angularVelocity * ropeMaxLength * Math.cos(angle + Math.PI / 2);
+      spider.vy = angularVelocity * ropeMaxLength * Math.sin(angle + Math.PI / 2);
+    }
+  });
+
+  function reset() {
+    currentAnchorIndex = 0;
+    score = 0;
+    isSwinging = true;
+    isHolding = false;
+    angle = Math.PI / 4;
+    angularVelocity = 0;
+    angularAcceleration = 0;
+    updateSpiderPosFromAngle();
+    spider.vx = 0;
+    spider.vy = 0;
+    cameraX = 0;
+  }
+
+  function update() {
+    const anchor = getAnchor();
+
+    if (isSwinging) {
+      // Pendulum physics
+      angularAcceleration = (-gravity / ropeMaxLength) * Math.sin(angle);
+
+      if (isHolding) {
+        angularAcceleration += swingForce * (angularVelocity > 0 ? 1 : -1);
+      }
+
+      angularVelocity += angularAcceleration;
+      angularVelocity *= friction;
+
+      if (angularVelocity > maxAngularVelocity) angularVelocity = maxAngularVelocity;
+      if (angularVelocity < -maxAngularVelocity) angularVelocity = -maxAngularVelocity;
+
+      angle += angularVelocity;
+
+      updateSpiderPosFromAngle();
+
+      // Update score based on horizontal progress beyond cameraX
+      const dist = spider.x - cameraX;
+      if (dist > score) score = Math.floor(dist);
+    } else {
+      // Flying physics
+      spider.vy += gravity;
+      spider.x += spider.vx;
+      spider.y += spider.vy;
+
+      // Smooth camera follow
+      cameraX += (spider.x - cameraX - 150) * 0.1;
+
+      // Check nearby buildings to latch on
+      let closestIndex = -1;
+      let closestDist = 99999;
+      for (let i = currentAnchorIndex + 1; i < buildings.length; i++) {
+        const b = buildings[i];
+        const bx = b.x + b.width / 2;
+        const by = b.y;
+        const distToSpider = Math.hypot(spider.x - bx, spider.y - by);
+        if (distToSpider < grabRange && distToSpider < closestDist) {
+          closestDist = distToSpider;
+          closestIndex = i;
+        }
+      }
+      if (closestIndex !== -1) {
+        currentAnchorIndex = closestIndex;
+        isSwinging = true;
+        // Calculate new angle and angular velocity from flight velocity
+        const newAnchor = getAnchor();
+        const dx = spider.x - (newAnchor.x + newAnchor.width / 2);
+        const dy = spider.y - newAnchor.y;
+        angle = Math.atan2(dx, dy);
+        angularVelocity = spider.vx * 0.02;
+        spider.vx = 0;
+        spider.vy = 0;
+      }
+
+      // Reset if falls off screen
+      if (spider.y > canvas.height + 150 || spider.x < cameraX - 300) {
+        reset();
+      }
+    }
+  }
+
+  // Draw spider stickman
+  function drawSpider(x, y) {
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+
+    // Head - red circle
+    ctx.fillStyle = '#ff0000';
+    ctx.beginPath();
+    ctx.arc(x, y - 40, 15, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Body - black line
+    ctx.beginPath();
+    ctx.moveTo(x, y - 25);
+    ctx.lineTo(x, y + 20);
+    ctx.stroke();
+
+    // Arms
+    ctx.beginPath();
+    ctx.moveTo(x, y - 10);
+    ctx.lineTo(x - 25, y + 10);
+    ctx.moveTo(x, y - 10);
+    ctx.lineTo(x + 25, y + 10);
+    ctx.stroke();
+
+    // Legs
+    ctx.beginPath();
+    ctx.moveTo(x, y + 20);
+    ctx.lineTo(x - 20, y + 50);
+    ctx.moveTo(x, y + 20);
+    ctx.lineTo(x + 20, y + 50);
+    ctx.stroke();
+
+    // Eyes
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.ellipse(x - 6, y - 44, 5, 8, 0.2, 0, Math.PI * 2);
+    ctx.ellipse(x + 6, y - 44, 5, 8, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.ellipse(x - 6, y - 44, 2.5, 4.5, 0.2, 0, Math.PI * 2);
+    ctx.ellipse(x + 6, y - 44, 2.5, 4.5, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Draw buildings (anchors)
+  function drawBuildings() {
+    ctx.fillStyle = '#222';
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    buildings.forEach((b) => {
+      ctx.fillRect(b.x - cameraX, b.y, b.width, b.height);
+      ctx.strokeRect(b.x - cameraX, b.y, b.width, b.height);
+    });
+  }
+
+  // Draw web rope with a bit of glow
+  function drawWeb() {
+    const anchor = getAnchor();
+    const ax = anchor.x + anchor.width / 2 - cameraX;
+    const ay = anchor.y;
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.lineWidth = 4;
+    ctx.shadowColor = 'rgba(255,255,255,0.7)';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(spider.x - cameraX, spider.y);
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw buildings first (background)
+    drawBuildings();
+
+    // Draw web line if swinging
+    if (isSwinging) drawWeb();
+
+    // Draw spider stickman
+    drawSpider(spider.x - cameraX, spider.y);
+
+    // Ground line
+    ctx.strokeStyle = '#111';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-1000 - cameraX, canvas.height - 10);
+    ctx.lineTo(10000 - cameraX, canvas.height - 10);
+    ctx.stroke();
+  }
+
+  function loop() {
+    update();
+    draw();
+    scoreEl.textContent = 'Score: ' + score;
+    requestAnimationFrame(loop);
+  }
+
+  reset();
+  loop();
+})();
+</script>
+</body>
+</html>
