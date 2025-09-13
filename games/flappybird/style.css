@@ -1,9 +1,0 @@
-body {
-    font-family: 'Courier New', Courier, monospace;
-    text-align: center;
-}
-
-#board {
-    background-image: url("./Images/flappybirdbg.png");
-    cursor: default;
-}
