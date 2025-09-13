@@ -1,13 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pac-Man </title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Simple Pac-Man</title>
+<style>
+  body { background: black; display: flex; justify-content: center; align-items: center; height: 100vh; }
+  canvas { background: #000; display: block; }
+</style>
 </head>
 <body>
-  <canvas id="gameCanvas"></canvas>
-  <script src="game.js"></script>
+<canvas id="game" width="400" height="400"></canvas>
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+let pacman = { x: 50, y: 50, size: 20, dx: 0, dy: 0 };
+let dots = [];
+
+// Create dots
+for(let i=0;i<10;i++){
+  for(let j=0;j<10;j++){
+    dots.push({x: i*40+15, y: j*40+15, eaten:false});
+  }
+}
+
+// Handle keyboard
+document.addEventListener('keydown', e => {
+  if(e.key === 'ArrowUp'){ pacman.dx = 0; pacman.dy = -5; }
+  if(e.key === 'ArrowDown'){ pacman.dx = 0; pacman.dy = 5; }
+  if(e.key === 'ArrowLeft'){ pacman.dx = -5; pacman.dy = 0; }
+  if(e.key === 'ArrowRight'){ pacman.dx = 5; pacman.dy = 0; }
+});
+
+function update(){
+  pacman.x += pacman.dx;
+  pacman.y += pacman.dy;
+
+  // Eat dots
+  dots.forEach(dot => {
+    if(!dot.eaten && Math.hypot(pacman.x - dot.x, pacman.y - dot.y) < pacman.size/2){
+      dot.eaten = true;
+    }
+  });
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // Draw Pac-Man
+  ctx.fillStyle = 'yellow';
+  ctx.beginPath();
+  ctx.arc(pacman.x, pacman.y, pacman.size/2, 0.25*Math.PI, 1.75*Math.PI);
+  ctx.lineTo(pacman.x, pacman.y);
+  ctx.fill();
+
+  // Draw dots
+  ctx.fillStyle = 'white';
+  dots.forEach(dot => {
+    if(!dot.eaten){
+      ctx.beginPath();
+      ctx.arc(dot.x, dot.y, 5, 0, Math.PI*2);
+      ctx.fill();
+    }
+  });
+}
+
+function loop(){
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
 </body>
 </html>
