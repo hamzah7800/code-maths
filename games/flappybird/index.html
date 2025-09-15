@@ -55,13 +55,13 @@
 
     // Game settings (easier)
     const gravity = 0.4;
-    const flapStrength = -11; // stronger flap
-    let bird, pipes, frameCount, score, gameOver;
+    const flapStrength = -8; // smoother, not too high
+    let bird, pipes, clouds, frameCount, score, gameOver;
 
     // Ground
     let groundX = 0;
     const groundHeight = 100;
-    const groundSpeed = 2.5; // slower for easier play
+    const groundSpeed = 2.5;
 
     function drawGround() {
       groundX = (groundX - groundSpeed) % cw;
@@ -70,7 +70,32 @@
       ctx.fillRect(groundX + cw, ch - groundHeight, cw, groundHeight);
     }
 
-    // Bird object (OG style drawing)
+    // Clouds
+    class Cloud {
+      constructor() {
+        this.x = Math.random() * cw;
+        this.y = Math.random() * (ch / 3);
+        this.size = Math.random() * 40 + 40;
+        this.speed = Math.random() * 1 + 0.5; // slow clouds
+      }
+      update() {
+        this.x -= this.speed;
+        if (this.x + this.size < 0) {
+          this.x = cw + this.size;
+          this.y = Math.random() * (ch / 3);
+        }
+      }
+      draw() {
+        ctx.fillStyle = "white";
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * 0.6, 0, Math.PI * 2);
+        ctx.arc(this.x + this.size * 0.5, this.y + 10, this.size * 0.5, 0, Math.PI * 2);
+        ctx.arc(this.x - this.size * 0.5, this.y + 10, this.size * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Bird object (OG style)
     class Bird {
       constructor() {
         this.x = cw / 4;
@@ -90,31 +115,31 @@
         ctx.translate(this.x, this.y);
         ctx.rotate(Math.min(Math.max(this.velocity / 10, -0.3), 0.3));
 
-        // Body (yellow oval)
+        // Body
         ctx.fillStyle = "#FFD700";
         ctx.beginPath();
         ctx.ellipse(0, 0, this.radius + 5, this.radius, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Wing (small yellow circle)
+        // Wing
         ctx.fillStyle = "#FFEA00";
         ctx.beginPath();
         ctx.arc(-10, 5, 8, 0, Math.PI * 2);
         ctx.fill();
 
-        // Eye (white)
+        // Eye
         ctx.fillStyle = "#fff";
         ctx.beginPath();
         ctx.arc(10, -5, 8, 0, Math.PI * 2);
         ctx.fill();
 
-        // Pupil (black)
+        // Pupil
         ctx.fillStyle = "#000";
         ctx.beginPath();
         ctx.arc(12, -5, 3, 0, Math.PI * 2);
         ctx.fill();
 
-        // Beak (orange triangle)
+        // Beak
         ctx.fillStyle = "#FF8C00";
         ctx.beginPath();
         ctx.moveTo(20, 0);
@@ -131,20 +156,18 @@
     class Pipe {
       constructor() {
         this.topHeight = Math.random() * (ch / 2) + 50;
-        this.gap = Math.random() * 40 + 200; // wider gap 200–240px
+        this.gap = Math.random() * 40 + 200; // wider, easier gap
         this.bottomY = this.topHeight + this.gap;
         this.x = cw;
         this.width = 80;
-        this.speed = 2.5; // slower pipes
+        this.speed = 2.5;
       }
       update() {
         this.x -= this.speed;
       }
       draw() {
         ctx.fillStyle = "#4CAF50";
-        // Top pipe
         ctx.fillRect(this.x, 0, this.width, this.topHeight);
-        // Bottom pipe
         ctx.fillRect(this.x, this.bottomY, this.width, ch - this.bottomY - groundHeight);
       }
     }
@@ -152,6 +175,7 @@
     function init() {
       bird = new Bird();
       pipes = [];
+      clouds = Array.from({ length: 5 }, () => new Cloud());
       frameCount = 0;
       score = 0;
       gameOver = false;
@@ -165,21 +189,25 @@
       requestAnimationFrame(animate);
       ctx.clearRect(0, 0, cw, ch);
 
-      // Update bird
+      // Draw clouds
+      clouds.forEach(cloud => {
+        cloud.update();
+        cloud.draw();
+      });
+
+      // Bird
       bird.update();
       bird.draw();
 
-      // Add new pipes
+      // Pipes
       if (frameCount % 100 === 0) {
         pipes.push(new Pipe());
       }
-
-      // Update and draw pipes
       pipes.forEach((pipe, index) => {
         pipe.update();
         pipe.draw();
 
-        // Collision check
+        // Collision
         if (
           bird.x + bird.radius > pipe.x &&
           bird.x - bird.radius < pipe.x + pipe.width &&
@@ -202,10 +230,10 @@
         }
       });
 
-      // Draw ground
+      // Ground
       drawGround();
 
-      // Ground collision
+      // Ground/top collision
       if (bird.y + bird.radius >= ch - groundHeight || bird.y - bird.radius <= 0) {
         endGame();
       }
