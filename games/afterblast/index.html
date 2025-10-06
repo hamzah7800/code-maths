@@ -1,43 +1,26 @@
 <!doctype html>
 <html>
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Mobile Zombie Shooter</title>
-<style>
-  html,body {height:100%; margin:0; background:#111; color:#eee; font-family:system-ui,Segoe UI,Arial;}
-  #game {display:block; width:100%; height:100vh; touch-action:none; background:linear-gradient(#222,#111);}
-  .ui {
-    position: absolute; top:10px; left:10px; right:10px; pointer-events:none;
-    display:flex; justify-content:space-between; gap:10px;
-  }
-  .panel {background:rgba(0,0,0,0.4); padding:6px 10px; border-radius:8px; font-size:14px; pointer-events:auto;}
-  #shopBtn {cursor:pointer;}
-  #shop {
-    position:absolute; top:60px; right:10px; width:220px;
-    background:rgba(0,0,0,0.9); border-radius:10px; padding:8px; color:#fff;
-    display:none; pointer-events:auto; z-index:10;
-  }
-  .shop-item{display:flex; justify-content:space-between; padding:6px; border-bottom:1px solid rgba(255,255,255,0.06);}
-  button.buy {background:#2b7; border:none; padding:6px 8px; border-radius:6px; cursor:pointer;}
-  .joystick {
-    position:absolute; width:150px; height:150px; border-radius:50%; background:rgba(255,255,255,0.02);
-    display:flex; align-items:center; justify-content:center; touch-action:none; pointer-events:none;
-  }
-  .stick {
-    width:56px; height:56px; border-radius:50%; background:rgba(255,255,255,0.06); pointer-events:none;
-    transform:translate(0,0);
-  }
-  #leftJoy {left:12px; bottom:12px;}
-  #rightJoy {right:12px; bottom:12px;}
-  .toast{position:absolute; left:50%; transform:translateX(-50%); bottom:180px; background:rgba(0,0,0,0.7); padding:8px 12px; border-radius:8px;}
-  #pauseOverlay {
-    position:absolute; top:0; left:0; width:100%; height:100%;
-    background:rgba(0,0,0,0.5); display:none;
-    align-items:center; justify-content:center; color:#fff;
-    font-size:28px; z-index:5;
-  }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Enhanced Zombie Shooter</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #111; color: #eee; font-family: system-ui; }
+    #game { display: block; width: 100%; height: 100vh; touch-action: none; background: linear-gradient(#222, #111); }
+    .ui { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; pointer-events: none; }
+    .panel { background: rgba(0, 0, 0, 0.4); padding: 6px 10px; border-radius: 8px; pointer-events: auto; }
+    #shopBtn { cursor: pointer; }
+    #shop { position: absolute; top: 60px; right: 10px; width: 220px; background: rgba(0, 0, 0, 0.9); border-radius: 10px; padding: 8px; color: #fff; display: none; z-index: 10; }
+    .shop-item { display: flex; justify-content: space-between; padding: 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+    button.buy { background: #2b7; border: none; padding: 6px 8px; border-radius: 6px; cursor: pointer; }
+    .joystick { position: absolute; width: 150px; height: 150px; border-radius: 50%; background: rgba(255, 255, 255, 0.02); display: flex; align-items: center; justify-content: center; touch-action: none; pointer-events: none; }
+    .stick { width: 56px; height: 56px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); pointer-events: none; transform: translate(0, 0); }
+    #leftJoy { left: 12px; bottom: 12px; }
+    #rightJoy { right: 12px; bottom: 12px; position: absolute; }
+    .aimDir { position: absolute; width: 2px; height: 45px; background: rgba(255, 255, 255, 0.25); top: 50%; left: 50%; transform-origin: center bottom; pointer-events: none; border-radius: 1px; }
+    .toast { position: absolute; left: 50%; transform: translateX(-50%); bottom: 180px; background: rgba(0, 0, 0, 0.7); padding: 8px 12px; border-radius: 8px; }
+    #pauseOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; align-items: center; justify-content: center; color: #fff; font-size: 28px; z-index: 5; }
+  </style>
 </head>
 <body>
 
@@ -49,265 +32,38 @@
   <div class="panel" id="hudLeft">Health: <span id="hp">100</span> &nbsp; Coins: <span id="coins">0</span></div>
   <div class="panel" id="hudRight">
     Weapon: <span id="weaponName">Pistol</span> &nbsp; Ammo: <span id="ammo">∞</span>
-    <button id="shopBtn" class="panel" style="margin-left:8px">Shop</button>
+    <button id="shopBtn" class="panel" style="margin-left:8px;">Shop</button>
   </div>
 </div>
 
 <div id="shop">
-  <div style="font-weight:700; margin-bottom:6px">Shop</div>
-  <div class="shop-item">
-    <div>Rifle (+rate & dmg)</div><div><button class="buy" onclick="buy('rifle',50)">Buy 50</button></div>
-  </div>
-  <div class="shop-item">
-    <div>Kevlar (reduce dmg)</div><div><button class="buy" onclick="buy('armor',80)">Buy 80</button></div>
-  </div>
-  <div style="text-align:center; margin-top:8px"><button class="buy" onclick="closeShop()">Close</button></div>
+  <div style="font-weight:700;margin-bottom:6px;">Shop</div>
+  <div class="shop-item"><div>Rifle (+rate & dmg)</div><div><button class="buy" onclick="buy('rifle',50)">Buy 50</button></div></div>
+  <div class="shop-item"><div>Kevlar (reduce dmg)</div><div><button class="buy" onclick="buy('armor',80)">Buy 80</button></div></div>
+  <div class="shop-item"><div>Health Potion</div><div><button class="buy" onclick="buy('healthPotion',30)">Buy 30</button></div></div>
+  <div class="shop-item"><div>Speed Boost</div><div><button class="buy" onclick="buy('speedBoost',40)">Buy 40</button></div></div>
+  <div style="text-align:center;margin-top:8px;"><button class="buy" onclick="closeShop()">Close</button></div>
 </div>
 
 <div id="leftJoy" class="joystick"><div class="stick" id="leftStick"></div></div>
-<div id="rightJoy" class="joystick"><div class="stick" id="rightStick"></div></div>
+<div id="rightJoy" class="joystick">
+  <div class="aimDir" id="aimDir"></div>
+  <div class="stick" id="rightStick"></div>
+</div>
+
 <div id="toast" class="toast" style="display:none"></div>
 
 <script>
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
-addEventListener('resize', resize); resize();
-
-function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
-function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+function resize() {
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+addEventListener('resize', resize);
+resize();
 
 const state = {
-  player:{x:canvas.width/2,y:canvas.height/2,r:18,hp:100,maxHp:100,speed:160,armor:0,weapon:'pistol'},
-  bullets:[], zombies:[], pickups:[],
-  coins:0, lastSpawn:0, time:0,
-  inputs:{move:{x:0,y:0}, aim:{x:0,y:0}, aiming:false},
-  purchased:{rifle:false, armor:false},
-  paused:false
-};
-
-const weapons = {
-  pistol:{name:'Pistol',dmg:16,rate:400,bulletSpeed:420,ammo:-1},
-  rifle:{name:'Rifle',dmg:28,rate:120,bulletSpeed:650,ammo:-1}
-};
-let lastFire=0;
-
-const shopEl=document.getElementById('shop');
-const pauseOverlay=document.getElementById('pauseOverlay');
-
-document.getElementById('shopBtn').addEventListener('click',()=>{
-  state.paused=true;
-  shopEl.style.display='block';
-  pauseOverlay.style.display='flex';
-  showToast('Game paused');
-});
-function closeShop(){
-  shopEl.style.display='none';
-  state.paused=false;
-  pauseOverlay.style.display='none';
-  showToast('Game resumed');
-}
-function buy(item,cost){
-  if(state.coins<cost){showToast('Not enough coins');return;}
-  state.coins-=cost;
-  if(item==='rifle'){state.purchased.rifle=true;showToast('Rifle purchased');}
-  if(item==='armor'){state.purchased.armor=true;state.player.armor=0.25;showToast('Kevlar equipped');}
-  updateHUD();
-}
-
-function updateHUD(){
-  document.getElementById('hp').textContent=Math.round(state.player.hp);
-  document.getElementById('coins').textContent=state.coins;
-  document.getElementById('weaponName').textContent=weapons[state.player.weapon].name;
-  document.getElementById('ammo').textContent='∞';
-}
-function showToast(t){
-  const el=document.getElementById('toast');
-  el.textContent=t; el.style.display='block';
-  clearTimeout(el._t); el._t=setTimeout(()=>el.style.display='none',1500);
-}
-
-function spawnZombie(){
-  const edge=Math.random();
-  let x,y;
-  if(edge<0.25){x=-30;y=Math.random()*canvas.height;}
-  else if(edge<0.5){x=canvas.width+30;y=Math.random()*canvas.height;}
-  else if(edge<0.75){x=Math.random()*canvas.width;y=-30;}
-  else{x=Math.random()*canvas.width;y=canvas.height+30;}
-  state.zombies.push({x,y,r:16+Math.random()*8,hp:40+Math.random()*30,speed:50+Math.random()*20,rot:0});
-}
-function spawnPickup(x,y){state.pickups.push({x,y,r:10,t:'coin',val:10});}
-
-let last=performance.now();
-function loop(now){
-  const dt=Math.min(0.05,(now-last)/1000);
-  last=now; state.time+=dt;
-  update(dt);
-  render();
-  requestAnimationFrame(loop);
-}
-requestAnimationFrame(loop);
-
-function update(dt){
-  if(state.paused) return;
-
-  const p=state.player;
-  if(state.purchased.rifle)p.weapon='rifle';
-  else p.weapon='pistol';
-
-  const mv=state.inputs.move; const mag=Math.hypot(mv.x,mv.y);
-  if(mag>0.01){p.x+=mv.x/mag*p.speed*dt; p.y+=mv.y/mag*p.speed*dt;}
-
-  const aim=state.inputs.aim; const aimMag=Math.hypot(aim.x,aim.y);
-  const FIRE_THRESHOLD=0.25;
-  if(aimMag>FIRE_THRESHOLD){
-    state.inputs.aiming=true;
-    const now=performance.now();
-    const w=weapons[p.weapon];
-    if(now-lastFire>w.rate){
-      lastFire=now;
-      const ang=Math.atan2(aim.y,aim.x);
-      state.bullets.push({x:p.x+Math.cos(ang)*(p.r+10),y:p.y+Math.sin(ang)*(p.r+10),
-        vx:Math.cos(ang)*w.bulletSpeed,vy:Math.sin(ang)*w.bulletSpeed,r:4,dmg:w.dmg,life:2});
-    }
-  }else state.inputs.aiming=false;
-
-  for(let i=state.bullets.length-1;i>=0;i--){
-    const b=state.bullets[i];
-    b.x+=b.vx*dt; b.y+=b.vy*dt; b.life-=dt;
-    if(b.life<=0){state.bullets.splice(i,1);continue;}
-    for(let j=state.zombies.length-1;j>=0;j--){
-      const z=state.zombies[j];
-      if(Math.hypot(b.x-z.x,b.y-z.y)<z.r+b.r){
-        z.hp-=b.dmg; state.bullets.splice(i,1);
-        if(z.hp<=0){state.coins+=10;spawnPickup(z.x,z.y);state.zombies.splice(j,1);}
-        break;
-      }
-    }
-  }
-
-  for(const z of state.zombies){
-    const ang=Math.atan2(p.y-z.y,p.x-z.x);
-    z.x+=Math.cos(ang)*z.speed*dt;
-    z.y+=Math.sin(ang)*z.speed*dt;
-    z.rot=ang;
-    if(Math.hypot(z.x-p.x,z.y-p.y)<z.r+p.r){
-      if(!z._hitTimer||state.time-z._hitTimer>0.6){
-        z._hitTimer=state.time;
-        const dmg=(14+Math.random()*6)*(1-(p.armor||0));
-        p.hp-=dmg;
-        if(p.hp<=0){p.hp=0;showToast('You died — refresh to restart');}
-      }
-    }
-  }
-
-  for(let i=state.pickups.length-1;i>=0;i--){
-    const pk=state.pickups[i];
-    if(Math.hypot(pk.x-p.x,pk.y-p.y)<pk.r+p.r){
-      if(pk.t==='coin'){state.coins+=pk.val;state.pickups.splice(i,1);}
-    }
-  }
-
-  if(state.time-state.lastSpawn>1){
-    state.lastSpawn=state.time;
-    if(state.zombies.length<15)spawnZombie();
-  }
-  updateHUD();
-}
-
-function render(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.save(); ctx.globalAlpha=0.03; ctx.fillStyle='#fff';
-  for(let x=0;x<canvas.width;x+=40)ctx.fillRect(x,0,1,canvas.height);
-  for(let y=0;y<canvas.height;y+=40)ctx.fillRect(0,y,canvas.width,1);
-  ctx.restore();
-
-  for(const pk of state.pickups){
-    ctx.beginPath();ctx.fillStyle='#ffd700';ctx.arc(pk.x,pk.y,pk.r,0,Math.PI*2);ctx.fill();
-  }
-
-  for(const z of state.zombies){
-    ctx.save();ctx.translate(z.x,z.y);ctx.rotate(z.rot);
-    ctx.fillStyle='#5a8c5a';ctx.beginPath();ctx.ellipse(0,0,z.r,z.r*0.9,0,0,Math.PI*2);ctx.fill();
-    ctx.restore();
-  }
-
-  for(const b of state.bullets){
-    ctx.beginPath();ctx.fillStyle='#ffebc6';ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill();
-  }
-
-  const p=state.player;
-  ctx.save();ctx.translate(p.x,p.y);
-  ctx.fillStyle='#4aa3ff';ctx.beginPath();ctx.arc(0,0,p.r,0,Math.PI*2);ctx.fill();
-  if(state.inputs.aiming){
-    const ang=Math.atan2(state.inputs.aim.y,state.inputs.aim.x);
-    ctx.fillStyle='#ff9';ctx.fillRect(Math.cos(ang)*p.r,Math.sin(ang)*p.r,18,6);
-  }
-  if(p.armor){
-    ctx.lineWidth=3;ctx.strokeStyle='rgba(200,200,255,0.25)';
-    ctx.beginPath();ctx.arc(0,0,p.r+6,0,Math.PI*2);ctx.stroke();
-  }
-  ctx.restore();
-}
-
-const leftJoyEl=document.getElementById('leftJoy');
-const rightJoyEl=document.getElementById('rightJoy');
-const leftStick=document.getElementById('leftStick');
-const rightStick=document.getElementById('rightStick');
-const JOY_SIZE=150, STICK_RADIUS=28;
-
-let leftTouchId=null,rightTouchId=null;
-
-function processJoyTouch(joyEl,stickEl,x,y){
-  const rect=joyEl.getBoundingClientRect();
-  const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
-  const dx=x-cx, dy=y-cy;
-  const max=rect.width/2-STICK_RADIUS;
-  const mag=Math.hypot(dx,dy);
-  const mx=(mag>max?dx/mag*max:dx);
-  const my=(mag>max?dy/mag*max:dy);
-  stickEl.style.transform=`translate(${mx}px,${my}px)`;
-  return {x:mx/max,y:my/max,mag:mag/max};
-}
-function resetStick(stickEl){stickEl.style.transform='translate(0,0)';}
-
-function onTouchStart(e){
-  for(const t of e.changedTouches){
-    if(t.clientX<innerWidth/2 && leftTouchId===null){leftTouchId=t.identifier;
-      const v=processJoyTouch(leftJoyEl,leftStick,t.clientX,t.clientY);
-      state.inputs.move.x=v.x;state.inputs.move.y=v.y;}
-    else if(t.clientX>=innerWidth/2 && rightTouchId===null){rightTouchId=t.identifier;
-      const v=processJoyTouch(rightJoyEl,rightStick,t.clientX,t.clientY);
-      state.inputs.aim.x=v.x;state.inputs.aim.y=v.y;}
-  }
-}
-function onTouchMove(e){
-  for(const t of e.changedTouches){
-    if(t.identifier===leftTouchId){
-      const v=processJoyTouch(leftJoyEl,leftStick,t.clientX,t.clientY);
-      state.inputs.move.x=clamp(v.x,-1,1);state.inputs.move.y=clamp(v.y,-1,1);
-    }else if(t.identifier===rightTouchId){
-      const v=processJoyTouch(rightJoyEl,rightStick,t.clientX,t.clientY);
-      const deadZone=0.15;
-      let ax=v.x,ay=v.y,mag=Math.hypot(ax,ay);
-      if(mag<deadZone){ax=0;ay=0;}
-      else{const scale=(mag-deadZone)/(1-deadZone);ax=(ax/mag)*scale;ay=(ay/mag)*scale;}
-      state.inputs.aim.x=clamp(ax,-1,1);state.inputs.aim.y=clamp(ay,-1,1);
-    }
-  }
-}
-function onTouchEnd(e){
-  for(const t of e.changedTouches){
-    if(t.identifier===leftTouchId){leftTouchId=null;state.inputs.move.x=0;state.inputs.move.y=0;resetStick(leftStick);}
-    else if(t.identifier===rightTouchId){rightTouchId=null;state.inputs.aim.x=0;state.inputs.aim.y=0;state.inputs.aiming=false;resetStick(rightStick);}
-  }
-}
-window.addEventListener('touchstart',onTouchStart,{passive:false});
-window.addEventListener('touchmove',onTouchMove,{passive:false});
-window.addEventListener('touchend',onTouchEnd,{passive:false});
-
-for(let i=0;i<6;i++)spawnZombie();
-updateHUD();
-</script>
-</body>
-</html>
+  player: { x: canvas.width / 2, y: canvas.height / 
+::contentReference[oaicite:37]{index=37}
+ 
