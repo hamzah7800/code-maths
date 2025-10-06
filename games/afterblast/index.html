@@ -1,18 +1,23 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="3D lobby for the Afterblast game using Babylon.js">
-    <title>Afterblast 3D Lobby</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.babylonjs.com/babylon.js"></script>
-    <script src="https://cdn.babylonjs.com/cannon.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
-    <script src="game.js" defer></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Mobile-first Web FPS (starter)</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
 </head>
 <body>
-    <canvas id="renderCanvas"></canvas>
-    <script src="controls.js" defer></script>
+  <div id="hud">
+    <div id="fps">FPS: --</div>
+    <div id="hint">Click / Tap to lock and control — WASD or left joystick to move.</div>
+  </div>
+  <div id="mobile-ui" class="hidden">
+    <div id="left-joystick" class="joystick"></div>
+    <div id="right-area" class="right-area"></div>
+    <button id="jump-btn" class="touch-btn">Jump</button>
+    <button id="sprint-btn" class="touch-btn">Sprint</button>
+  </div>
+  <script type="module" src="main.js"></script>
 </body>
 </html>
