@@ -1,12 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Crossy Road Game</title>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <title>Crossy Road Game</title>
+
+    <!-- Prevent zooming and scaling -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
     <link rel="stylesheet" href="style.css" />
 
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        touch-action: manipulation; /* Prevent double-tap zoom */
+        background: #000;
+      }
 
+      #counter {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        color: white;
+        font-size: 24px;
+        font-family: sans-serif;
+        z-index: 10;
+      }
+
+      #controlls {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+      }
+
+      #controlls div {
+        display: flex;
+        gap: 10px;
+      }
+
+      #controlls button {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        border-radius: 8px;
+        padding: 10px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      #controlls button:active {
+        background: rgba(255, 255, 255, 0.4);
+      }
+
+      #end {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: none;
+        z-index: 20;
+      }
+
+      #retry {
+        font-size: 20px;
+        padding: 10px 20px;
+      }
+
+      svg path {
+        fill: white;
+      }
+    </style>
   </head>
   <body>
     <div id="counter">0</div>
@@ -20,6 +93,8 @@
             </g>
           </svg>
         </button>
+      </div>
+      <div>
         <button id="left">
           <svg width="30" height="30" viewBox="0 0 10 10">
             <g transform="rotate(-90, 5,5)">
@@ -47,7 +122,41 @@
     <div id="end">
       <button id="retry">Retry</button>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/99/three.min.js"></script>
-    <script src="script.js"></script>
+
+    <!-- Use a modern version of Three.js for better performance -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.166.0/build/three.min.js"></script>
+
+    <!-- Custom script optimized for 120 FPS -->
+    <script>
+      // Set up 120fps rendering
+      let desiredFPS = 120;
+      let frameTime = 1000 / desiredFPS;
+      let lastTime = 0;
+
+      function animate(time) {
+        if (time - lastTime >= frameTime) {
+          lastTime = time;
+          // Your game's update/render function
+          if (typeof gameLoop === "function") gameLoop();
+        }
+        requestAnimationFrame(animate);
+      }
+
+      requestAnimationFrame(animate);
+
+      // Prevent double-tap zoom
+      document.addEventListener("touchstart", (e) => {
+        if (e.touches.length > 1) e.preventDefault();
+      }, { passive: false });
+
+      let lastTouch = 0;
+      document.addEventListener("touchend", (e) => {
+        const now = Date.now();
+        if (now - lastTouch <= 300) e.preventDefault();
+        lastTouch = now;
+      });
+    </script>
+
+    <script src="script.js" defer></script>
   </body>
 </html>
