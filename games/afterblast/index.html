@@ -1,23 +1,37 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>Mobile-first Web FPS (starter)</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
-</head>
-<body>
-  <div id="hud">
-    <div id="fps">FPS: --</div>
-    <div id="hint">Click / Tap to lock and control — WASD or left joystick to move.</div>
-  </div>
-  <div id="mobile-ui" class="hidden">
-    <div id="left-joystick" class="joystick"></div>
-    <div id="right-area" class="right-area"></div>
-    <button id="jump-btn" class="touch-btn">Jump</button>
-    <button id="sprint-btn" class="touch-btn">Sprint</button>
-  </div>
-  <script type="module" src="main.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Three.js FPS Game</title>
+    <style>
+      body, html {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        height: 100%;
+        background: #000;
+      }
+      #overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        background: rgba(0, 0, 0, 0.9);
+        cursor: pointer;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="overlay">Click to Start</div>
+    <script src="three.min.js"></script>
+    <script src="ammo.wasm.js"></script>
+    <script src="main.js" type="module"></script>
+  </body>
 </html>
