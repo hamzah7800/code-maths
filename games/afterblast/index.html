@@ -1,37 +1,512 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Three.js FPS Game</title>
-    <style>
-      body, html {
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        height: 100%;
-        background: #000;
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Mobile Zombie Shooter (Prototype)</title>
+<style>
+  html,body {height:100%; margin:0; background:#111; color:#eee; font-family:system-ui,Segoe UI,Arial;}
+  #game {display:block; width:100%; height:100vh; touch-action:none; background:linear-gradient(#222,#111);}
+  .ui {
+    position: absolute; top:10px; left:10px; right:10px; pointer-events:none;
+    display:flex; justify-content:space-between; gap:10px;
+  }
+  .panel {background:rgba(0,0,0,0.4); padding:6px 10px; border-radius:8px; font-size:14px; pointer-events:auto;}
+  #shopBtn {cursor:pointer;}
+  #shop {position:absolute; top:60px; right:10px; width:220px; background:rgba(0,0,0,0.85); border-radius:10px; padding:8px; color:#fff; display:none; pointer-events:auto;}
+  .shop-item{display:flex; justify-content:space-between; padding:6px; border-bottom:1px solid rgba(255,255,255,0.06);}
+  button.buy {background:#2b7; border:none; padding:6px 8px; border-radius:6px; cursor:pointer;}
+  .joystick {
+    position:absolute; width:150px; height:150px; border-radius:50%; background:rgba(255,255,255,0.02);
+    display:flex; align-items:center; justify-content:center; touch-action:none; pointer-events:none;
+  }
+  .stick {
+    width:56px; height:56px; border-radius:50%; background:rgba(255,255,255,0.06); pointer-events:none;
+    transform:translate(0,0);
+  }
+  #leftJoy {left:12px; bottom:12px;}
+  #rightJoy {right:12px; bottom:12px;}
+  #controlsNote {font-size:12px; opacity:.8;}
+  .toast{position:absolute; left:50%; transform:translateX(-50%); bottom:180px; background:rgba(0,0,0,0.7); padding:8px 12px; border-radius:8px;}
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<div class="ui">
+  <div class="panel" id="hudLeft">Health: <span id="hp">100</span> &nbsp; Coins: <span id="coins">0</span></div>
+  <div class="panel" id="hudRight">
+    Weapon: <span id="weaponName">Pistol</span> &nbsp; Ammo: <span id="ammo">∞</span>
+    <button id="shopBtn" class="panel" style="margin-left:8px">Shop</button>
+  </div>
+</div>
+
+<div id="shop">
+  <div style="font-weight:700; margin-bottom:6px">Shop — Coins spent persist per run</div>
+  <div class="shop-item">
+    <div>Pistol (default)</div><div>0</div>
+  </div>
+  <div class="shop-item">
+    <div>Rifle (+rate & dmg)</div><div><button class="buy" onclick="buy('rifle',50)">Buy 50</button></div>
+  </div>
+  <div class="shop-item">
+    <div>Kevlar (reduce dmg)</div><div><button class="buy" onclick="buy('armor',80)">Buy 80</button></div>
+  </div>
+  <div style="text-align:center; margin-top:8px"><button class="buy" onclick="closeShop()">Close</button></div>
+</div>
+
+<div id="leftJoy" class="joystick" style="display:flex; pointer-events:none;">
+  <div class="stick" id="leftStick"></div>
+</div>
+<div id="rightJoy" class="joystick" style="display:flex; pointer-events:none;">
+  <div class="stick" id="rightStick"></div>
+</div>
+
+<div id="toast" class="toast" style="display:none"></div>
+
+<script>
+/* --------- Basic game setup --------- */
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d', { alpha:true });
+
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+addEventListener('resize', resize);
+resize();
+
+/* --------- Utilities --------- */
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function dist(a,b){return Math.hypot(a.x-b.x, a.y-b.y);}
+function angleTo(a,b){return Math.atan2(b.y-a.y, b.x-a.x);}
+
+/* --------- Game state --------- */
+const state = {
+  player: {
+    x: canvas.width/2, y: canvas.height/2, r:18,
+    hp:100, maxHp:100, speed:160, armor:0,
+    weapon:'pistol'
+  },
+  bullets: [],
+  zombies: [],
+  pickups: [],
+  coins:0,
+  lastSpawn:0,
+  time:0,
+  inputs: { move:{x:0,y:0}, aim:{x:0,y:0}, aiming:false },
+  purchased: {rifle:false, armor:false}
+};
+
+/* --------- Weapons --------- */
+const weapons = {
+  pistol: {name:'Pistol', dmg:16, rate:400, bulletSpeed:420, ammo:-1},
+  rifle: {name:'Rifle', dmg:28, rate:120, bulletSpeed:650, ammo:-1}
+};
+let lastFire = 0;
+
+/* --------- Shop --------- */
+const shopEl = document.getElementById('shop');
+document.getElementById('shopBtn').addEventListener('click', ()=>{ shopEl.style.display='block'; });
+function closeShop(){ shopEl.style.display='none'; }
+function buy(item, cost){
+  if(state.coins < cost){ showToast('Not enough coins'); return; }
+  state.coins -= cost;
+  if(item==='rifle'){ state.purchased.rifle=true; showToast('Rifle purchased'); }
+  if(item==='armor'){ state.purchased.armor=true; state.player.armor=0.25; showToast('Kevlar equipped'); }
+  updateHUD();
+}
+
+/* --------- HUD --------- */
+function updateHUD(){
+  document.getElementById('hp').textContent = Math.round(state.player.hp);
+  document.getElementById('coins').textContent = state.coins;
+  document.getElementById('weaponName').textContent = weapons[state.player.weapon].name;
+  document.getElementById('ammo').textContent = weapons[state.player.weapon].ammo<0 ? '∞' : weapons[state.player.weapon].ammo;
+}
+function showToast(t){
+  const el = document.getElementById('toast');
+  el.textContent = t; el.style.display='block';
+  clearTimeout(el._t); el._t = setTimeout(()=>el.style.display='none',1500);
+}
+
+/* --------- Spawning zombies & pickups --------- */
+function spawnZombie(){
+  const edge= Math.random();
+  let x,y;
+  if(edge < 0.25){ x = -30; y = Math.random()*canvas.height; }
+  else if(edge < 0.5){ x = canvas.width +30; y = Math.random()*canvas.height; }
+  else if(edge < 0.75){ x = Math.random()*canvas.width; y = -30; }
+  else { x = Math.random()*canvas.width; y = canvas.height +30; }
+  state.zombies.push({ x, y, r:16 + Math.random()*8, hp: 30 + Math.random()*30, speed:50 + Math.random()*20, rot:0 });
+}
+function spawnPickup(x,y){
+  state.pickups.push({x,y, r:10, t:'coin', val:10});
+}
+
+/* --------- Game loop --------- */
+let last = performance.now();
+function loop(now){
+  const dt = Math.min(0.05, (now-last)/1000);
+  last = now;
+  state.time += dt;
+  update(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* --------- Update logic --------- */
+function update(dt){
+  const p = state.player;
+
+  // apply purchased changes
+  if(state.purchased.rifle) p.weapon = 'rifle';
+  if(!state.purchased.rifle) p.weapon = 'pistol';
+
+  // movement
+  const mv = state.inputs.move;
+  const mag = Math.hypot(mv.x,mv.y);
+  if(mag > 0.01){
+    const nx = mv.x / mag, ny = mv.y / mag;
+    p.x += nx * p.speed * dt;
+    p.y += ny * p.speed * dt;
+  }
+
+  // firing with right joystick: auto-fire when magnitude > threshold
+  const aim = state.inputs.aim;
+  const aimMag = Math.hypot(aim.x, aim.y);
+  const FIRE_THRESHOLD = 0.25; // fractional relative to joystick radius
+  if(aimMag > FIRE_THRESHOLD){
+    state.inputs.aiming = true;
+    const now = performance.now();
+    const w = weapons[p.weapon];
+    if(now - lastFire > w.rate){
+      lastFire = now;
+      // create bullet with angle from aim vector
+      const ang = Math.atan2(aim.y, aim.x);
+      state.bullets.push({
+        x: p.x + Math.cos(ang)*(p.r+10),
+        y: p.y + Math.sin(ang)*(p.r+10),
+        vx: Math.cos(ang)*w.bulletSpeed,
+        vy: Math.sin(ang)*w.bulletSpeed,
+        r:4, dmg: w.dmg, life: 2.0
+      });
+      // muzzle flash coin chance
+    }
+  } else {
+    state.inputs.aiming = false;
+  }
+
+  // bullets
+  for(let i=state.bullets.length-1;i>=0;i--){
+    const b = state.bullets[i];
+    b.x += b.vx*dt; b.y += b.vy*dt; b.life -= dt;
+    // world bounds cull
+    if(b.life <= 0 || b.x < -50 || b.x > canvas.width+50 || b.y < -50 || b.y > canvas.height+50){
+      state.bullets.splice(i,1); continue;
+    }
+    // hit zombies
+    for(let j=state.zombies.length-1;j>=0;j--){
+      const z = state.zombies[j];
+      const d = Math.hypot(b.x-z.x, b.y-z.y);
+      if(d < z.r + b.r){
+        z.hp -= b.dmg;
+        // spawn small pickup sometimes
+        if(Math.random() < 0.15) spawnPickup(b.x,b.y);
+        state.bullets.splice(i,1);
+        if(z.hp <= 0){
+          // death
+          state.coins += 10 + Math.floor(Math.random()*15);
+          state.zombies.splice(j,1);
+          // small gore effect: spawn pickups
+          if(Math.random()<0.3) spawnPickup(z.x,z.y);
+        }
+        break;
       }
-      #overlay {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: white;
-        background: rgba(0, 0, 0, 0.9);
-        cursor: pointer;
+    }
+  }
+
+  // zombies move toward player
+  for(let i=state.zombies.length-1;i>=0;i--){
+    const z = state.zombies[i];
+    const ang = Math.atan2(p.y-z.y, p.x-z.x);
+    z.x += Math.cos(ang) * z.speed * dt;
+    z.y += Math.sin(ang) * z.speed * dt;
+    z.rot = ang;
+    // collision with player
+    const d = Math.hypot(z.x-p.x, z.y-p.y);
+    if(d < z.r + p.r){
+      // simple attack cooldown by embedding a small pushback
+      if(!z._hitTimer || state.time - z._hitTimer > 0.6){
+        z._hitTimer = state.time;
+        // damage reduced by armor
+        const base = 14 + Math.random()*6;
+        const dmg = base * (1 - (p.armor||0));
+        p.hp -= dmg;
+        // knockback
+        const k = 18;
+        p.x += Math.cos(ang) * k;
+        p.y += Math.sin(ang) * k;
+        if(p.hp <= 0){
+          p.hp = 0;
+          showToast('You died — refresh to try again');
+        }
       }
-      canvas {
-        display: block;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="overlay">Click to Start</div>
-    <script src="three.min.js"></script>
-    <script src="ammo.wasm.js"></script>
-    <script src="main.js" type="module"></script>
-  </body>
+    }
+  }
+
+  // pickups
+  for(let i=state.pickups.length-1;i>=0;i--){
+    const pk = state.pickups[i];
+    if(Math.hypot(pk.x-p.x, pk.y-p.y) < pk.r + p.r){
+      if(pk.t==='coin'){ state.coins += pk.val; state.pickups.splice(i,1); updateHUD(); }
+    }
+  }
+
+  // spawn zombies periodically
+  if(state.time - state.lastSpawn > 1.0){
+    state.lastSpawn = state.time;
+    if(state.zombies.length < 18) spawnZombie();
+  }
+
+  // update HUD
+  updateHUD();
+}
+
+/* --------- Rendering --------- */
+function render(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // background grid
+  const gSize = 40;
+  ctx.save();
+  ctx.globalAlpha = 0.03;
+  ctx.fillStyle = '#fff';
+  for(let x=0;x<canvas.width;x+=gSize){
+    ctx.fillRect(x,0,1,canvas.height);
+  }
+  for(let y=0;y<canvas.height;y+=gSize){
+    ctx.fillRect(0,y,canvas.width,1);
+  }
+  ctx.restore();
+
+  // pickups
+  for(const pk of state.pickups){
+    ctx.beginPath();
+    ctx.fillStyle = '#ffd700';
+    ctx.arc(pk.x, pk.y, pk.r, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#111';
+    ctx.font='12px sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText('+'+pk.val, pk.x, pk.y+4);
+  }
+
+  // zombies
+  for(const z of state.zombies){
+    ctx.save();
+    ctx.translate(z.x, z.y);
+    ctx.rotate(z.rot);
+    ctx.fillStyle = '#5a8c5a';
+    ctx.beginPath(); ctx.ellipse(0,0,z.r,z.r*0.9,0,0,Math.PI*2); ctx.fill();
+    // eyes
+    ctx.fillStyle = '#111';
+    ctx.fillRect(-z.r*0.6,-4,6,6);
+    ctx.fillRect(-z.r*0.2,-4,6,6);
+    ctx.restore();
+    // HP bar
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(z.x - z.r, z.y - z.r - 8, z.r*2, 5);
+    ctx.fillStyle = '#f55';
+    ctx.fillRect(z.x - z.r, z.y - z.r - 8, (z.hp/(z.r*2+20)) * z.r*2, 5);
+  }
+
+  // bullets
+  for(const b of state.bullets){
+    ctx.beginPath();
+    ctx.fillStyle = '#ffebc6';
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI*2); ctx.fill();
+  }
+
+  // player
+  const p = state.player;
+  ctx.save();
+  ctx.translate(p.x,p.y);
+  ctx.fillStyle = '#4aa3ff';
+  ctx.beginPath(); ctx.arc(0,0,p.r,0,Math.PI*2); ctx.fill();
+  // weapon muzzle (aim direction)
+  if(state.inputs.aiming){
+    const ang = Math.atan2(state.inputs.aim.y, state.inputs.aim.x);
+    ctx.fillStyle = '#ff9';
+    ctx.fillRect(Math.cos(ang)*(p.r), Math.sin(ang)*(p.r), 18,6);
+  }
+  // armor ring
+  if(p.armor){
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(200,200,255,0.25)';
+    ctx.beginPath(); ctx.arc(0,0,p.r+6,0,Math.PI*2); ctx.stroke();
+  }
+  ctx.restore();
+
+  // debug: joystick visuals handled by DOM sticks
+}
+
+/* --------- Virtual joystick implementation (touch) --------- */
+/* We'll implement two independent draggable joystick areas anchored on bottom-left and bottom-right.
+   The visible stick elements follow touches, while we keep normalized vectors in state.inputs.
+*/
+
+const leftJoyEl = document.getElementById('leftJoy');
+const rightJoyEl = document.getElementById('rightJoy');
+const leftStick = document.getElementById('leftStick');
+const rightStick = document.getElementById('rightStick');
+
+const JOY_SIZE = 150; // px
+const STICK_RADIUS = 56/2;
+leftJoyEl.style.width = leftJoyEl.style.height = JOY_SIZE+'px';
+rightJoyEl.style.width = rightJoyEl.style.height = JOY_SIZE+'px';
+
+// place them visually (absolute styles already via CSS)
+function placeJoysticks(){
+  // left bottom-left, right bottom-right
+  leftJoyEl.style.left = '12px';
+  leftJoyEl.style.bottom = '12px';
+  rightJoyEl.style.right = '12px';
+  rightJoyEl.style.bottom = '12px';
+}
+placeJoysticks();
+
+// track touch ids
+let leftTouchId = null;
+let rightTouchId = null;
+
+// convert a touch client point to local joystick normalized vector (-1..1)
+function processJoyTouch(joyEl, stickEl, clientX, clientY){
+  const rect = joyEl.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+  const dx = clientX - cx;
+  const dy = clientY - cy;
+  const max = rect.width/2 - STICK_RADIUS;
+  const mag = Math.hypot(dx,dy);
+  const mx = (mag > max) ? (dx / mag * max) : dx;
+  const my = (mag > max) ? (dy / mag * max) : dy;
+  stickEl.style.transform = `translate(${mx}px, ${my}px)`;
+  // normalized vector
+  return { x: mx / max, y: my / max, rawMag: mag/max };
+}
+
+// reset stick visual
+function resetStick(stickEl){
+  stickEl.style.transform = 'translate(0px,0px)';
+}
+
+// touch handlers
+function onTouchStart(e){
+  for(const t of e.changedTouches){
+    // decide left or right by touch x position (simple heuristics)
+    if(t.clientX < window.innerWidth/2 && leftTouchId === null){
+      leftTouchId = t.identifier;
+      leftJoyEl.style.display = 'block';
+      const v = processJoyTouch(leftJoyEl, leftStick, t.clientX, t.clientY);
+      state.inputs.move.x = v.x;
+      state.inputs.move.y = v.y;
+    } else if(t.clientX >= window.innerWidth/2 && rightTouchId === null){
+      rightTouchId = t.identifier;
+      rightJoyEl.style.display = 'block';
+      const v = processJoyTouch(rightJoyEl, rightStick, t.clientX, t.clientY);
+      state.inputs.aim.x = v.x;
+      state.inputs.aim.y = v.y;
+    }
+  }
+}
+function onTouchMove(e){
+  for(const t of e.changedTouches){
+    if(t.identifier === leftTouchId){
+      const v = processJoyTouch(leftJoyEl, leftStick, t.clientX, t.clientY);
+      state.inputs.move.x = clamp(v.x,-1,1);
+      state.inputs.move.y = clamp(v.y,-1,1);
+    } else if(t.identifier === rightTouchId){
+      const v = processJoyTouch(rightJoyEl, rightStick, t.clientX, t.clientY);
+      state.inputs.aim.x = clamp(v.x,-1,1);
+      state.inputs.aim.y = clamp(v.y,-1,1);
+    }
+  }
+}
+function onTouchEnd(e){
+  for(const t of e.changedTouches){
+    if(t.identifier === leftTouchId){
+      leftTouchId = null; state.inputs.move.x = 0; state.inputs.move.y = 0; resetStick(leftStick);
+    } else if(t.identifier === rightTouchId){
+      rightTouchId = null; state.inputs.aim.x = 0; state.inputs.aim.y = 0; state.inputs.aiming=false; resetStick(rightStick);
+    }
+  }
+}
+
+// mouse fallback for desktop testing
+let mouseDown = false;
+addEventListener('mousedown', (ev)=>{
+  mouseDown = true;
+  // choose left or right half by x
+  const fake = { identifier:'mouse', clientX:ev.clientX, clientY:ev.clientY };
+  if(ev.clientX < innerWidth/2) leftTouchId = 'mouse';
+  else rightTouchId = 'mouse';
+  onTouchStart({ changedTouches: [fake], preventDefault:()=>{} });
+});
+addEventListener('mousemove', (ev)=>{
+  if(!mouseDown) return;
+  const fake = { identifier:'mouse', clientX:ev.clientX, clientY:ev.clientY };
+  onTouchMove({ changedTouches: [fake], preventDefault:()=>{} });
+});
+addEventListener('mouseup', (ev)=>{
+  mouseDown=false;
+  const fake = { identifier:'mouse', clientX:ev.clientX, clientY:ev.clientY };
+  onTouchEnd({ changedTouches: [fake], preventDefault:()=>{} });
+});
+
+window.addEventListener('touchstart', onTouchStart, {passive:false});
+window.addEventListener('touchmove', onTouchMove, {passive:false});
+window.addEventListener('touchend', onTouchEnd, {passive:false});
+
+/* --------- Init few zombies & pickups for fun --------- */
+for(let i=0;i<6;i++) spawnZombie();
+for(let i=0;i<3;i++) spawnPickup(Math.random()*canvas.width, Math.random()*canvas.height);
+
+updateHUD();
+
+/* --------- Helpful controls for desktop testers --------- */
+// WASD movement and mouse aiming (desktop)
+addEventListener('keydown', (e)=>{
+  if(e.key === 'w' || e.key === 'ArrowUp') state.inputs.move.y = -1;
+  if(e.key === 's' || e.key === 'ArrowDown') state.inputs.move.y = 1;
+  if(e.key === 'a' || e.key === 'ArrowLeft') state.inputs.move.x = -1;
+  if(e.key === 'd' || e.key === 'ArrowRight') state.inputs.move.x = 1;
+});
+addEventListener('keyup',(e)=>{
+  if(['w','s','a','d','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) state.inputs.move.x = 0, state.inputs.move.y = 0;
+});
+addEventListener('mousemove',(e)=>{
+  // only enable if no touch - use as aiming
+  if('ontouchstart' in window) return;
+  const px = e.clientX - state.player.x; const py = e.clientY - state.player.y;
+  const max = 200;
+  state.inputs.aim.x = clamp(px/max,-1,1);
+  state.inputs.aim.y = clamp(py/max,-1,1);
+  state.inputs.aiming = Math.hypot(state.inputs.aim.x, state.inputs.aim.y) > 0.2;
+  // move rightStick for desktop visuals
+  const rect = rightJoyEl.getBoundingClientRect();
+  // approximate mapping:
+  rightStick.style.transform = `translate(${state.inputs.aim.x*(rect.width/2 - STICK_RADIUS)}px, ${state.inputs.aim.y*(rect.height/2 - STICK_RADIUS)}px)`;
+});
+addEventListener('click', (e)=>{
+  // pick up coins quickly on click near pickups
+  for(let i=state.pickups.length-1;i>=0;i--){
+    if(Math.hypot(e.clientX-state.pickups[i].x, e.clientY-state.pickups[i].y) < 30){
+      state.coins += state.pickups[i].val; state.pickups.splice(i,1); updateHUD();
+    }
+  }
+});
+</script>
+</body>
 </html>
