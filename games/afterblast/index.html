@@ -1,69 +1,241 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Enhanced Zombie Shooter</title>
-  <style>
-    html, body { margin: 0; height: 100%; background: #111; color: #eee; font-family: system-ui; }
-    #game { display: block; width: 100%; height: 100vh; touch-action: none; background: linear-gradient(#222, #111); }
-    .ui { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; pointer-events: none; }
-    .panel { background: rgba(0, 0, 0, 0.4); padding: 6px 10px; border-radius: 8px; pointer-events: auto; }
-    #shopBtn { cursor: pointer; }
-    #shop { position: absolute; top: 60px; right: 10px; width: 220px; background: rgba(0, 0, 0, 0.9); border-radius: 10px; padding: 8px; color: #fff; display: none; z-index: 10; }
-    .shop-item { display: flex; justify-content: space-between; padding: 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
-    button.buy { background: #2b7; border: none; padding: 6px 8px; border-radius: 6px; cursor: pointer; }
-    .joystick { position: absolute; width: 150px; height: 150px; border-radius: 50%; background: rgba(255, 255, 255, 0.02); display: flex; align-items: center; justify-content: center; touch-action: none; pointer-events: none; }
-    .stick { width: 56px; height: 56px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); pointer-events: none; transform: translate(0, 0); }
-    #leftJoy { left: 12px; bottom: 12px; }
-    #rightJoy { right: 12px; bottom: 12px; position: absolute; }
-    .aimDir { position: absolute; width: 2px; height: 45px; background: rgba(255, 255, 255, 0.25); top: 50%; left: 50%; transform-origin: center bottom; pointer-events: none; border-radius: 1px; }
-    .toast { position: absolute; left: 50%; transform: translateX(-50%); bottom: 180px; background: rgba(0, 0, 0, 0.7); padding: 8px 12px; border-radius: 8px; }
-    #pauseOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; align-items: center; justify-content: center; color: #fff; font-size: 28px; z-index: 5; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Afterblast: Scavenger Run (p5.js)</title>
+    <style>
+        body {
+            background-color: #2c3e50; /* Dark, apocalyptic feel */
+            color: #ecf0f1;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: #e74c3c;
+            letter-spacing: 5px;
+            margin-bottom: 10px;
+        }
+
+        /* p5.js canvas will be placed here */
+        canvas {
+            border: 4px solid #c0392b;
+            display: block;
+        }
+
+        #info-panel {
+            background-color: #34495e;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-top: 10px;
+            width: 800px; /* Match canvas width */
+            text-align: left;
+            box-sizing: border-box;
+        }
+
+        #health {
+            color: #2ecc71; /* Green for health */
+        }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
 </head>
 <body>
+    <h1>AFTERBLAST: SCAVENGER RUN</h1>
+    <div id="info-panel">
+        <p>Score: <span id="score">0</span> | Integrity: <span id="health">100</span>%</p>
+        <p>Controls: **WASD** or **Arrow Keys** to Move. Collect Yellow Scrap. Avoid Red Enemies!</p>
+    </div>
 
-<canvas id="game"></canvas>
+    <script>
+        // --- GAME CONSTANTS ---
+        const CANVAS_WIDTH = 800;
+        const CANVAS_HEIGHT = 600;
+        const PLAYER_SIZE = 20;
+        const SCRAP_SIZE = 10;
+        const ENEMY_SIZE = 15;
 
-<div id="pauseOverlay">PAUSED</div>
+        // --- GAME STATE ---
+        let game = {
+            score: 0,
+            health: 100,
+            gameOver: false,
+            difficulty: 1 // Increases enemy speed/spawns over time
+        };
 
-<div class="ui">
-  <div class="panel" id="hudLeft">Health: <span id="hp">100</span> &nbsp; Coins: <span id="coins">0</span></div>
-  <div class="panel" id="hudRight">
-    Weapon: <span id="weaponName">Pistol</span> &nbsp; Ammo: <span id="ammo">∞</span>
-    <button id="shopBtn" class="panel" style="margin-left:8px;">Shop</button>
-  </div>
-</div>
+        // --- ENTITY CLASSES (Simplified for p5.js) ---
 
-<div id="shop">
-  <div style="font-weight:700;margin-bottom:6px;">Shop</div>
-  <div class="shop-item"><div>Rifle (+rate & dmg)</div><div><button class="buy" onclick="buy('rifle',50)">Buy 50</button></div></div>
-  <div class="shop-item"><div>Kevlar (reduce dmg)</div><div><button class="buy" onclick="buy('armor',80)">Buy 80</button></div></div>
-  <div class="shop-item"><div>Health Potion</div><div><button class="buy" onclick="buy('healthPotion',30)">Buy 30</button></div></div>
-  <div class="shop-item"><div>Speed Boost</div><div><button class="buy" onclick="buy('speedBoost',40)">Buy 40</button></div></div>
-  <div style="text-align:center;margin-top:8px;"><button class="buy" onclick="closeShop()">Close</button></div>
-</div>
+        class Player {
+            constructor() {
+                this.x = CANVAS_WIDTH / 2;
+                this.y = CANVAS_HEIGHT / 2;
+                this.size = PLAYER_SIZE;
+                this.speed = 4;
+            }
 
-<div id="leftJoy" class="joystick"><div class="stick" id="leftStick"></div></div>
-<div id="rightJoy" class="joystick">
-  <div class="aimDir" id="aimDir"></div>
-  <div class="stick" id="rightStick"></div>
-</div>
+            draw() {
+                noStroke();
+                fill(46, 204, 113); // Green (#2ecc71)
+                rectMode(CENTER);
+                rect(this.x, this.y, this.size, this.size);
+            }
 
-<div id="toast" class="toast" style="display:none"></div>
+            update() {
+                if (keyIsDown(UP_ARROW) || keyIsDown(87)) this.y -= this.speed; // W
+                if (keyIsDown(DOWN_ARROW) || keyIsDown(83)) this.y += this.speed; // S
+                if (keyIsDown(LEFT_ARROW) || keyIsDown(65)) this.x -= this.speed; // A
+                if (keyIsDown(RIGHT_ARROW) || keyIsDown(68)) this.x += this.speed; // D
 
-<script>
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-function resize() {
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
-}
-addEventListener('resize', resize);
-resize();
+                // Keep player within bounds
+                this.x = constrain(this.x, this.size / 2, CANVAS_WIDTH - this.size / 2);
+                this.y = constrain(this.y, this.size / 2, CANVAS_HEIGHT - this.size / 2);
+            }
+        }
 
-const state = {
-  player: { x: canvas.width / 2, y: canvas.height / 
-::contentReference[oaicite:37]{index=37}
- 
+        class Enemy {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = ENEMY_SIZE;
+                this.speed = 1.5;
+            }
+
+            draw() {
+                noStroke();
+                fill(231, 76, 60); // Red (#e74c3c)
+                rectMode(CENTER);
+                rect(this.x, this.y, this.size, this.size);
+            }
+
+            // Simple AI: Move towards the player
+            update(player) {
+                let speedMod = this.speed * game.difficulty;
+                let angle = atan2(player.y - this.y, player.x - this.x);
+                this.x += cos(angle) * speedMod;
+                this.y += sin(angle) * speedMod;
+            }
+        }
+
+        class Scrap {
+            constructor() {
+                this.x = random(SCRAP_SIZE, CANVAS_WIDTH - SCRAP_SIZE);
+                this.y = random(SCRAP_SIZE, CANVAS_HEIGHT - SCRAP_SIZE);
+                this.size = SCRAP_SIZE;
+            }
+
+            draw() {
+                noStroke();
+                fill(241, 196, 15); // Yellow (#f1c40f)
+                ellipse(this.x, this.y, this.size);
+            }
+        }
+
+        // --- GLOBAL ENTITY ARRAYS ---
+        let player;
+        let enemies = [];
+        let scrap = [];
+
+        // --- P5.JS SETUP FUNCTION (runs once) ---
+        function setup() {
+            createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+            player = new Player();
+            // Initial entity spawns
+            scrap.push(new Scrap());
+            enemies.push(new Enemy(50, 50));
+            enemies.push(new Enemy(CANVAS_WIDTH - 50, CANVAS_HEIGHT - 50));
+        }
+
+        // --- P5.JS DRAW FUNCTION (runs every frame) ---
+        function draw() {
+            if (game.gameOver) {
+                drawGameOver();
+                return;
+            }
+
+            // Background (the 'Ruin')
+            background(28, 40, 51); // Dark blue/gray (#1c2833)
+
+            updateGameLogic();
+            drawEntities();
+            updateUI();
+        }
+
+        // --- GAME LOGIC ---
+
+        function updateGameLogic() {
+            // 1. Update Player and Enemies
+            player.update();
+            enemies.forEach(enemy => enemy.update(player));
+
+            // 2. Player-Scrap Collision (Scavenge)
+            for (let i = scrap.length - 1; i >= 0; i--) {
+                let s = scrap[i];
+                // Check if player's square boundary overlaps with scrap's circular boundary
+                let distance = dist(player.x, player.y, s.x, s.y);
+                if (distance < (player.size / 2) + (s.size / 2)) {
+                    game.score += 10;
+                    scrap.splice(i, 1);
+                    scrap.push(new Scrap()); // Spawn new scrap
+
+                    // Increase difficulty and spawn enemies every 50 points
+                    if (game.score % 50 === 0) {
+                        game.difficulty += 0.1; // Slowly make enemies faster
+                        enemies.push(new Enemy(random(CANVAS_WIDTH), random(CANVAS_HEIGHT)));
+                    }
+                }
+            }
+
+            // 3. Player-Enemy Collision (Damage)
+            enemies.forEach(enemy => {
+                let distance = dist(player.x, player.y, enemy.x, enemy.y);
+                if (distance < (player.size / 2) + (enemy.size / 2)) {
+                    // Gradual damage while touching
+                    game.health -= 0.1;
+                }
+            });
+
+            // 4. Check Game Over
+            if (game.health <= 0) {
+                game.gameOver = true;
+                noLoop(); // Stop the p5.js draw loop
+            }
+        }
+
+        function drawEntities() {
+            // Draw all entities
+            scrap.forEach(s => s.draw());
+            enemies.forEach(enemy => enemy.draw());
+            player.draw();
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = Math.floor(game.score);
+            document.getElementById('health').textContent = Math.max(0, Math.floor(game.health));
+        }
+
+        function drawGameOver() {
+            // Dark overlay
+            background(0, 0, 0, 150);
+            
+            // Game Over Text
+            fill(231, 76, 60); // Red
+            textAlign(CENTER, CENTER);
+            textSize(48);
+            text('CRITICAL INTEGRITY FAILURE', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30);
+            
+            textSize(32);
+            text(`SCRAP RECOVERED: ${Math.floor(game.score)}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 30);
+            
+            textSize(24);
+            text('Reload to restart run.', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 80);
+        }
+    </script>
+</body>
+</html>
