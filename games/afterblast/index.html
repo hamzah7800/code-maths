@@ -3,239 +3,311 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Afterblast: Scavenger Run (p5.js)</title>
+    <title>Afterblast 3D: Base & Upgrade Demo</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.min.js"></script>
+
     <style>
-        body {
-            background-color: #2c3e50; /* Dark, apocalyptic feel */
+        body { margin: 0; background-color: #1a1a1a; overflow: hidden; color: #ecf0f1; font-family: 'Arial', sans-serif; }
+        #container { width: 100vw; height: 100vh; position: relative; }
+        
+        /* Overlay for the 2D UI */
+        #ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allows clicks to pass through by default */
+        }
+        
+        /* General Panel Styling */
+        .panel {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #e74c3c;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(231, 76, 60, 0.5);
+            pointer-events: auto; /* Re-enable pointer events for the menu content */
+            display: none; /* Hidden by default */
+            width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
             color: #ecf0f1;
-            font-family: 'Arial', sans-serif;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            overflow: hidden;
         }
 
-        h1 {
-            color: #e74c3c;
-            letter-spacing: 5px;
-            margin-bottom: 10px;
-        }
-
-        /* p5.js canvas will be placed here */
-        canvas {
-            border: 4px solid #c0392b;
-            display: block;
-        }
-
-        #info-panel {
-            background-color: #34495e;
+        #interaction-prompt {
+            position: absolute;
+            top: 80%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(44, 62, 80, 0.8);
             padding: 10px 20px;
             border-radius: 5px;
-            margin-top: 10px;
-            width: 800px; /* Match canvas width */
-            text-align: left;
-            box-sizing: border-box;
+            color: #2ecc71;
+            font-weight: bold;
+            display: none;
+            pointer-events: none;
         }
 
-        #health {
-            color: #2ecc71; /* Green for health */
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #34495e;
         }
+
+        .upgrade-btn {
+            background-color: #2ecc71;
+            color: black;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            pointer-events: auto;
+        }
+        .upgrade-btn:hover { background-color: #27ae60; }
+        
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
     </style>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
 </head>
 <body>
-    <h1>AFTERBLAST: SCAVENGER RUN</h1>
-    <div id="info-panel">
-        <p>Score: <span id="score">0</span> | Integrity: <span id="health">100</span>%</p>
-        <p>Controls: **WASD** or **Arrow Keys** to Move. Collect Yellow Scrap. Avoid Red Enemies!</p>
-    </div>
+    <div id="container"></div>
 
+    <div id="ui-overlay">
+        <div id="interaction-prompt">Press E to Interact with Terminal</div>
+
+        <div id="upgrade-base-panel" class="panel" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+            <button class="close-btn" onclick="closeUI()">X</button>
+            <h2>EXO-RIG UPGRADES <span style="color: #f1c40f;">(Scrap: <span id="scrap-count">0</span>)</span></h2>
+            
+            <h3>Base Gear</h3>
+            <div class="item">
+                <span>**Integrity Matrix** (Health) - LVL <span id="h-lvl">1</span></span>
+                <button class="upgrade-btn" onclick="upgrade('health')">Upgrade (100 Scrap)</button>
+            </div>
+            <div class="item">
+                <span>**Power Core** (Energy/Ability) - LVL <span id="e-lvl">1</span></span>
+                <button class="upgrade-btn" onclick="upgrade('energy')">Upgrade (150 Scrap)</button>
+            </div>
+            
+            <h3>Weapon Section</h3>
+            <div class="item">
+                <span>**Kinetic Rifle** (Damage) - LVL <span id="w-lvl">1</span></span>
+                <button class="upgrade-btn" onclick="upgrade('weapon')">Upgrade (200 Scrap)</button>
+            </div>
+        </div>
+    </div>
+    
     <script>
-        // --- GAME CONSTANTS ---
-        const CANVAS_WIDTH = 800;
-        const CANVAS_HEIGHT = 600;
-        const PLAYER_SIZE = 20;
-        const SCRAP_SIZE = 10;
-        const ENEMY_SIZE = 15;
+        // --- THREE.JS INITIALIZATION ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x1a1a1a); // Dark background
+        document.getElementById('container').appendChild(renderer.domElement);
+
+        // Lights
+        const ambientLight = new THREE.AmbientLight(0x404040, 5); // soft white light
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+        pointLight.position.set(5, 5, 5);
+        scene.add(pointLight);
 
         // --- GAME STATE ---
-        let game = {
-            score: 0,
-            health: 100,
-            gameOver: false,
-            difficulty: 1 // Increases enemy speed/spawns over time
+        let gameState = 'EXPLORE'; // 'EXPLORE' or 'UPGRADE'
+        
+        let playerStats = {
+            scrap: 100, // Starting scrap for demo
+            healthLevel: 1,
+            energyLevel: 1,
+            weaponLevel: 1,
         };
+        
+        // --- PLAYER AND TERMINAL ---
+        
+        // 1. Player (Scavenger) - Represented by a capsule
+        const playerGeometry = new THREE.CapsuleGeometry(0.5, 1.5, 4, 8);
+        const playerMaterial = new THREE.MeshPhongMaterial({ color: 0x2ecc71 }); // Green
+        const player = new THREE.Mesh(playerGeometry, playerMaterial);
+        player.position.set(0, 1, 5);
+        scene.add(player);
 
-        // --- ENTITY CLASSES (Simplified for p5.js) ---
+        // 2. Upgrade Terminal - Interactable object
+        const terminalGeometry = new THREE.BoxGeometry(1, 2, 1);
+        const terminalMaterial = new THREE.MeshBasicMaterial({ color: 0xe74c3c }); // Red
+        const terminal = new THREE.Mesh(terminalGeometry, terminalMaterial);
+        terminal.position.set(-5, 1, 0); // Positioned away from spawn
+        terminal.name = 'UpgradeTerminal';
+        scene.add(terminal);
 
-        class Player {
-            constructor() {
-                this.x = CANVAS_WIDTH / 2;
-                this.y = CANVAS_HEIGHT / 2;
-                this.size = PLAYER_SIZE;
-                this.speed = 4;
+        // 3. Simple Base Floor
+        const floorGeometry = new THREE.PlaneGeometry(20, 20);
+        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x2c3e50, side: THREE.DoubleSide });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = Math.PI / 2; // Rotate flat
+        scene.add(floor);
+        
+        // --- CAMERA SETUP ---
+        // Initial EXPLORE camera position
+        camera.position.set(player.position.x, player.position.y + 3, player.position.z + 5);
+        camera.lookAt(player.position);
+
+        // UPGRADE camera target (looking at the terminal)
+        const upgradeCameraPos = new THREE.Vector3(terminal.position.x + 3, terminal.position.y + 1, terminal.position.z + 3);
+        const upgradeCameraLookAt = terminal.position;
+        
+        // --- Raycaster and Interaction ---
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        
+        // --- CORE GAME FUNCTIONS ---
+
+        function animate() {
+            requestAnimationFrame(animate);
+            TWEEN.update(); // Update TWEEN.js animations (for smooth camera)
+            
+            // Simple camera orbit in EXPLORE mode
+            if (gameState === 'EXPLORE') {
+                const time = Date.now() * 0.0005;
+                camera.position.x = Math.cos(time) * 10;
+                camera.position.z = Math.sin(time) * 10;
+                camera.position.y = 5;
+                camera.lookAt(0, 0, 0);
+            }
+            
+            // Interaction Prompt Visibility
+            const distance = player.position.distanceTo(terminal.position);
+            const prompt = document.getElementById('interaction-prompt');
+
+            if (distance < 5) {
+                prompt.style.display = 'block';
+            } else {
+                prompt.style.display = 'none';
             }
 
-            draw() {
-                noStroke();
-                fill(46, 204, 113); // Green (#2ecc71)
-                rectMode(CENTER);
-                rect(this.x, this.y, this.size, this.size);
-            }
-
-            update() {
-                if (keyIsDown(UP_ARROW) || keyIsDown(87)) this.y -= this.speed; // W
-                if (keyIsDown(DOWN_ARROW) || keyIsDown(83)) this.y += this.speed; // S
-                if (keyIsDown(LEFT_ARROW) || keyIsDown(65)) this.x -= this.speed; // A
-                if (keyIsDown(RIGHT_ARROW) || keyIsDown(68)) this.x += this.speed; // D
-
-                // Keep player within bounds
-                this.x = constrain(this.x, this.size / 2, CANVAS_WIDTH - this.size / 2);
-                this.y = constrain(this.y, this.size / 2, CANVAS_HEIGHT - this.size / 2);
-            }
+            renderer.render(scene, camera);
         }
 
-        class Enemy {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.size = ENEMY_SIZE;
-                this.speed = 1.5;
+        // --- UPGRADE LOGIC ---
+
+        window.upgrade = function(stat) {
+            let cost = 0;
+            let levelKey = '';
+            
+            switch(stat) {
+                case 'health':
+                    cost = 100 * playerStats.healthLevel;
+                    levelKey = 'healthLevel';
+                    break;
+                case 'energy':
+                    cost = 150 * playerStats.energyLevel;
+                    levelKey = 'energyLevel';
+                    break;
+                case 'weapon':
+                    cost = 200 * playerStats.weaponLevel;
+                    levelKey = 'weaponLevel';
+                    break;
             }
 
-            draw() {
-                noStroke();
-                fill(231, 76, 60); // Red (#e74c3c)
-                rectMode(CENTER);
-                rect(this.x, this.y, this.size, this.size);
-            }
-
-            // Simple AI: Move towards the player
-            update(player) {
-                let speedMod = this.speed * game.difficulty;
-                let angle = atan2(player.y - this.y, player.x - this.x);
-                this.x += cos(angle) * speedMod;
-                this.y += sin(angle) * speedMod;
-            }
-        }
-
-        class Scrap {
-            constructor() {
-                this.x = random(SCRAP_SIZE, CANVAS_WIDTH - SCRAP_SIZE);
-                this.y = random(SCRAP_SIZE, CANVAS_HEIGHT - SCRAP_SIZE);
-                this.size = SCRAP_SIZE;
-            }
-
-            draw() {
-                noStroke();
-                fill(241, 196, 15); // Yellow (#f1c40f)
-                ellipse(this.x, this.y, this.size);
+            if (playerStats.scrap >= cost) {
+                playerStats.scrap -= cost;
+                playerStats[levelKey]++;
+                updateUI();
+                console.log(`${stat} upgraded to level ${playerStats[levelKey]}`);
+            } else {
+                alert(`Insufficient scrap! Need ${cost} for this upgrade.`);
             }
         }
-
-        // --- GLOBAL ENTITY ARRAYS ---
-        let player;
-        let enemies = [];
-        let scrap = [];
-
-        // --- P5.JS SETUP FUNCTION (runs once) ---
-        function setup() {
-            createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
-            player = new Player();
-            // Initial entity spawns
-            scrap.push(new Scrap());
-            enemies.push(new Enemy(50, 50));
-            enemies.push(new Enemy(CANVAS_WIDTH - 50, CANVAS_HEIGHT - 50));
-        }
-
-        // --- P5.JS DRAW FUNCTION (runs every frame) ---
-        function draw() {
-            if (game.gameOver) {
-                drawGameOver();
-                return;
-            }
-
-            // Background (the 'Ruin')
-            background(28, 40, 51); // Dark blue/gray (#1c2833)
-
-            updateGameLogic();
-            drawEntities();
-            updateUI();
-        }
-
-        // --- GAME LOGIC ---
-
-        function updateGameLogic() {
-            // 1. Update Player and Enemies
-            player.update();
-            enemies.forEach(enemy => enemy.update(player));
-
-            // 2. Player-Scrap Collision (Scavenge)
-            for (let i = scrap.length - 1; i >= 0; i--) {
-                let s = scrap[i];
-                // Check if player's square boundary overlaps with scrap's circular boundary
-                let distance = dist(player.x, player.y, s.x, s.y);
-                if (distance < (player.size / 2) + (s.size / 2)) {
-                    game.score += 10;
-                    scrap.splice(i, 1);
-                    scrap.push(new Scrap()); // Spawn new scrap
-
-                    // Increase difficulty and spawn enemies every 50 points
-                    if (game.score % 50 === 0) {
-                        game.difficulty += 0.1; // Slowly make enemies faster
-                        enemies.push(new Enemy(random(CANVAS_WIDTH), random(CANVAS_HEIGHT)));
-                    }
-                }
-            }
-
-            // 3. Player-Enemy Collision (Damage)
-            enemies.forEach(enemy => {
-                let distance = dist(player.x, player.y, enemy.x, enemy.y);
-                if (distance < (player.size / 2) + (enemy.size / 2)) {
-                    // Gradual damage while touching
-                    game.health -= 0.1;
-                }
-            });
-
-            // 4. Check Game Over
-            if (game.health <= 0) {
-                game.gameOver = true;
-                noLoop(); // Stop the p5.js draw loop
-            }
-        }
-
-        function drawEntities() {
-            // Draw all entities
-            scrap.forEach(s => s.draw());
-            enemies.forEach(enemy => enemy.draw());
-            player.draw();
-        }
+        
+        // --- UI AND CAMERA TRANSITION FUNCTIONS ---
 
         function updateUI() {
-            document.getElementById('score').textContent = Math.floor(game.score);
-            document.getElementById('health').textContent = Math.max(0, Math.floor(game.health));
+            document.getElementById('scrap-count').textContent = playerStats.scrap;
+            document.getElementById('h-lvl').textContent = playerStats.healthLevel;
+            document.getElementById('e-lvl').textContent = playerStats.energyLevel;
+            document.getElementById('w-lvl').textContent = playerStats.weaponLevel;
         }
 
-        function drawGameOver() {
-            // Dark overlay
-            background(0, 0, 0, 150);
+        function openUI() {
+            if (gameState === 'UPGRADE') return;
             
-            // Game Over Text
-            fill(231, 76, 60); // Red
-            textAlign(CENTER, CENTER);
-            textSize(48);
-            text('CRITICAL INTEGRITY FAILURE', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30);
+            // Check distance before interacting
+            if (player.position.distanceTo(terminal.position) > 5) {
+                return; 
+            }
+
+            gameState = 'UPGRADE';
             
-            textSize(32);
-            text(`SCRAP RECOVERED: ${Math.floor(game.score)}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 30);
-            
-            textSize(24);
-            text('Reload to restart run.', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 80);
+            // 1. Smoothly move camera to terminal view
+            new TWEEN.Tween(camera.position)
+                .to(upgradeCameraPos, 1000)
+                .easing(TWEEN.Easing.Quadratic.Out)
+                .start();
+
+            // 2. Smoothly adjust what the camera is looking at
+            const currentLookAt = new THREE.Vector3();
+            camera.getWorldDirection(currentLookAt); // Get current camera direction
+
+            new TWEEN.Tween(currentLookAt)
+                .to(upgradeCameraLookAt, 1000)
+                .onUpdate(() => {
+                    camera.lookAt(currentLookAt);
+                })
+                .start();
+
+            // 3. Show the UI panel
+            setTimeout(() => {
+                document.getElementById('upgrade-base-panel').style.display = 'block';
+                document.getElementById('interaction-prompt').style.display = 'none';
+                updateUI();
+            }, 500);
         }
+
+        window.closeUI = function() {
+            document.getElementById('upgrade-base-panel').style.display = 'none';
+            gameState = 'EXPLORE';
+
+            // Reset camera to initial explore state (will smoothly transition back in the animate loop)
+            camera.lookAt(0, 0, 0); 
+        }
+
+        // --- EVENT LISTENERS ---
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'e' || event.key === 'E') {
+                if (gameState === 'EXPLORE') {
+                    openUI();
+                } else if (gameState === 'UPGRADE') {
+                    closeUI();
+                }
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start the engine
+        updateUI(); // Initial UI update
+        animate();
     </script>
 </body>
 </html>
