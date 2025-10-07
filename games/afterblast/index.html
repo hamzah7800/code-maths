@@ -36,6 +36,7 @@
             max-height: 80vh;
             overflow-y: auto;
             color: #ecf0f1;
+            z-index: 10; /* Ensure UI is above the canvas */
         }
 
         #interaction-prompt {
@@ -50,6 +51,7 @@
             font-weight: bold;
             display: none;
             pointer-events: none;
+            z-index: 5;
         }
 
         .item {
@@ -68,6 +70,7 @@
             cursor: pointer;
             border-radius: 3px;
             pointer-events: auto;
+            transition: background-color 0.2s;
         }
         .upgrade-btn:hover { background-color: #27ae60; }
         
@@ -81,6 +84,7 @@
             padding: 5px 10px;
             cursor: pointer;
             border-radius: 3px;
+            z-index: 11;
         }
 
     </style>
@@ -95,20 +99,20 @@
             <button class="close-btn" onclick="closeUI()">X</button>
             <h2>EXO-RIG UPGRADES <span style="color: #f1c40f;">(Scrap: <span id="scrap-count">0</span>)</span></h2>
             
-            <h3>Base Gear</h3>
+            <h3>Base Gear (Exo-Rig)</h3>
             <div class="item">
                 <span>**Integrity Matrix** (Health) - LVL <span id="h-lvl">1</span></span>
-                <button class="upgrade-btn" onclick="upgrade('health')">Upgrade (100 Scrap)</button>
+                <button class="upgrade-btn" data-stat="health">Upgrade (<span id="h-cost">100</span> Scrap)</button>
             </div>
             <div class="item">
                 <span>**Power Core** (Energy/Ability) - LVL <span id="e-lvl">1</span></span>
-                <button class="upgrade-btn" onclick="upgrade('energy')">Upgrade (150 Scrap)</button>
+                <button class="upgrade-btn" data-stat="energy">Upgrade (<span id="e-cost">150</span> Scrap)</button>
             </div>
             
-            <h3>Weapon Section</h3>
+            <h3>Weapon Systems</h3>
             <div class="item">
                 <span>**Kinetic Rifle** (Damage) - LVL <span id="w-lvl">1</span></span>
-                <button class="upgrade-btn" onclick="upgrade('weapon')">Upgrade (200 Scrap)</button>
+                <button class="upgrade-btn" data-stat="weapon">Upgrade (<span id="w-cost">200</span> Scrap)</button>
             </div>
         </div>
     </div>
@@ -131,9 +135,10 @@
 
         // --- GAME STATE ---
         let gameState = 'EXPLORE'; // 'EXPLORE' or 'UPGRADE'
+        const BASE_COSTS = { health: 100, energy: 150, weapon: 200 };
         
         let playerStats = {
-            scrap: 100, // Starting scrap for demo
+            scrap: 500, // Starting scrap for demo
             healthLevel: 1,
             energyLevel: 1,
             weaponLevel: 1,
@@ -141,11 +146,12 @@
         
         // --- PLAYER AND TERMINAL ---
         
-        // 1. Player (Scavenger) - Represented by a capsule
-        const playerGeometry = new THREE.CapsuleGeometry(0.5, 1.5, 4, 8);
+        // 1. Player (Scavenger) - Replaced Capsule with Cylinder to fix the error
+        // Parameters: radiusTop, radiusBottom, height, radialSegments
+        const playerGeometry = new THREE.CylinderGeometry(0.5, 0.5, 3.0, 16); 
         const playerMaterial = new THREE.MeshPhongMaterial({ color: 0x2ecc71 }); // Green
         const player = new THREE.Mesh(playerGeometry, playerMaterial);
-        player.position.set(0, 1, 5);
+        player.position.set(0, 1.5, 5); // Adjusted Y position for cylinder height
         scene.add(player);
 
         // 2. Upgrade Terminal - Interactable object
@@ -161,21 +167,20 @@
         const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x2c3e50, side: THREE.DoubleSide });
         const floor = new THREE.Mesh(floorGeometry, floorMaterial);
         floor.rotation.x = Math.PI / 2; // Rotate flat
+        floor.position.y = 0;
         scene.add(floor);
         
         // --- CAMERA SETUP ---
-        // Initial EXPLORE camera position
-        camera.position.set(player.position.x, player.position.y + 3, player.position.z + 5);
-        camera.lookAt(player.position);
-
+        
         // UPGRADE camera target (looking at the terminal)
+        const exploreCameraTarget = new THREE.Vector3(0, 0, 0);
         const upgradeCameraPos = new THREE.Vector3(terminal.position.x + 3, terminal.position.y + 1, terminal.position.z + 3);
         const upgradeCameraLookAt = terminal.position;
         
-        // --- Raycaster and Interaction ---
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-        
+        // Initial EXPLORE camera position
+        camera.position.set(10, 5, 10);
+        camera.lookAt(exploreCameraTarget);
+
         // --- CORE GAME FUNCTIONS ---
 
         function animate() {
@@ -188,14 +193,22 @@
                 camera.position.x = Math.cos(time) * 10;
                 camera.position.z = Math.sin(time) * 10;
                 camera.position.y = 5;
-                camera.lookAt(0, 0, 0);
+                camera.lookAt(exploreCameraTarget);
+                
+                // Rotate the player slightly
+                player.rotation.y += 0.01;
+                
+            } else if (gameState === 'UPGRADE') {
+                // In upgrade mode, keep the terminal pulsing
+                terminal.rotation.y += 0.01; 
             }
             
             // Interaction Prompt Visibility
             const distance = player.position.distanceTo(terminal.position);
             const prompt = document.getElementById('interaction-prompt');
 
-            if (distance < 5) {
+            // Show prompt only if close AND in explore mode
+            if (distance < 8 && gameState === 'EXPLORE') {
                 prompt.style.display = 'block';
             } else {
                 prompt.style.display = 'none';
@@ -206,29 +219,25 @@
 
         // --- UPGRADE LOGIC ---
 
-        window.upgrade = function(stat) {
-            let cost = 0;
-            let levelKey = '';
-            
-            switch(stat) {
-                case 'health':
-                    cost = 100 * playerStats.healthLevel;
-                    levelKey = 'healthLevel';
-                    break;
-                case 'energy':
-                    cost = 150 * playerStats.energyLevel;
-                    levelKey = 'energyLevel';
-                    break;
-                case 'weapon':
-                    cost = 200 * playerStats.weaponLevel;
-                    levelKey = 'weaponLevel';
-                    break;
-            }
+        function getUpgradeCost(stat) {
+             let level = 0;
+             if (stat === 'health') level = playerStats.healthLevel;
+             else if (stat === 'energy') level = playerStats.energyLevel;
+             else if (stat === 'weapon') level = playerStats.weaponLevel;
+             
+             // Cost scales exponentially for demonstration
+             return BASE_COSTS[stat] * level * level; 
+        }
 
+        function upgrade(stat) {
+            const cost = getUpgradeCost(stat);
+            let levelKey = stat + 'Level';
+            
             if (playerStats.scrap >= cost) {
                 playerStats.scrap -= cost;
                 playerStats[levelKey]++;
                 updateUI();
+                // Optionally give the player model a visual cue, e.g., a flash of light
                 console.log(`${stat} upgraded to level ${playerStats[levelKey]}`);
             } else {
                 alert(`Insufficient scrap! Need ${cost} for this upgrade.`);
@@ -239,16 +248,34 @@
 
         function updateUI() {
             document.getElementById('scrap-count').textContent = playerStats.scrap;
+
+            // Update Health UI
             document.getElementById('h-lvl').textContent = playerStats.healthLevel;
+            document.getElementById('h-cost').textContent = getUpgradeCost('health');
+            
+            // Update Energy UI
             document.getElementById('e-lvl').textContent = playerStats.energyLevel;
+            document.getElementById('e-cost').textContent = getUpgradeCost('energy');
+            
+            // Update Weapon UI
             document.getElementById('w-lvl').textContent = playerStats.weaponLevel;
+            document.getElementById('w-cost').textContent = getUpgradeCost('weapon');
+            
+            // Re-attach listeners to new buttons (if they were dynamic, but here we just re-run)
+            attachUpgradeListeners();
+        }
+
+        function attachUpgradeListeners() {
+            document.querySelectorAll('.upgrade-btn').forEach(button => {
+                button.onclick = () => upgrade(button.getAttribute('data-stat'));
+            });
         }
 
         function openUI() {
             if (gameState === 'UPGRADE') return;
             
-            // Check distance before interacting
-            if (player.position.distanceTo(terminal.position) > 5) {
+            // Check distance before interacting (8 units)
+            if (player.position.distanceTo(terminal.position) > 8) {
                 return; 
             }
 
@@ -261,14 +288,13 @@
                 .start();
 
             // 2. Smoothly adjust what the camera is looking at
-            const currentLookAt = new THREE.Vector3();
-            camera.getWorldDirection(currentLookAt); // Get current camera direction
-
-            new TWEEN.Tween(currentLookAt)
-                .to(upgradeCameraLookAt, 1000)
+            // Note: The Tween updates the camera's internal lookAt target over time
+            new TWEEN.Tween(camera.rotation)
+                .to(new THREE.Vector3().setFromEuler(new THREE.Euler().setFromVector3(terminal.position)), 1000)
                 .onUpdate(() => {
-                    camera.lookAt(currentLookAt);
+                    camera.lookAt(terminal.position);
                 })
+                .easing(TWEEN.Easing.Quadratic.Out)
                 .start();
 
             // 3. Show the UI panel
@@ -283,8 +309,7 @@
             document.getElementById('upgrade-base-panel').style.display = 'none';
             gameState = 'EXPLORE';
 
-            // Reset camera to initial explore state (will smoothly transition back in the animate loop)
-            camera.lookAt(0, 0, 0); 
+            // The main animate loop will take over and transition the camera back to its orbiting explore state.
         }
 
         // --- EVENT LISTENERS ---
