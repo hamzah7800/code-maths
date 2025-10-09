@@ -13,89 +13,15 @@ window.eaglercraftXOpts={demoMode:!1,container:"game_frame",assetsURI:"assets.ep
 <body style="margin:0;width:100%;height:100%;overflow:hidden;background-color:black;" id="game_frame">
 <script>
 "use strict";
-window.addEventListener("load",()=>{if(typeof main=="function"){main();console.log("✅ Game started with Ultra FPS optimizations")}else{console.error("ERROR: main() not found")}});
+window.addEventListener("load",()=>{if(typeof main=="function"){main()}else{console.error("ERROR: main() not found")}});
 (()=>{
-const L=console.log,
-poll=(fn,cb,i=25)=>{ // Increased polling speed to 25ms (from 50ms)
-const t=setInterval(()=>{
-try{if(fn()){clearInterval(t);cb()}}catch(e){}
-},i);
-};
-
-// V-Sync Fix / Adaptive Loop (Minified and Optimized)
-function detect(cb){
-let c=0;
-const s=performance.now();
-const test=()=>{
-c++;
-if(performance.now()-s<10){requestAnimationFrame(test)}
-else{cb(c/((performance.now()-s)/1000)>500?0:240)}
-};
-requestAnimationFrame(test);
-}
-function patchLoop(m){
-if(!window.EaglercraftX||!window.EaglercraftX.mainLoop||window._uFPS_l) return;
-const oldLoop=window.EaglercraftX.mainLoop.bind(window.EaglercraftX);
-const loop=()=>{try{oldLoop()}catch(e){}};
-// Core V-Sync Lag Fix: Replaces the native rAF/V-Sync with a consistent setTimeout loop.
-// m=0 (uncapped) is fastest.
-window.EaglercraftX.mainLoop=m>0?()=>setTimeout(loop,1000/m):()=>setTimeout(loop,0);
-window._uFPS_l=1;
-L(`[uFPS] Loop ${m>0?`capped at ${m} FPS`:"uncapped"}`);
-}
-
-// Graphics (Minimum for Better FPS)
-function patchGraphics(){
-if(!window.EaglercraftX||!window.EaglercraftX.settings||window._uFPS_g) return;
-let s=window.EaglercraftX.settings;
-s.useFXAA=s.dynamicLights=s.smoothLighting=s.clouds=s.ao=s.entityShadows=!1;
-s.renderDistance=2;s.particles="minimal";s.graphics="fast";s.mipmapLevels=0;
-window._uFPS_g=1;
-L("[uFPS] Graphics set to minimum");
-}
-
-// Better Chunk Generation/Loading (Aggressive Async Patch)
-function patchChunkBuilder(){
-if(!window.EaglercraftX||!window.EaglercraftX.chunkBuilder||window._uFPS_c) return;
-const cb=window.EaglercraftX.chunkBuilder;
-if(typeof cb.buildNext!=="function") return;
-const old=cb.buildNext.bind(cb);
-// Use window.postMessage for even more deferred/off-thread scheduling if available,
-// fallback to aggressive setTimeout(0).
-cb.buildNext=()=>(window.postMessage&&window.postMessage('uFPS-chunk-task','*'))||setTimeout(old,0);
-window.addEventListener('message', e => {
-  if (e.data === 'uFPS-chunk-task') {
-    try { old(); } catch (error) {}
-  }
-});
-window._uFPS_c=1;
-L("[uFPS] Chunk builder patched for aggressive async loading");
-}
-
-// Texture Preloading (Triggered after engine load)
-function patchTexturePreload(){
-    if(!window.EaglercraftX||!window.EaglercraftX.textureManager||window._uFPS_t) return;
-    try {
-        const t=window.EaglercraftX.textureManager;
-        // Assuming EaglercraftX has a function to manually trigger loading or initialization
-        if (typeof t.loadAll === "function") {
-            t.loadAll(); 
-            L("[uFPS] Triggered texture preloading.");
-        }
-    } catch (e) {
-        // Safe fail
-    }
-    window._uFPS_t=1;
-}
-
-// Apply patches once EaglercraftX and main are available
-poll(()=>window.EaglercraftX && typeof main=="function",()=>{
-L("[uFPS] Applying patches...");
-patchGraphics();
-patchChunkBuilder();
-patchTexturePreload();
-detect(patchLoop);
-});
+const P=(f,c,i=25)=>{const t=setInterval(()=>{try{if(f()){clearInterval(t);c()}}catch(e){}},i);};
+const D=c=>{let e=0;const s=performance.now();const t=()=>{e++;if(performance.now()-s<10){requestAnimationFrame(t)}else{c(e/((performance.now()-s)/1000)>500?0:240)};};requestAnimationFrame(t);};
+const pL=m=>{if(!window.EaglercraftX||!window.EaglercraftX.mainLoop||window._uFPS_l)return;const l=window.EaglercraftX.mainLoop.bind(window.EaglercraftX);const loop=()=>{try{l()}catch(e){}};window.EaglercraftX.mainLoop=m>0?()=>setTimeout(loop,1000/m):()=>setTimeout(loop,0);window._uFPS_l=1;};
+const pG=()=>{if(!window.EaglercraftX||!window.EaglercraftX.settings||window._uFPS_g)return;let s=window.EaglercraftX.settings;s.useFXAA=s.dynamicLights=s.smoothLighting=s.clouds=s.ao=s.entityShadows=!1;s.renderDistance=2;s.particles="minimal";s.graphics="fast";s.mipmapLevels=0;window._uFPS_g=1;};
+const pC=()=>{if(!window.EaglercraftX||!window.EaglercraftX.chunkBuilder||window._uFPS_c)return;const c=window.EaglercraftX.chunkBuilder;if(typeof c.buildNext!=="function")return;const o=c.buildNext.bind(c);c.buildNext=()=>(window.postMessage&&window.postMessage('uFPS-chunk-task','*'))||setTimeout(o,0);window.addEventListener('message',e=>{if(e.data==='uFPS-chunk-task'){try{o()}catch(r){}}});window._uFPS_c=1;};
+const pT=()=>{if(!window.EaglercraftX||!window.EaglercraftX.textureManager||window._uFPS_t)return;try{const t=window.EaglercraftX.textureManager;if(typeof t.loadAll==="function"){t.loadAll()}}catch(e){}window._uFPS_t=1;};
+P(()=>window.EaglercraftX&&typeof main=="function",()=>{pG();pC();pT();D(pL);});
 })();
 </script>
 </body>
