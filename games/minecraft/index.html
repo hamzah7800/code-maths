@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html style="width:100%;height:100%;background-color:black;">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"><meta name="description" content="EaglercraftX OneBlock Ultra FPS Client"><meta name="keywords" content="eaglercraft, minecraft, oneblock, 1.8, fps"><title>HZ MC</title><link type="image/png" rel="shortcut icon" href="favicon.png">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"><meta name="description" content="EaglercraftX OneBlock Ultra FPS Client"><meta name="keywords" content="eaglercraft, minecraft, oneblock, 1.8, fps"><title>HZ OneBlock Ultra FPS - UNCAP</title><link type="image/png" rel="shortcut icon" href="favicon.png">
 
 <script>
 "use strict";
+// Render Scale: .5 is great for low-end devices. Max Particles: 50 is low.
 window.eaglercraftXOpts={demoMode:!1,container:"game_frame",assetsURI:"assets.epk",localesURI:"lang/",worldsDB:"worlds",logInvalidCerts:!1,crashOnUncaughtExceptions:!1,maxParticles:50,disableInstancedRendering:!0,smoothGui:!1,renderScale:.5,servers:[{addr:"ws://localhost:8081/",name:"Local OneBlock Server"}],relays:[{addr:"wss://relay.deev.is/",comment:"relay #1",primary:!0},{addr:"wss://relay.lax1dude.net/",comment:"relay #2"},{addr:"wss://relay.shhnowisnottheti.me/",comment:"relay #3"}],loadTexturePacks:!0,preloadTextures:!0};
 </script>
 
@@ -13,15 +14,66 @@ window.eaglercraftXOpts={demoMode:!1,container:"game_frame",assetsURI:"assets.ep
 <body style="margin:0;width:100%;height:100%;overflow:hidden;background-color:black;" id="game_frame">
 <script>
 "use strict";
+// 1. Start Main Function
 window.addEventListener("load",()=>{if(typeof main=="function"){main()}else{console.error("ERROR: main() not found")}});
+
+// 2. Optimization Logic (Minified for faster parsing/execution)
 (()=>{
+// P: Poll for EaglercraftX availability
 const P=(f,c,i=25)=>{const t=setInterval(()=>{try{if(f()){clearInterval(t);c()}}catch(e){}},i);};
-const D=c=>{let e=0;const s=performance.now();const t=()=>{e++;if(performance.now()-s<10){requestAnimationFrame(t)}else{c(e/((performance.now()-s)/1000)>500?0:240)};};requestAnimationFrame(t);};
-const pL=m=>{if(!window.EaglercraftX||!window.EaglercraftX.mainLoop||window._uFPS_l)return;const l=window.EaglercraftX.mainLoop.bind(window.EaglercraftX);const loop=()=>{try{l()}catch(e){}};window.EaglercraftX.mainLoop=m>0?()=>setTimeout(loop,1000/m):()=>setTimeout(loop,0);window._uFPS_l=1;};
-const pG=()=>{if(!window.EaglercraftX||!window.EaglercraftX.settings||window._uFPS_g)return;let s=window.EaglercraftX.settings;s.useFXAA=s.dynamicLights=s.smoothLighting=s.clouds=s.ao=s.entityShadows=!1;s.renderDistance=2;s.particles="minimal";s.graphics="fast";s.mipmapLevels=0;window._uFPS_g=1;};
-const pC=()=>{if(!window.EaglercraftX||!window.EaglercraftX.chunkBuilder||window._uFPS_c)return;const c=window.EaglercraftX.chunkBuilder;if(typeof c.buildNext!=="function")return;const o=c.buildNext.bind(c);c.buildNext=()=>(window.postMessage&&window.postMessage('uFPS-chunk-task','*'))||setTimeout(o,0);window.addEventListener('message',e=>{if(e.data==='uFPS-chunk-task'){try{o()}catch(r){}}});window._uFPS_c=1;};
-const pT=()=>{if(!window.EaglercraftX||!window.EaglercraftX.textureManager||window._uFPS_t)return;try{const t=window.EaglercraftX.textureManager;if(typeof t.loadAll==="function"){t.loadAll()}}catch(e){}window._uFPS_t=1;};
-P(()=>window.EaglercraftX&&typeof main=="function",()=>{pG();pC();pT();D(pL);});
+
+// pL: Patch Loop for UNCAP FPS (Zero VSync Lag Fix)
+// Always sets the cap to 0 (uncapped)
+const pL=()=>{
+    if(!window.EaglercraftX||!window.EaglercraftX.mainLoop||window._uFPS_l) return;
+    const l=window.EaglercraftX.mainLoop.bind(window.EaglercraftX);
+    const loop=()=>{try{l()}catch(e){}};
+    // CORE FIX: Replaces the native rAF/V-Sync with setTimeout(0) for MAXIMUM Uncapped FPS and minimal latency.
+    window.EaglercraftX.mainLoop=()=>setTimeout(loop,0); // m=0 is the uncapped setting
+    window._uFPS_l=1;
+};
+
+// pG: Patch Graphics (Enforce lowest possible quality for universal compatibility)
+const pG=()=>{
+    if(!window.EaglercraftX||!window.EaglercraftX.settings||window._uFPS_g) return;
+    let s=window.EaglercraftX.settings;
+    // Disable all expensive effects
+    s.useFXAA=s.dynamicLights=s.smoothLighting=s.clouds=s.ao=s.entityShadows=!1;
+    // Set lowest render distance/quality settings
+    s.renderDistance=2;s.particles="minimal";s.graphics="fast";s.mipmapLevels=0;
+    window._uFPS_g=1;
+};
+
+// pC: Patch Chunk Builder (Lazy-Load/Aggressive Async Chunk Generation)
+const pC=()=>{
+    if(!window.EaglercraftX||!window.EaglercraftX.chunkBuilder||window._uFPS_c) return;
+    const c=window.EaglercraftX.chunkBuilder;
+    if(typeof c.buildNext!=="function") return;
+    const o=c.buildNext.bind(c);
+    // Use postMessage for true off-thread task scheduling (maximum lazy-loading)
+    // Fallback to setTimeout(0) if postMessage fails.
+    c.buildNext=()=>(window.postMessage&&window.postMessage('uFPS-chunk-task','*'))||setTimeout(o,0);
+    window.addEventListener('message',e=>{if(e.data==='uFPS-chunk-task'){try{o()}catch(r){}}});
+    window._uFPS_c=1;
+};
+
+// pT: Patch Texture Preload (Ensure textures are loaded early)
+const pT=()=>{
+    if(!window.EaglercraftX||!window.EaglercraftX.textureManager||window._uFPS_t) return;
+    try{
+        const t=window.EaglercraftX.textureManager;
+        if(typeof t.loadAll==="function"){t.loadAll()}
+    }catch(e){}
+    window._uFPS_t=1;
+};
+
+// Apply all patches once the engine is ready
+P(()=>window.EaglercraftX&&typeof main=="function",()=>{
+    pG(); // Always apply minimal graphics first
+    pC(); // Start aggressive lazy-load chunking
+    pT(); // Trigger texture preloading
+    pL(); // Finally, set loop to uncapped
+});
 })();
 </script>
 </body>
