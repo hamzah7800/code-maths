@@ -1,141 +1,144 @@
 <!DOCTYPE html>
-<html style="width:100%; height:100%; background-color:black;">
+<html style="width:100%;height:100%;background-color:black;">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
-    <title>EaglercraftX High-FPS</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"><meta name="description" content="EaglercraftX OneBlock Ultra FPS Client"><meta name="keywords" content="eaglercraft, minecraft, oneblock, 1.8, fps"><title>HZ OneBlock Ultra FPS - ULTIMATE CAP REMOVAL</title><link type="image/png" rel="shortcut icon" href="favicon.png">
 
-    <style>
-        /*
-         * *** THE PRIMARY FPS BOOST FIX ***
-         * This CSS downscales the canvas resolution, reducing the GPU load significantly.
-         * The 'image-rendering' property ensures it looks crisp (pixelated) instead of blurry.
-         */
-        canvas {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            left: 0;
-            top: 0;
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
-            z-index: 100;
-        }
+<style>
+    /* CRITICAL: Forces the 1:1 pixel rendering and full screen */
+    canvas {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        /* Ensures downscaled content remains crisp, not blurry */
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+        z-index: 100;
+    }
+    /* Essential for full screen, zero margin */
+    body {
+        margin: 0;
+        overflow: hidden;
+        width: 100vw;
+        height: 100vh;
+    }
+</style>
+<script>
+"use strict";
+window.eaglercraftXOpts={demoMode:!1,container:"game_frame",assetsURI:"assets.epk",localesURI:"lang/",worldsDB:"worlds",logInvalidCerts:!1,crashOnUncaughtExceptions:!1,maxParticles:50,disableInstancedRendering:!1, 
+smoothGui:!1,renderScale:.5,servers:[{addr:"ws://localhost:8081/",name:"Local OneBlock Server"}],relays:[{addr:"wss://relay.deev.is/",comment:"relay #1",primary:!0},{addr:"wss://relay.lax1dude.net/",comment:"relay #2"},{addr:"wss://relay.shhnowisnottheti.me/",comment:"relay #3"}],loadTexturePacks:!0,preloadTextures:!0};
+</script>
 
-        /* Essential for full screen, zero margin */
-        body {
-            margin: 0;
-            overflow: hidden;
-            width: 100vw;
-            height: 100vh;
-        }
-    </style>
-
-    <script type="text/javascript">
-        // ** (OPTIONAL) Advanced Performance Tweak via eaglercraftOpts **
-        // This is where you can force certain client options on startup.
-        window.eaglercraftOpts = {
-            // Force the game to start with lower render quality
-            // The default is usually 1.0 (Full Quality)
-            // Setting this to 0.75 or 0.5 can give a big boost.
-            // 0.5 means a 50% scale, 0.75 means 75% scale.
-            'retina': 0.75, // Experiment with 0.5, 0.75, 1.0
-
-            // Disable features like motion blur, which can impact performance
-            'noBloom': true,
-            'noDOF': true,
-            'noVignette': true,
-            'noAntialiasing': true
-        };
-    </script>
-
+<script type="text/javascript" src="classes.js"></script>
 </head>
-<body style="margin: 0; overflow: hidden;">
+<body style="margin:0;width:100%;height:100%;overflow:hidden;background-color:black;" id="game_frame">
+<script>
+"use strict";
+// 1. Start Main Function
+window.addEventListener("load",()=>{if(typeof main=="function"){main()}else{console.error("ERROR: main() not found")}});
 
-    <script type="text/javascript">
-    "use strict";
-(function(root,module){if(typeof define==='function'&&define.amd){define(['exports'],function(exports){module(root,exports);});}else if(typeof exports==='object'&&exports!==null&&typeof exports.nodeName!=='string'){module(global,exports);}else{module(root,root);}}(typeof self!=='undefined'?self:this,function($rt_globals,$rt_exports){
-(function(_jsGlobal){try {(function(){var namedFunction=function(name,body){if(typeof body==="function"){try {Object.defineProperty(body,"name",{configurable:true,enumerable:false,writable:false,value:name});}catch(ex){}}return body;};var enabledShims=[];var collectionsShimImpl=function(){var i;var createCollection=function(proto,objectOnly){var Collection=namedFunction("Collection",function(a){if(!this||this.constructor!==Collection)return new Collection(a);Object.defineProperty(this,
-"_keys",{value:[]});Object.defineProperty(this,"_values",{value:[]});Object.defineProperty(this,"_itp",{value:[]});Object.defineProperty(this,"objectOnly",{value:objectOnly});if(a)init.call(this,a);});if(!objectOnly){Object.defineProperty(proto,"size",{get:sharedSize});}proto.constructor=Collection;for(var k in proto){Object.defineProperty(Collection.prototype,k,{value:proto[k]});}return Collection;};var init=function(a){if(this.add)a.forEach(this.add,this);else a.forEach(function(a){this.set(a[0],a[1]);},this);};var sharedDelete
-=function(key){if(this.has(key)){this._keys.splice(i,1);this._values.splice(i,1);this._itp.forEach(function(p){if(i<p[0])p[0]--;});}return  -1<i;};var sharedGet=namedFunction("get",function(key){return this.has(key)?this._values[i]:$rt_globals.undefined;});var has=namedFunction("has",function(list,key){if(this.objectOnly&&key!==Object(key))throw new $rt_globals.TypeError("Invalid value used as weak collection key");if(key!=key||key===0)for(i=list.length;i--&&!$rt_globals.is(list[i],key);){}else i=list.indexOf(key);return  -1
-<i;});var setHas=namedFunction("has",function(value){return has.call(this,this._values,value);});var mapHas=namedFunction("has",function(value){return has.call(this,this._keys,value);});var sharedSet=namedFunction("set",function(key,value){this.has(key)?(this._values[i]=value):(this._values[this._keys.push(key) -1]=value);return this;});var sharedAdd=namedFunction("add",function(value){if(!this.has(value))this._values.push(value);return this;});var sharedClear=namedFunction("clear",function(){(this._keys||0).length
-=this._values.length=0;});var sharedKeys=namedFunction("keys",function(){return sharedIterator(this._itp,this._keys);});var sharedValues=namedFunction("values",function(){return sharedIterator(this._itp,this._values);});var mapEntries=namedFunction("entries",function(){return sharedIterator(this._itp,this._keys,this._values);});var setEntries=namedFunction("entries",function(){return sharedIterator(this._itp,this._values,this._values);});var sharedIterator=function(itp,array,array2){var p=[0],done=false;itp.push(p);return {
-next:function(){var v,k=p[0];if(!done&&k<array.length){v=array2?[array[k],array2[k]]:array[k];p[0]++;}else {done=true;itp.splice(itp.indexOf(p),1);}return {done:done,value:v};}};};var sharedSize=namedFunction("size",function(){return this._values.length;});var sharedForEach=namedFunction("forEach",function(callback,context){var it=this.entries();for(;;){var r=it.next();if(r.done)break;callback.call(context,r.value[1],r.value[0],this);}});return {createCollection:createCollection,init:init,sharedDelete:sharedDelete,
-sharedGet:sharedGet,has:has,setHas:setHas,mapHas:mapHas,sharedSet:sharedSet,sharedAdd:sharedAdd,sharedClear:sharedClear,sharedKeys:sharedKeys,sharedValues:sharedValues,mapEntries:mapEntries,setEntries:setEntries,sharedIterator:sharedIterator,sharedSize:sharedSize,sharedForEach:sharedForEach};}();var shim_Map=function(){if(typeof $rt_globals.Map==="undefined"||typeof (new $rt_globals.Map()).values!=="function"||!((new $rt_globals.Map()).values()).next){Object.defineProperty(_jsGlobal,"Map",{value:namedFunction("Map",
-collectionsShimImpl.createCollection({'delete':collectionsShimImpl.sharedDelete,has:collectionsShimImpl.mapHas,get:collectionsShimImpl.sharedGet,set:collectionsShimImpl.sharedSet,keys:collectionsShimImpl.sharedKeys,values:collectionsShimImpl.sharedValues,entries:collectionsShimImpl.mapEntries,forEach:collectionsShimImpl.sharedForEach,clear:collectionsShimImpl.sharedClear}))});return true;}else {return false;}};var shim_WeakMap=function(){if(typeof $rt_globals.WeakMap==="undefined"){Object.defineProperty(_jsGlobal,
-"WeakMap",{value:namedFunction("WeakMap",collectionsShimImpl.createCollection({'delete':collectionsShimImpl.sharedDelete,clear:collectionsShimImpl.sharedClear,get:collectionsShimImpl.sharedGet,has:collectionsShimImpl.mapHas,set:collectionsShimImpl.sharedSet}))});return true;}else {return false;}};var shim_Set=function(){if(typeof $rt_globals.Set==="undefined"||typeof (new $rt_globals.Set()).values!=="function"||!((new $rt_globals.Set()).values()).next){Object.defineProperty(_jsGlobal,"Set",{value:namedFunction("Set",
-collectionsShimImpl.createCollection({has:collectionsShimImpl.setHas,add:collectionsShimImpl.sharedAdd,'delete':collectionsShimImpl.sharedDelete,clear:collectionsShimImpl.sharedClear,keys:collectionsShimImpl.sharedValues,values:collectionsShimImpl.sharedValues,entries:collectionsShimImpl.setEntries,forEach:collectionsShimImpl.sharedForEach}))});return true;}else {return false;}};var shim_WeakSet=function(){if(typeof $rt_globals.WeakSet==="undefined"){Object.defineProperty(_jsGlobal,"WeakSet",{value:namedFunction("WeakSet",
-collectionsShimImpl.createCollection({'delete':collectionsShimImpl.sharedDelete,add:collectionsShimImpl.sharedAdd,clear:collectionsShimImpl.sharedClear,has:collectionsShimImpl.setHas}))});return true;}else {return false;}};var createPromiseShim=function(){var PROMISE_ID="[["+(($rt_globals.Math.random()).toString(36)).substring(2)+"]]";var PENDING=void 0;var FULFILLED=1;var REJECTED=2;var _qlen=0;var msgChannel=null;var useLegacyFlush=false;var isFlushTest=false;var queue=new $rt_globals.Array(1000);var _noop
-=function(){};var _initMessageChannelFlush=function(flushFunc){if(typeof $rt_globals.MessageChannel==="undefined"){useLegacyFlush=true;$rt_globals.setTimeout(flushFunc,0);return;}isFlushTest=true;try {msgChannel=new $rt_globals.MessageChannel();var testVal=false;var _flushTest=function(){testVal=true;};msgChannel.port1.addEventListener("message",_flushTest);msgChannel.port1.start();msgChannel.port2.start();msgChannel.port2.postMessage("");if(testVal){msgChannel=null;useLegacyFlush=true;isFlushTest=false;$rt_globals.setTimeout(flushFunc,
-0);return;}$rt_globals.setTimeout(function(){msgChannel.port1.removeEventListener("message",_flushTest);if(!testVal){msgChannel=null;useLegacyFlush=true;}else {msgChannel.port1.addEventListener("message",flushFunc);}isFlushTest=false;flushFunc();},10);}catch(ex){msgChannel=null;useLegacyFlush=true;isFlushTest=false;$rt_globals.setTimeout(flushFunc,0);return;}};var _scheduleFlush=function(){if(useLegacyFlush||isFlushTest){$rt_globals.setTimeout(_flush,0);}else {if(msgChannel===null){_initMessageChannelFlush(_flush);return;}msgChannel.port2.postMessage("");}};var _flush
-=function(){for(var i=0;i<_qlen;i+=2){var callback=queue[i];var arg=queue[i+1];callback(arg);queue[i]=$rt_globals.undefined;queue[i+1]=$rt_globals.undefined;}_qlen=0;};var _asap=function(callback,arg){queue[_qlen]=callback;queue[_qlen+1]=arg;_qlen+=2;if(_qlen===2){_scheduleFlush();}};var _handleForeignThenable=function(promise,thenable,then$$1){_asap(function(promise){var sealed=false;var error=_tryThen(then$$1,thenable,function(value){if(sealed){return;}sealed=true;if(thenable!==value){__resolve(promise,value);}
-else {_fulfill(promise,value);}},function(reason){if(sealed){return;}sealed=true;_reject(promise,reason);},"Settle: "+(promise._label||" unknown promise"));if(!sealed&&error){sealed=true;_reject(promise,error);}},promise);};var _tryThen=function(then$$1,value,fulfillmentHandler,rejectionHandler){try {then$$1.call(value,fulfillmentHandler,rejectionHandler);}catch(e){return e;}};var _handleOwnThenable=function(promise,thenable){if(thenable._state===FULFILLED){_fulfill(promise,thenable._result);}else if(thenable._state
-===REJECTED){_reject(promise,thenable._result);}else {_subscribe(thenable,$rt_globals.undefined,function(value){return __resolve(promise,value);},function(reason){return _reject(promise,reason);});}};var _handleMaybeThenable=function(promise,maybeThenable,then$$1){if(maybeThenable.constructor===promise.constructor&&then$$1===_then&&maybeThenable.constructor.resolve===_resolve){_handleOwnThenable(promise,maybeThenable);}else {if(then$$1===$rt_globals.undefined){_fulfill(promise,maybeThenable);}else if(typeof then$$1
-==="function"){_handleForeignThenable(promise,maybeThenable,then$$1);}else {_fulfill(promise,maybeThenable);}}};var __resolve=function(promise,value){if(promise===value){_reject(promise,new $rt_globals.TypeError("You cannot resolve a promise with itself"));}else if(typeof value==="object"||typeof value==="function"){var then$$1=void 0;try {then$$1=value.then;}catch(error){_reject(promise,error);return;}_handleMaybeThenable(promise,value,then$$1);}else {_fulfill(promise,value);}};var _reject=function(promise,
-reason){if(promise._state!==PENDING){return;}promise._state=REJECTED;promise._result=reason;_asap(_publishRejection,promise);};var _subscribe=function(parent,child,onFulfillment,onRejection){var _subscribers=parent._subscribers;var length=_subscribers.length;parent._onerror=null;_subscribers[length]=child;_subscribers[length+FULFILLED]=onFulfillment;_subscribers[length+REJECTED]=onRejection;if(length===0&&parent._state){_asap(_publish,parent);}};var _publish=function(promise){var subscribers=promise._subscribers;var settled
-=promise._state;if(subscribers.length===0){return;}var child=void 0,callback=void 0,detail=promise._result;for(var i=0;i<subscribers.length;i+=3){child=subscribers[i];callback=subscribers[i+settled];if(child){_invokeCallback(settled,child,callback,detail);}else {callback(detail);}}promise._subscribers.length=0;};var _publishRejection=function(promise){if(promise._onerror){promise._onerror(promise._result);}_publish(promise);};var _fulfill=function(promise,value){if(promise._state!==PENDING){return;}promise._result
-=value;promise._state=FULFILLED;if(promise._subscribers.length!==0){_asap(_publish,promise);}};var _invokeCallback=function(settled,promise,callback,detail){var hasCallback=typeof callback==="function",value=void 0,error=void 0,succeeded=true;if(hasCallback){try {value=callback(detail);}catch(e){succeeded=false;error=e;}if(promise===value){_reject(promise,new $rt_globals.TypeError("A promises callback cannot return that same promise."));return;}}else {value=detail;}if(promise._state!==PENDING){}else if(hasCallback
-&&succeeded){__resolve(promise,value);}else if(succeeded===false){_reject(promise,error);}else if(settled===FULFILLED){_fulfill(promise,value);}else if(settled===REJECTED){_reject(promise,value);}};var _initializePromise=function(promise,resolver){try {resolver(function(value){__resolve(promise,value);},function(reason){_reject(promise,reason);});}catch(e){_reject(promise,e);}};var id=0;var _nextId=function(){return id++;};var _makePromise=function(promise){promise[PROMISE_ID]=id++;promise._state=$rt_globals.undefined;promise._result
-=$rt_globals.undefined;promise._subscribers=[];};var Promise;Promise=namedFunction("Promise",function(resolver){this[PROMISE_ID]=_nextId();this._result=this._state=$rt_globals.undefined;this._subscribers=[];if(_noop!==resolver){typeof resolver!=='function'&&$rt_globals._needsResolver();this instanceof Promise?_initializePromise(this,resolver):$rt_globals._needsNew();}});var _then=namedFunction("then",function(onFulfillment,onRejection){var parent=this;var child=new this.constructor(_noop);if(child[PROMISE_ID]
-===$rt_globals.undefined){_makePromise(child);}var _state=parent._state;if(_state){var callback=arguments[_state -1];_asap(function(){return _invokeCallback(_state,child,callback,parent._result);});}else {_subscribe(parent,child,onFulfillment,onRejection);}return child;});Promise.prototype.then=_then;Promise.prototype.catch=namedFunction("catch",function(onRejection){return this.then(null,onRejection);});Promise.prototype.finally=namedFunction("finally",function(callback){var promise=this;var constructor=promise.constructor;if
-(typeof callback==="function"){return promise.then(function(value){return (constructor.resolve(callback())).then(function(){return value;});},function(reason){return (constructor.resolve(callback())).then(function(){throw reason;});});}return promise.then(callback,callback);});Promise.all=namedFunction("all",function(entries){throw new $rt_globals.Error("Promise.all is not included in the ES6 compatibility shim!");});Promise.race=namedFunction("race",function(entries){var Constructor=this;if(!$rt_globals.Array.isArray(entries))
-{return new Constructor(function(_,reject){return reject(new $rt_globals.TypeError("You must pass an array to race."));});}else {return new Constructor(function(resolve,reject){var length=entries.length;for(var i=0;i<length;i++){(Constructor.resolve(entries[i])).then(resolve,reject);}});}});var _resolve=namedFunction("resolve",function(object){var Constructor=this;if(object&&typeof object==="object"&&object.constructor===Constructor){return object;}var promise=new Constructor(_noop);__resolve(promise,object);return promise;});Promise.resolve
-=_resolve;Promise.reject=namedFunction("reject",function(reason){var Constructor=this;var promise=new Constructor(_noop);_reject(promise,reason);return promise;});return Promise;};var shim_Promise=function(){if(typeof Promise==="undefined"){Object.defineProperty(_jsGlobal,"Promise",{value:createPromiseShim()});return true;}else {return false;}};var shim_String_fromCodePoint=function(){if(typeof $rt_globals.String.fromCodePoint==="undefined"){Object.defineProperty($rt_globals.String,"fromCodePoint",{value:namedFunction("fromCodePoint",
-function(codePoints){var result=[];var next;for(var i=0,length=arguments.length;i<length;i++){next=$rt_globals.Number(arguments[i]);if(next!==(next|0)||next<0||next>0x10FFFF){throw new $rt_globals.RangeError("Invalid code point "+next);}if(next<0x10000){result.push($rt_globals.String.fromCharCode(next));}else {next -=0x10000;result.push($rt_globals.String.fromCharCode((next>>10)+0xD800));result.push($rt_globals.String.fromCharCode(next%0x400+0xDC00));}}return result.join("");})});return true;}else {return false;}};var shim_String_proto_codePointAt
-=function(){if(typeof $rt_globals.String.prototype.codePointAt==="undefined"){Object.defineProperty($rt_globals.String.prototype,"codePointAt",{value:namedFunction("codePointAt",function(pos){pos=pos|0;var leng=this.length;if(pos>=0&&pos<leng){var first=this.charCodeAt(pos);var isEnd=pos+1===leng;if(first<0xD800||first>0xDBFF||isEnd){return first;}var second=this.charCodeAt(pos+1);if(second<0xDC00||second>0xDFFF){return first;}return (first -0xD800)*1024+second -0xDC00+0x10000;}})});return true;}else {return false;}};var shim_String_proto_startsWith
-=function(){if(typeof $rt_globals.String.prototype.startsWith==="undefined"){Object.defineProperty($rt_globals.String.prototype,"startsWith",{value:namedFunction("startsWith",function(str){var position=0;if(arguments.length>1){position=arguments[1];}var start=$rt_globals.Math.max(position,0)|0;return this.slice(start,start+str.length)===str;})});return true;}else {return false;}};var shim_String_proto_endsWith=function(){if(typeof $rt_globals.String.prototype.endsWith==="undefined"){Object.defineProperty($rt_globals.String.prototype,
-"endsWith",{value:namedFunction("endsWith",function(str){var len=this.length;var endPosition;if(arguments.length>1){endPosition=arguments[1];}var pos=typeof endPosition==="undefined"?len:endPosition|0;var end=$rt_globals.Math.min($rt_globals.Math.max(pos,0)|0,len);return this.slice(end -str.length,end)===str;})});return true;}else {return false;}};var shim_String_proto_includes=function(){if(typeof $rt_globals.String.prototype.includes==="undefined"){Object.defineProperty($rt_globals.String.prototype,"includes",
-{value:namedFunction("includes",function(str){var position;if(arguments.length>1){position=arguments[1];}return this.indexOf(str,position)!== -1;})});return true;}else {return false;}};var stringRepeatHelper;stringRepeatHelper=function(s,times){if(times<1){return '';}if(times%2){return stringRepeatHelper(s,times -1)+s;}var half=stringRepeatHelper(s,times/2);return half+half;};var shim_String_proto_repeat=function(){if(typeof $rt_globals.String.prototype.repeat==="undefined"){Object.defineProperty($rt_globals.String.prototype,
-"repeat",{value:namedFunction("repeat",function(numTimes){if(numTimes>=$rt_globals.Infinity||(numTimes|=0)<0){throw new $rt_globals.RangeError("repeat count must be less than infinity and not overflow maximum string size");}return stringRepeatHelper(this,numTimes);})});return true;}else {return false;}};var shim_Object_is=function(){if(typeof Object.is==="undefined"){Object.defineProperty(Object,"is",{value:namedFunction("is",function(a,b){return a===b||a!==a&&b!==b;})});return true;}else {return false;}};var shim_Object_setPrototypeOf
-=function(){if(typeof Object.setPrototypeOf==="undefined"){var theShim=function(Object,magic){var set;var checkArgs=function(O,proto){if(typeof O!=="object"||O===null){throw new $rt_globals.TypeError("can not set prototype on a non-object");}if(typeof proto!=="object"&&proto!==null){throw new $rt_globals.TypeError("can only set prototype to an object or null");}};var setPrototypeOf=function(O,proto){checkArgs(O,proto);set.call(O,proto);return O;};try {set=(Object.getOwnPropertyDescriptor(Object.prototype,magic)).set;set.call({
-},null);}catch(o_O){if(Object.prototype!=={}[magic]||{__proto__:null}.__proto__===void 0){$rt_globals.console.error("ES6Shims: Can not shim Object.setPrototypeOf on this browser! Ignoring for now");return false;}set=function(proto){this[magic]=proto;};}return setPrototypeOf;}(Object,"__proto__");if(theShim){Object.defineProperty(Object,"setPrototypeOf",{value:namedFunction("setPrototypeOf",theShim)});return true;}else {return false;}}else {return false;}};var shim_Function_proto_name=function(){if($rt_globals.Math.max.name
-!=="max"){Object.defineProperty($rt_globals.Function.prototype,"name",{configurable:true,enumerable:false,get:function(){if(this===$rt_globals.Function.prototype){return "";}var str=$rt_globals.Function.prototype.toString.call(this);var match=str.match(/\s*function\s+([^(\s]*)\s*/);var name=match&&match[1];Object.defineProperty(this,"name",{configurable:true,enumerable:false,writable:false,value:name});return name;}});return true;}else {return false;}};var shim_Math_sign=function(){if(typeof $rt_globals.Math.sign
-==="undefined"){Object.defineProperty($rt_globals.Math,"sign",{value:namedFunction("sign",function(val){var number=$rt_globals.Number(val);if(number===0){return number;}if($rt_globals.isNaN(number)){return number;}return number<0? -1:1;})});return true;}else {return false;}};var shim_Symbol=function(){if(typeof $rt_globals.Symbol==="undefined"){Object.defineProperty(_jsGlobal,"Symbol",{value:function(){var symRet=namedFunction("Symbol",function(){return "[[ShimbolR_"+(($rt_globals.Math.random()).toString(36)).substring(2)
-+"]]";});symRet.for=namedFunction("for",function(symName){if(!(typeof symName==="string"))return $rt_globals.undefined;return "[[ShimbolN_"+symName+"]]";});symRet.keyFor=namedFunction("keyFor",function(sym){return typeof sym==="string"&&sym.startsWith("[[ShimbolN_")&&sym.endsWith("]]")?sym.substring(11,sym.length -2):$rt_globals.undefined;});return symRet;}()});return true;}else {return false;}};var hasErrors=false;var shim_install=function(str,cb){try {return cb();}catch(_exx_){hasErrors=true;$rt_globals.console.error("ES6Shims: Failed to detect and enable shim \""
-+str+"\" for this browser! (Continuing anyway)");$rt_globals.console.error(_exx_);return false;}};if(shim_install("Map",shim_Map))enabledShims.push(0);if(shim_install("WeakMap",shim_WeakMap))enabledShims.push(1);if(shim_install("Set",shim_Set))enabledShims.push(2);if(shim_install("WeakSet",shim_WeakSet))enabledShims.push(3);if(shim_install("Promise",shim_Promise))enabledShims.push(4);if(shim_install("String_fromCodePoint",shim_String_fromCodePoint))enabledShims.push(5);if(shim_install("String_proto_codePointAt",
-shim_String_proto_codePointAt))enabledShims.push(6);if(shim_install("String_proto_startsWith",shim_String_proto_startsWith))enabledShims.push(7);if(shim_install("String_proto_endsWith",shim_String_proto_endsWith))enabledShims.push(8);if(shim_install("String_proto_includes",shim_String_proto_includes))enabledShims.push(9);if(shim_install("String_proto_repeat",shim_String_proto_repeat))enabledShims.push(10);if(shim_install("Object_is",shim_Object_is))enabledShims.push(12);if(shim_install("Object_setPrototypeOf",
-shim_Object_setPrototypeOf))enabledShims.push(13);if(shim_install("Function_proto_name",shim_Function_proto_name))enabledShims.push(14);if(shim_install("Math_sign",shim_Math_sign))enabledShims.push(15);if(shim_install("Symbol",shim_Symbol))enabledShims.push(16);var enCnt=enabledShims.length;_jsGlobal.__eaglercraftXES6ShimStatus={getShimInitStatus:function(){return (enCnt>0?1:0)|(hasErrors?2:0);},getEnabledShimCount:function(){return enCnt;},getEnabledShimID:function(idxIn){return enabledShims[idxIn];}};})();}
-catch(_ex_){$rt_globals.console.error("ES6Shims: Failed to detect and enable shims for this browser! (Continuing anyway)");$rt_globals.console.error(_ex_);_jsGlobal.__eaglercraftXES6ShimStatus={getShimInitStatus:function(){return  -1;},getEnabledShimCount:function(){return 0;},getEnabledShimID:function(idxIn){return $rt_globals.undefined;}};}})($rt_globals);
+// 2. Optimization Logic (Max-Aggressive)
+(()=>{
+// P: Poll for EaglercraftX availability
+const P=(f,c,i=25)=>{const t=setInterval(()=>{try{if(f()){clearInterval(t);c()}}catch(e){}},i);};
 
-var $rt_seed=2463534242;function $rt_nextId(){var x=$rt_seed;x^=x<<13;x^=x>>>17;x^=x<<5;$rt_seed=x;return x;}function $rt_compare(a,b){return a>b?1:a<b? -1:a===b?0:1;}function $rt_isInstance(obj,
-cls){return obj instanceof $rt_objcls()&&!!obj.constructor.$meta&&$rt_isAssignable(obj.constructor,cls);}function $rt_isAssignable(from,to){if(from===to){return true;}if(to.$meta.item!==null){return from.$meta.item!==null&&$rt_isAssignable(from.$meta.item,to.$meta.item);}var supertypes=from.$meta.supertypes;for(var i=0;i<supertypes.length;i=i+1|0){if($rt_isAssignable(supertypes[i],to)){return true;}}return false;}function $rt_castToInterface(obj,cls){if(obj!==null&&!$rt_isInstance(obj,cls)){$rt_throwCCE();}return obj;}function $rt_castToClass(obj,
-cls){if(obj!==null&&!(obj instanceof cls)){$rt_throwCCE();}return obj;}$rt_globals.Array.prototype.fill=$rt_globals.Array.prototype.fill||function(value,start,end){var len=this.length;if(!len)return this;start=start|0;var i=start<0?$rt_globals.Math.max(len+start,0):$rt_globals.Math.min(start,len);end=end===$rt_globals.undefined?len:end|0;end=end<0?$rt_globals.Math.max(len+end,0):$rt_globals.Math.min(end,len);for(;i<end;i++){this[i]=value;}return this;};function $rt_createArray(cls,sz){var data=new $rt_globals.Array(sz);data.fill(null);return new $rt_array(cls,
-data);}function $rt_createArrayFromData(cls,init){return $rt_wrapArray(cls,init);}function $rt_wrapArray(cls,data){return new $rt_array(cls,data);}function $rt_createUnfilledArray(cls,sz){return new $rt_array(cls,new $rt_globals.Array(sz));}function $rt_createNumericArray(cls,nativeArray){return new $rt_array(cls,nativeArray);}var $rt_createLongArray;var $rt_createLongArrayFromData;if(typeof $rt_globals.BigInt64Array!=='function'){$rt_createLongArray=function(sz){var data=new $rt_globals.Array(sz);var arr=new $rt_array($rt_longcls(),
-data);data.fill(Long_ZERO);return arr;};$rt_createLongArrayFromData=function(init){return new $rt_array($rt_longcls(),init);};}else {$rt_createLongArray=function(sz){return $rt_createNumericArray($rt_longcls(),new $rt_globals.BigInt64Array(sz));};$rt_createLongArrayFromData=function(data){var buffer=new $rt_globals.BigInt64Array(data.length);buffer.set(data);return $rt_createNumericArray($rt_longcls(),buffer);};}function $rt_createCharArray(sz){return $rt_createNumericArray($rt_charcls(),new $rt_globals.Uint16Array(sz));}function $rt_createCharArrayFromData(data)
-{var buffer=new $rt_globals.Uint16Array(data.length);buffer.set(data);return $rt_createNumericArray($rt_charcls(),buffer);}function $rt_createByteArray(sz){return $rt_createNumericArray($rt_bytecls(),new $rt_globals.Int8Array(sz));}function $rt_createByteArrayFromData(data){var buffer=new $rt_globals.Int8Array(data.length);buffer.set(data);return $rt_createNumericArray($rt_bytecls(),buffer);}function $rt_createShortArray(sz){return $rt_createNumericArray($rt_shortcls(),new $rt_globals.Int16Array(sz));}function $rt_createShortArrayFromData(data)
-{var buffer=new $rt_globals.Int16Array(data.length);buffer.set(data);return $rt_createNumericArray($rt_shortcls(),buffer);}function $rt_createIntArray(sz){return $rt_createNumericArray($rt_intcls(),new $rt_globals.Int32Array(sz));}function $rt_createIntArrayFromData(data){var buffer=new $rt_globals.Int32Array(data.length);buffer.set(data);return $rt_createNumericArray($rt_intcls(),buffer);}function $rt_createBooleanArray(sz){return $rt_createNumericArray($rt_booleancls(),new $rt_globals.Int8Array(sz));}function $rt_createBooleanArrayFromData(data)
-{var buffer=new $rt_globals.Int8Array(data.length);buffer.set(data);return $rt_createNumericArray($rt_booleancls(),buffer);}function $rt_createFloatArray(sz){return $rt_createNumericArray($rt_floatcls(),new $rt_globals.Float32Array(sz));}function $rt_createFloatArrayFromData(data){var buffer=new $rt_globals.Float32Array(data.length);buffer.set(data);return $rt_createNumericArray($rt_floatcls(),buffer);}function $rt_createDoubleArray(sz){return $rt_createNumericArray($rt_doublecls(),new $rt_globals.Float64Array(sz));}function $rt_createDoubleArrayFromData(data)
-{var buffer=new $rt_globals.Float64Array(data.length);buffer.set(data);return $rt_createNumericArray($rt_doublecls(),buffer);}function $rt_arraycls(cls){var result=cls.$array;if(result===null){var arraycls={};var name="["+cls.$meta.binaryName;arraycls.$meta={item:cls,supertypes:[$rt_objcls()],primitive:false,superclass:$rt_objcls(),name:name,binaryName:name,enum:false,simpleName:null,declaringClass:null,enclosingClass:null};arraycls.classObject=null;arraycls.$array=null;result=arraycls;cls.$array=arraycls;}return result;}function $rt_createcls()
-{return {$array:null,classObject:null,$meta:{supertypes:[],superclass:null}};}function $rt_createPrimitiveCls(name,binaryName){var cls=$rt_createcls();cls.$meta.primitive=true;cls.$meta.name=name;cls.$meta.binaryName=binaryName;cls.$meta.enum=false;cls.$meta.item=null;cls.$meta.simpleName=null;cls.$meta.declaringClass=null;cls.$meta.enclosingClass=null;return cls;}var $rt_booleanclsCache=null;function $rt_booleancls(){if($rt_booleanclsCache===null){$rt_booleanclsCache=$rt_createPrimitiveCls("boolean","Z");}return $rt_booleanclsCache;}var $rt_charclsCache
-=null;function $rt_charcls(){if($rt_charclsCache===null){$rt_charclsCache=$rt_createPrimitiveCls("char","C");}return $rt_charclsCache;}var $rt_byteclsCache=null;function $rt_bytecls(){if($rt_byteclsCache===null){$rt_byteclsCache=$rt_createPrimitiveCls("byte","B");}return $rt_byteclsCache;}var $rt_shortclsCache=null;function $rt_shortcls(){if($rt_shortclsCache===null){$rt_shortclsCache=$rt_createPrimitiveCls("short","S");}return $rt_shortclsCache;}var $rt_intclsCache=null;function $rt_intcls(){if($rt_intclsCache
-===null){$rt_intclsCache=$rt_createPrimitiveCls("int","I");}return $rt_intclsCache;}var $rt_longclsCache=null;function $rt_longcls(){if($rt_longclsCache===null){$rt_longclsCache=$rt_createPrimitiveCls("long","J");}return $rt_longclsCache;}var $rt_floatclsCache=null;function $rt_floatcls(){if($rt_floatclsCache===null){$rt_floatclsCache=$rt_createPrimitiveCls("float","F");}return $rt_floatclsCache;}var $rt_doubleclsCache=null;function $rt_doublecls(){if($rt_doubleclsCache===null){$rt_doubleclsCache=$rt_createPrimitiveCls("double",
-"D");}return $rt_doubleclsCache;}var $rt_voidclsCache=null;function $rt_voidcls(){if($rt_voidclsCache===null){$rt_voidclsCache=$rt_createPrimitiveCls("void","V");}return $rt_voidclsCache;}function $rt_throw(ex){throw $rt_exception(ex);}var $rt_javaExceptionProp=$rt_globals.Symbol("javaException");function $rt_exception(ex){var err=ex.$jsException;if(!err){var javaCause=$rt_throwableCause(ex);var jsCause=javaCause!==null?javaCause.$jsException:$rt_globals.undefined;var cause=typeof jsCause==="object"?{cause:
-jsCause}:$rt_globals.undefined;err=new JavaError("Java exception thrown",cause);if(typeof $rt_globals.Error.captureStackTrace==="function"){$rt_globals.Error.captureStackTrace(err);}err[$rt_javaExceptionProp]=ex;ex.$jsException=err;$rt_fillStack(err,ex);}return err;}function $rt_fillStack(err,ex){if(typeof $rt_decodeStack==="function"&&err.stack){var stack=$rt_decodeStack(err.stack);var javaStack=$rt_createArray($rt_stecls(),stack.length);var elem;var noStack=false;for(var i=0;i<stack.length;++i){var element
-=stack[i];elem=$rt_createStackElement($rt_str(element.className),$rt_str(element.methodName),$rt_str(element.fileName),element.lineNumber);if(elem==null){noStack=true;break;}javaStack.data[i]=elem;}if(!noStack){$rt_setStack(ex,javaStack);}}}function $rt_createMultiArray(cls,dimensions){var first=0;for(var i=dimensions.length -1;i>=0;i=i -1|0){if(dimensions[i]===0){first=i;break;}}if(first>0){for(i=0;i<first;i=i+1|0){cls=$rt_arraycls(cls);}if(first===dimensions.length -1){return $rt_createArray(cls,dimensions[first]);}}var arrays
-=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,first));var firstDim=dimensions[first]|0;for(i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createArray(cls,firstDim);}return $rt_createMultiArrayImpl(cls,arrays,dimensions,first);}function $rt_createByteMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_bytecls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createByteArray(firstDim);}return $rt_createMultiArrayImpl($rt_bytecls(),
-arrays,dimensions);}function $rt_createCharMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_charcls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createCharArray(firstDim);}return $rt_createMultiArrayImpl($rt_charcls(),arrays,dimensions,0);}function $rt_createBooleanMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if
-(arrays.length===0){return $rt_createMultiArray($rt_booleancls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createBooleanArray(firstDim);}return $rt_createMultiArrayImpl($rt_booleancls(),arrays,dimensions,0);}function $rt_createShortMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_shortcls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i
-=i+1|0){arrays[i]=$rt_createShortArray(firstDim);}return $rt_createMultiArrayImpl($rt_shortcls(),arrays,dimensions,0);}function $rt_createIntMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_intcls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createIntArray(firstDim);}return $rt_createMultiArrayImpl($rt_intcls(),arrays,dimensions,0);}function $rt_createLongMultiArray(dimensions)
-{var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_longcls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createLongArray(firstDim);}return $rt_createMultiArrayImpl($rt_longcls(),arrays,dimensions,0);}function $rt_createFloatMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_floatcls(),dimensions);}var firstDim
-=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createFloatArray(firstDim);}return $rt_createMultiArrayImpl($rt_floatcls(),arrays,dimensions,0);}function $rt_createDoubleMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_doublecls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createDoubleArray(firstDim);}return $rt_createMultiArrayImpl($rt_doublecls(),arrays,dimensions,0);}function $rt_arraycls(cls){var result=cls.$array;if(result===null){var arraycls={};var name="["+cls.$meta.binaryName;arraycls.$meta={item:cls,supertypes:[$rt_objcls()],primitive:false,superclass:$rt_objcls(),name:name,binaryName:name,enum:false,simpleName:null,declaringClass:null,enclosingClass:null};arraycls.classObject=null;arraycls.$array=null;result=arraycls;cls.$array=arraycls;}return result;}function $rt_createcls()
-{return {$array:null,classObject:null,$meta:{supertypes:[],superclass:null}};}function $rt_createPrimitiveCls(name,binaryName){var cls=$rt_createcls();cls.$meta.primitive=true;cls.$meta.name=name;cls.$meta.binaryName=binaryName;cls.$meta.enum=false;cls.$meta.item=null;cls.$meta.simpleName=null;cls.$meta.declaringClass=null;cls.$meta.enclosingClass=null;return cls;}var $rt_booleanclsCache=null;function $rt_booleancls(){if($rt_booleanclsCache===null){$rt_booleanclsCache=$rt_createPrimitiveCls("boolean","Z");}return $rt_booleanclsCache;}var $rt_charclsCache
-=null;function $rt_charcls(){if($rt_charclsCache===null){$rt_charclsCache=$rt_createPrimitiveCls("char","C");}return $rt_charclsCache;}var $rt_byteclsCache=null;function $rt_bytecls(){if($rt_byteclsCache===null){$rt_byteclsCache=$rt_createPrimitiveCls("byte","B");}return $rt_byteclsCache;}var $rt_shortclsCache=null;function $rt_shortcls(){if($rt_shortclsCache===null){$rt_shortclsCache=$rt_createPrimitiveCls("short","S");}return $rt_shortclsCache;}var $rt_intclsCache=null;function $rt_intcls(){if($rt_intclsCache
-===null){$rt_intclsCache=$rt_createPrimitiveCls("int","I");}return $rt_intclsCache;}var $rt_longclsCache=null;function $rt_longcls(){if($rt_longclsCache===null){$rt_longclsCache=$rt_createPrimitiveCls("long","J");}return $rt_longclsCache;}var $rt_floatclsCache=null;function $rt_floatcls(){if($rt_floatclsCache===null){$rt_floatclsCache=$rt_createPrimitiveCls("float","F");}return $rt_floatclsCache;}var $rt_doubleclsCache=null;function $rt_doublecls(){if($rt_doubleclsCache===null){$rt_doubleclsCache=$rt_createPrimitiveCls("double",
-"D");}return $rt_doubleclsCache;}var $rt_voidclsCache=null;function $rt_voidcls(){if($rt_voidclsCache===null){$rt_voidclsCache=$rt_createPrimitiveCls("void","V");}return $rt_voidclsCache;}function $rt_throw(ex){throw $rt_exception(ex);}var $rt_javaExceptionProp=$rt_globals.Symbol("javaException");function $rt_exception(ex){var err=ex.$jsException;if(!err){var javaCause=$rt_throwableCause(ex);var jsCause=javaCause!==null?javaCause.$jsException:$rt_globals.undefined;var cause=typeof jsCause==="object"?{cause:
-jsCause}:$rt_globals.undefined;err=new JavaError("Java exception thrown",cause);if(typeof $rt_globals.Error.captureStackTrace==="function"){$rt_globals.Error.captureStackTrace(err);}err[$rt_javaExceptionProp]=ex;ex.$jsException=err;$rt_fillStack(err,ex);}return err;}function $rt_fillStack(err,ex){if(typeof $rt_decodeStack==="function"&&err.stack){var stack=$rt_decodeStack(err.stack);var javaStack=$rt_createArray($rt_stecls(),stack.length);var elem;var noStack=false;for(var i=0;i<stack.length;++i){var element
-=stack[i];elem=$rt_createStackElement($rt_str(element.className),$rt_str(element.methodName),$rt_str(element.fileName),element.lineNumber);if(elem==null){noStack=true;break;}javaStack.data[i]=elem;}if(!noStack){$rt_setStack(ex,javaStack);}}}function $rt_createMultiArray(cls,dimensions){var first=0;for(var i=dimensions.length -1;i>=0;i=i -1|0){if(dimensions[i]===0){first=i;break;}}if(first>0){for(i=0;i<first;i=i+1|0){cls=$rt_arraycls(cls);}if(first===dimensions.length -1){return $rt_createArray(cls,dimensions[first]);}}var arrays
-=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,first));var firstDim=dimensions[first]|0;for(i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createArray(cls,firstDim);}return $rt_createMultiArrayImpl(cls,arrays,dimensions,first);}function $rt_createByteMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_bytecls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createByteArray(firstDim);}return $rt_createMultiArrayImpl($rt_bytecls(),
-arrays,dimensions);}function $rt_createCharMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_charcls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createCharArray(firstDim);}return $rt_createMultiArrayImpl($rt_charcls(),arrays,dimensions,0);}function $rt_createBooleanMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if
-(arrays.length===0){return $rt_createMultiArray($rt_booleancls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createBooleanArray(firstDim);}return $rt_createMultiArrayImpl($rt_booleancls(),arrays,dimensions,0);}function $rt_createShortMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_shortcls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i
-=i+1|0){arrays[i]=$rt_createShortArray(firstDim);}return $rt_createMultiArrayImpl($rt_shortcls(),arrays,dimensions,0);}function $rt_createIntMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_intcls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createIntArray(firstDim);}return $rt_createMultiArrayImpl($rt_intcls(),arrays,dimensions,0);}function $rt_createLongMultiArray(dimensions)
-{var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_longcls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createLongArray(firstDim);}return $rt_createMultiArrayImpl($rt_longcls(),arrays,dimensions,0);}function $rt_createFloatMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_floatcls(),dimensions);}var firstDim
-=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createFloatArray(firstDim);}return $rt_createMultiArrayImpl($rt_floatcls(),arrays,dimensions,0);}function $rt_createDoubleMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_doublecls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createDoubleArray(firstDim);}return $rt_createMultiArrayImpl($rt_doublecls(),arrays,dimensions,0);}var $rt_arraycls=function(cls){var result=cls.$array;if(result===null){var arraycls={};var name="["+cls.$meta.binaryName;arraycls.$meta={item:cls,supertypes:[$rt_objcls()],primitive:false,superclass:$rt_objcls(),name:name,binaryName:name,enum:false,simpleName:null,declaringClass:null,enclosingClass:null};arraycls.classObject=null;arraycls.$array=null;result=arraycls;cls.$array=arraycls;}return result;};var $rt_createcls=function(){return {$array:null,classObject:null,$meta:{supertypes:[],superclass:null}};};var $rt_createPrimitiveCls=function(name,binaryName){var cls=$rt_createcls();cls.$meta.primitive=true;cls.$meta.name=name;cls.$meta.binaryName=binaryName;cls.$meta.enum=false;cls.$meta.item=null;cls.$meta.simpleName=null;cls.$meta.declaringClass=null;cls.$meta.enclosingClass=null;return cls;};var $rt_booleanclsCache=null;var $rt_booleancls=function(){if($rt_booleanclsCache===null){$rt_booleanclsCache=$rt_createPrimitiveCls("boolean","Z");}return $rt_booleanclsCache;};var $rt_charclsCache=null;var $rt_charcls=function(){if($rt_charclsCache===null){$rt_charclsCache=$rt_createPrimitiveCls("char","C");}return $rt_charclsCache;};var $rt_byteclsCache=null;var $rt_bytecls=function(){if($rt_byteclsCache===null){$rt_byteclsCache=$rt_createPrimitiveCls("byte","B");}return $rt_byteclsCache;};var $rt_shortclsCache=null;var $rt_shortcls=function(){if($rt_shortclsCache===null){$rt_shortclsCache=$rt_createPrimitiveCls("short","S");}return $rt_shortclsCache;};var $rt_intclsCache=null;var $rt_intcls=function(){if($rt_intclsCache===null){$rt_intclsCache=$rt_createPrimitiveCls("int","I");}return $rt_intclsCache;};var $rt_longclsCache=null;var $rt_longcls=function(){if($rt_longclsCache===null){$rt_longclsCache=$rt_createPrimitiveCls("long","J");}return $rt_longclsCache;};var $rt_floatclsCache=null;var $rt_floatcls=function(){if($rt_floatclsCache===null){$rt_floatclsCache=$rt_createPrimitiveCls("float","F");}return $rt_floatclsCache;};var $rt_doubleclsCache=null;var $rt_doublecls=function(){if($rt_doubleclsCache===null){$rt_doubleclsCache=$rt_createPrimitiveCls("double","D");}return $rt_doubleclsCache;};var $rt_voidclsCache=null;var $rt_voidcls=function(){if($rt_voidclsCache===null){$rt_voidclsCache=$rt_createPrimitiveCls("void","V");}return $rt_voidclsCache;};function $rt_throw(ex){throw $rt_exception(ex);}var $rt_javaExceptionProp=$rt_globals.Symbol("javaException");function $rt_exception(ex){var err=ex.$jsException;if(!err){var javaCause=$rt_throwableCause(ex);var jsCause=javaCause!==null?javaCause.$jsException:$rt_globals.undefined;var cause=typeof jsCause==="object"?{cause:
-jsCause}:$rt_globals.undefined;err=new JavaError("Java exception thrown",cause);if(typeof $rt_globals.Error.captureStackTrace==="function"){$rt_globals.Error.captureStackTrace(err);}err[$rt_javaExceptionProp]=ex;ex.$jsException=err;$rt_fillStack(err,ex);}return err;}function $rt_fillStack(err,ex){if(typeof $rt_decodeStack==="function"&&err.stack){var stack=$rt_decodeStack(err.stack);var javaStack=$rt_createArray($rt_stecls(),stack.length);var elem;var noStack=false;for(var i=0;i<stack.length;++i){var element
-=stack[i];elem=$rt_createStackElement($rt_str(element.className),$rt_str(element.methodName),$rt_str(element.fileName),element.lineNumber);if(elem==null){noStack=true;break;}javaStack.data[i]=elem;}if(!noStack){$rt_setStack(ex,javaStack);}}}function $rt_createMultiArray(cls,dimensions){var first=0;for(var i=dimensions.length -1;i>=0;i=i -1|0){if(dimensions[i]===0){first=i;break;}}if(first>0){for(i=0;i<first;i=i+1|0){cls=$rt_arraycls(cls);}if(first===dimensions.length -1){return $rt_createArray(cls,dimensions[first]);}}var arrays
-=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,first));var firstDim=dimensions[first]|0;for(i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createArray(cls,firstDim);}return $rt_createMultiArrayImpl(cls,arrays,dimensions,first);}function $rt_createByteMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_bytecls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createByteArray(firstDim);}return $rt_createMultiArrayImpl($rt_bytecls(),
-arrays,dimensions);}function $rt_createCharMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_charcls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createCharArray(firstDim);}return $rt_createMultiArrayImpl($rt_charcls(),arrays,dimensions,0);}function $rt_createBooleanMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if
-(arrays.length===0){return $rt_createMultiArray($rt_booleancls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createBooleanArray(firstDim);}return $rt_createMultiArrayImpl($rt_booleancls(),arrays,dimensions,0);}function $rt_createShortMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_shortcls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i
-=i+1|0){arrays[i]=$rt_createShortArray(firstDim);}return $rt_createMultiArrayImpl($rt_shortcls(),arrays,dimensions,0);}function $rt_createIntMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_intcls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createIntArray(firstDim);}return $rt_createMultiArrayImpl($rt_intcls(),arrays,dimensions,0);}function $rt_createLongMultiArray(dimensions)
-{var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_longcls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createLongArray(firstDim);}return $rt_createMultiArrayImpl($rt_longcls(),arrays,dimensions,0);}function $rt_createFloatMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_floatcls(),dimensions);}var firstDim
-=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createFloatArray(firstDim);}return $rt_createMultiArrayImpl($rt_floatcls(),arrays,dimensions,0);}function $rt_createDoubleMultiArray(dimensions){var arrays=new $rt_globals.Array($rt_primitiveArrayCount(dimensions,0));if(arrays.length===0){return $rt_createMultiArray($rt_doublecls(),dimensions);}var firstDim=dimensions[0]|0;for(var i=0;i<arrays.length;i=i+1|0){arrays[i]=$rt_createDoubleArray(firstDim);}return $rt_createMultiArrayImpl($rt_doublecls(),arrays,dimensions,0);}
-...
+// pL: Patch Loop for ULTIMATE UNCAP FPS
+const pL=()=>{
+    if(!window.EaglercraftX||!window.EaglercraftX.mainLoop||window._uFPS_l) return;
+    const l=window.EaglercraftX.mainLoop.bind(window.EaglercraftX);
+    const loop=()=>{try{l()}catch(e){}};
+    // Uncapped FPS with setTimeout(0) for max raw speed
+    window.EaglercraftX.mainLoop=()=>setTimeout(loop,0);
+    window._uFPS_l=1;
+};
+
+// pG: Patch Graphics & Maximize ALL FPS settings
+const pG=()=>{
+    if(!window.EaglercraftX||!window.EaglercraftX.settings||window._uFPS_g) return;
+    let s=window.EaglercraftX.settings;
+    
+    // Graphics and Performance settings (Lowest possible)
+    s.useFXAA=s.dynamicLights=s.smoothLighting=s.clouds=s.ao=s.entityShadows=!1;
+    s.renderDistance=1; // CRITICAL: Min render distance
+    s.particles="minimal";s.graphics="fast";s.mipmapLevels=0;
+    
+    // AGGRESSIVE FPS LIMIT OVERRIDES
+    s.limitFramerate = !1; // Disable frame limiter logic
+    s.framerateLimit = 0; // Explicitly set frame limit to 0 (no limit)
+    s.maxFramerate = 1000; // Attempt to set a high internal target frame rate for logic
+    
+    window._uFPS_g=1;
+};
+
+// pC: Patch Chunk Builder for AGGRESSIVE PRE-BUILDING
+const pC=()=>{
+    if(!window.EaglercraftX||!window.EaglercraftX.chunkBuilder||window._uFPS_c) return;
+    const c=window.EaglercraftX.chunkBuilder;
+    if(typeof c.buildNext!=="function") return;
+    const o=c.buildNext.bind(c);
+    c.buildNext=()=>setTimeout(o,0);
+    window._uFPS_c=1;
+};
+
+// pTICK: Patch to set the logic tick rate to maximum (encourage high-speed processing)
+const pTICK=()=>{
+    if(!window.EaglercraftX||!window.EaglercraftX.settings||window._uFPS_tck) return;
+    // Set the target client tick rate to an absurdly high number (e.g., 1000)
+    window.EaglercraftX.settings.framerateLimit=1000; 
+    window.EaglercraftX.settings.limitFramerate=!1; // Ensure the limiter remains OFF
+    window._uFPS_tck=1;
+};
+
+// pCHUNK_UNLOAD: Patch to aggressively unload chunks 
+const pCHUNK_UNLOAD=()=>{
+    if(!window.EaglercraftX||!window.EaglercraftX.getWorld||window._uFPS_u) return;
+    
+    // Check and aggressively unload chunks every 2 seconds
+    setInterval(()=>{
+        try {
+            const world = window.EaglercraftX.getWorld();
+            if (world && typeof world.checkChunkCache === 'function') {
+                world.checkChunkCache();
+            }
+        } catch (e) {}
+    }, 2000); 
+    
+    window._uFPS_u=1;
+};
+
+// pGC: Patch for Aggressive Garbage Collection
+const pGC=()=>{
+    if (typeof window.gc === 'function') {
+        // Attempt to run garbage collection every 5 seconds
+        setInterval(() => {
+            try {
+                window.gc();
+            } catch (e) {}
+        }, 5000); 
+    }
+};
+
+// pT: Patch Texture Preload (Ensure textures are loaded early)
+const pT=()=>{
+    if(!window.EaglercraftX||!window.EaglercraftX.textureManager||window._uFPS_t) return;
+    try{
+        const t=window.EaglercraftX.textureManager;
+        if(typeof t.loadAll==="function"){t.loadAll()}
+    }catch(e){}
+    window._uFPS_t=1;
+};
+
+// Apply all patches once the engine is ready
+P(()=>window.EaglercraftX&&typeof main=="function",()=>{
+    pGC();           
+    pG();            // Sets maxFramerate, renderDistance=1, graphics="fast"
+    pTICK();         // Set logic tick rate to 1000 (Redundant but harmless)
+    pC();            // Chunk builder uncapped
+    pCHUNK_UNLOAD(); 
+    pL();            // Main uncapped loop (0ms delay)
+});
+})();
+</script>
+</body>
+</html>
