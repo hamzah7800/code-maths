@@ -3,6 +3,27 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"><meta name="description" content="EaglercraftX OneBlock Ultra FPS Client"><meta name="keywords" content="eaglercraft, minecraft, oneblock, 1.8, fps"><title>HZ OneBlock Ultra FPS - ULTIMATE CAP REMOVAL</title><link type="image/png" rel="shortcut icon" href="favicon.png">
 
+<style>
+    /* CRITICAL: Forces the 1:1 pixel rendering and full screen */
+    canvas {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        /* Ensures downscaled content remains crisp, not blurry */
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+        z-index: 100;
+    }
+    /* Essential for full screen, zero margin */
+    body {
+        margin: 0;
+        overflow: hidden;
+        width: 100vw;
+        height: 100vh;
+    }
+</style>
 <script>
 "use strict";
 window.eaglercraftXOpts={demoMode:!1,container:"game_frame",assetsURI:"assets.epk",localesURI:"lang/",worldsDB:"worlds",logInvalidCerts:!1,crashOnUncaughtExceptions:!1,maxParticles:50,disableInstancedRendering:!1, 
@@ -24,40 +45,40 @@ const P=(f,c,i=25)=>{const t=setInterval(()=>{try{if(f()){clearInterval(t);c()}}
 
 // pL: Patch Loop for ULTIMATE UNCAP FPS
 const pL=()=>{
-    if(!window.EaglercraftX||!window.EaglercraftX.mainLoop||window._uFPS_l) return;
-    const l=window.EaglercraftX.mainLoop.bind(window.EaglercraftX);
-    const loop=()=>{try{l()}catch(e){}};
-    // Uncapped FPS with setTimeout(0) for max raw speed
-    window.EaglercraftX.mainLoop=()=>setTimeout(loop,0);
-    window._uFPS_l=1;
+    if(!window.EaglercraftX||!window.EaglercraftX.mainLoop||window._uFPS_l) return;
+    const l=window.EaglercraftX.mainLoop.bind(window.EaglercraftX);
+    const loop=()=>{try{l()}catch(e){}};
+    // Uncapped FPS with setTimeout(0) for max raw speed
+    window.EaglercraftX.mainLoop=()=>setTimeout(loop,0);
+    window._uFPS_l=1;
 };
 
 // pG: Patch Graphics & Maximize ALL FPS settings
 const pG=()=>{
-    if(!window.EaglercraftX||!window.EaglercraftX.settings||window._uFPS_g) return;
-    let s=window.EaglercraftX.settings;
-    
-    // Graphics and Performance settings (Lowest possible)
-    s.useFXAA=s.dynamicLights=s.smoothLighting=s.clouds=s.ao=s.entityShadows=!1;
-    s.renderDistance=1; // CRITICAL: Min render distance
-    s.particles="minimal";s.graphics="fast";s.mipmapLevels=0;
-    
+    if(!window.EaglercraftX||!window.EaglercraftX.settings||window._uFPS_g) return;
+    let s=window.EaglercraftX.settings;
+    
+    // Graphics and Performance settings (Lowest possible)
+    s.useFXAA=s.dynamicLights=s.smoothLighting=s.clouds=s.ao=s.entityShadows=!1;
+    s.renderDistance=1; // CRITICAL: Min render distance
+    s.particles="minimal";s.graphics="fast";s.mipmapLevels=0;
+    
     // AGGRESSIVE FPS LIMIT OVERRIDES
     s.limitFramerate = !1; // Disable frame limiter logic
     s.framerateLimit = 0; // Explicitly set frame limit to 0 (no limit)
     s.maxFramerate = 1000; // Attempt to set a high internal target frame rate for logic
     
-    window._uFPS_g=1;
+    window._uFPS_g=1;
 };
 
 // pC: Patch Chunk Builder for AGGRESSIVE PRE-BUILDING
 const pC=()=>{
-    if(!window.EaglercraftX||!window.EaglercraftX.chunkBuilder||window._uFPS_c) return;
-    const c=window.EaglercraftX.chunkBuilder;
-    if(typeof c.buildNext!=="function") return;
-    const o=c.buildNext.bind(c);
-    c.buildNext=()=>setTimeout(o,0);
-    window._uFPS_c=1;
+    if(!window.EaglercraftX||!window.EaglercraftX.chunkBuilder||window._uFPS_c) return;
+    const c=window.EaglercraftX.chunkBuilder;
+    if(typeof c.buildNext!=="function") return;
+    const o=c.buildNext.bind(c);
+    c.buildNext=()=>setTimeout(o,0);
+    window._uFPS_c=1;
 };
 
 // pTICK: Patch to set the logic tick rate to maximum (encourage high-speed processing)
@@ -89,6 +110,7 @@ const pCHUNK_UNLOAD=()=>{
 // pGC: Patch for Aggressive Garbage Collection
 const pGC=()=>{
     if (typeof window.gc === 'function') {
+        // Attempt to run garbage collection every 5 seconds
         setInterval(() => {
             try {
                 window.gc();
@@ -99,22 +121,22 @@ const pGC=()=>{
 
 // pT: Patch Texture Preload (Ensure textures are loaded early)
 const pT=()=>{
-    if(!window.EaglercraftX||!window.EaglercraftX.textureManager||window._uFPS_t) return;
-    try{
-        const t=window.EaglercraftX.textureManager;
-        if(typeof t.loadAll==="function"){t.loadAll()}
-    }catch(e){}
-    window._uFPS_t=1;
+    if(!window.EaglercraftX||!window.EaglercraftX.textureManager||window._uFPS_t) return;
+    try{
+        const t=window.EaglercraftX.textureManager;
+        if(typeof t.loadAll==="function"){t.loadAll()}
+    }catch(e){}
+    window._uFPS_t=1;
 };
 
 // Apply all patches once the engine is ready
 P(()=>window.EaglercraftX&&typeof main=="function",()=>{
-    pGC();           
-    pG();            // New: Sets maxFramerate and framerateLimit to 0/high
-    pTICK();         // New: Set logic tick rate to 1000
-    pC();            
-    pCHUNK_UNLOAD(); 
-    pL();            // Main uncapped loop
+    pGC();           
+    pG();            // Sets maxFramerate, renderDistance=1, graphics="fast"
+    pTICK();         // Set logic tick rate to 1000 (Redundant but harmless)
+    pC();            // Chunk builder uncapped
+    pCHUNK_UNLOAD(); 
+    pL();            // Main uncapped loop (0ms delay)
 });
 })();
 </script>
