@@ -17,6 +17,45 @@
         #gameCanvas {
             border: 1px solid black;
             background-color: #e0ffff; /* Light blue sky */
+            /* Add a touch-action property to prevent default mobile scroll/zoom behavior */
+            touch-action: none; 
+        }
+
+        /* -------------------------------------- */
+        /* CSS for the Mobile/Touch Joystick Area */
+        /* -------------------------------------- */
+        #joystick {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            box-sizing: border-box;
+            user-select: none; /* Prevent text selection */
+        }
+        .joystick-button {
+            width: 80px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            line-height: 40px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px #aaa;
+            transition: all 0.05s;
+        }
+        .joystick-button:active {
+            box-shadow: 0 2px #888;
+            transform: translateY(2px);
         }
     </style>
 </head>
@@ -24,25 +63,33 @@
 
     <canvas id="gameCanvas" width="400" height="600"></canvas>
 
+    <div id="joystick">
+        <div class="joystick-button" id="left-button">← Left</div>
+        <div class="joystick-button" id="right-button">Right →</div>
+    </div>
+
     <script>
         // *** Game Logic Goes Here ***
         
-        // 1. Setup Canvas and Context
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const width = canvas.width;
         const height = canvas.height;
+        const leftButton = document.getElementById('left-button');
+        const rightButton = document.getElementById('right-button');
 
-        // 2. Game Variables (Gravity, Speed, Score, Game State)
+        // Game Variables
         let doodler;
         let platforms = [];
-        let gravity = 0.5;
-        let jumpPower = -12;
+        const gravity = 0.5;
+        const jumpPower = -12;
         let score = 0;
         let isGameOver = false;
 
-        // 3. Doodler Object/Class
-        // Store properties like x, y, width, height, velocity (dy), and a draw method.
+        /* ----------------------- */
+        /* Doodler and Platform Classes */
+        /* ----------------------- */
+
         class Doodler {
             constructor() {
                 this.x = width / 2 - 20;
@@ -54,7 +101,6 @@
             }
             
             draw() {
-                // Simple yellow rectangle for the doodler
                 ctx.fillStyle = 'yellow';
                 ctx.fillRect(this.x, this.y, this.width, this.height);
             }
@@ -63,6 +109,9 @@
                 // Apply gravity
                 this.dy += gravity;
                 this.y += this.dy;
+
+                // Apply horizontal movement
+                this.x += this.dx;
 
                 // Handle screen wrap for horizontal movement
                 if (this.x + this.width < 0) {
@@ -73,8 +122,6 @@
             }
         }
         
-        // 4. Platform Object/Class
-        // Store properties like x, y, width, height, and a draw method.
         class Platform {
             constructor(x, y) {
                 this.x = x;
@@ -89,12 +136,21 @@
             }
         }
 
-        // 5. Initialize Game and Platforms
+        /* ----------------------- */
+        /* Game Setup Functions    */
+        /* ----------------------- */
+
         function createPlatforms() {
-            // Create initial platforms evenly spaced
-            for (let i = 0; i < 10; i++) {
+            // 1. Create the guaranteed starting platform
+            const startPlatformX = width / 2 - 30;
+            const startPlatformY = height - 50;
+            platforms.push(new Platform(startPlatformX, startPlatformY));
+
+            // 2. Create the remaining platforms
+            for (let i = 1; i < 10; i++) {
                 let x = Math.random() * (width - 60);
-                let y = height - (i * 60) - 60;
+                // Ensure platforms don't spawn too close to the starting platform
+                let y = height - (i * 60) - 60; 
                 platforms.push(new Platform(x, y));
             }
         }
@@ -105,14 +161,23 @@
             createPlatforms();
             score = 0;
             isGameOver = false;
+            
+            // Place doodler on the starting platform
+            doodler.x = platforms[0].x + (platforms[0].width / 2) - (doodler.width / 2);
+            doodler.y = platforms[0].y - doodler.height;
+            doodler.dy = jumpPower; // Give an initial jump to start the game
+
             // Start the game loop
-            gameLoop();
+            requestAnimationFrame(gameLoop);
         }
 
-        // 6. Collision Detection Logic
+        /* ----------------------- */
+        /* Game Logic Functions    */
+        /* ----------------------- */
+
         function checkCollisions() {
             platforms.forEach(platform => {
-                // Check if doodler is falling and is above the platform
+                // Collision check logic: Doodler is falling (dy > 0) AND hits platform from above
                 if (doodler.dy > 0 && 
                     doodler.y + doodler.height >= platform.y && 
                     doodler.y + doodler.height <= platform.y + platform.height && 
@@ -125,74 +190,84 @@
             });
         }
 
-        // 7. Platform Scrolling and Generation
         function scrollPlatforms() {
-            // If doodler moves past the middle of the screen while moving up
+            // Screen scrolling logic: only scroll when doodler moves past the middle while moving up
             if (doodler.y < height / 2 && doodler.dy < 0) {
-                // Move platforms (and doodler) down, and track score
+                // Move platforms down, and track score
                 platforms.forEach(platform => {
-                    platform.y -= doodler.dy; // move platforms down by the doodler's upward speed
+                    platform.y -= doodler.dy; // Move platforms down by the doodler's upward speed
                 });
-                score += Math.floor(-doodler.dy * 0.1); // Increase score
+                score += Math.floor(-doodler.dy * 0.1); // Score is based on distance traveled up
                 doodler.y = height / 2; // Keep the doodler near the center
 
-                // Generate new platforms at the top
-                if (platforms[platforms.length - 1].y > 0) {
+                // Generate new platform at the top
+                const lastPlatform = platforms[platforms.length - 1];
+                if (lastPlatform.y > 0) {
                      let x = Math.random() * (width - 60);
-                     let y = platforms[platforms.length - 1].y - 60; // place above the last platform
+                     let y = lastPlatform.y - 60; // Place above the last platform
                      platforms.push(new Platform(x, y));
                 }
             }
 
-            // Remove off-screen platforms
+            // Remove platforms that have scrolled off the bottom of the screen
             platforms = platforms.filter(platform => platform.y < height);
         }
 
-        // 8. Game Over Logic
         function checkGameOver() {
             if (doodler.y > height) {
                 isGameOver = true;
             }
         }
 
-        // 9. Main Game Loop
+        /* ----------------------- */
+        /* Main Game Loop          */
+        /* ----------------------- */
+
         function gameLoop() {
             if (isGameOver) {
-                ctx.fillStyle = 'red';
+                // Game Over Screen
+                ctx.clearRect(0, 0, width, height); // Clear everything
+                ctx.fillStyle = 'black';
                 ctx.font = '48px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText('Game Over!', width / 2, height / 2);
                 ctx.font = '24px Arial';
                 ctx.fillText('Score: ' + score, width / 2, height / 2 + 40);
-                ctx.fillText('Press SPACE to Restart', width / 2, height / 2 + 80);
-                return; // Stop the loop
+                ctx.fillText('Press SPACE or Tap to Restart', width / 2, height / 2 + 80);
+                return; 
             }
 
             // Clear the canvas
             ctx.clearRect(0, 0, width, height);
 
-            // Update & Draw
+            // Update Logic
             doodler.update();
             checkCollisions();
             scrollPlatforms();
             checkGameOver();
             
+            // Draw Logic
             doodler.draw();
             platforms.forEach(platform => platform.draw());
 
             // Draw Score
             ctx.fillStyle = 'black';
             ctx.font = '20px Arial';
+            ctx.textAlign = 'left';
             ctx.fillText('Score: ' + score, 10, 25);
             
             requestAnimationFrame(gameLoop);
         }
         
-        // 10. Input Handling (Keyboard)
+        /* ----------------------- */
+        /* Input Handling (Keyboard & Touch) */
+        /* ----------------------- */
+
+        // Keyboard Event Handlers (Arrow keys and WASD)
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') {
+            if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') {
                 doodler.dx = -5; // Move left
-            } else if (e.key === 'ArrowRight') {
+            } else if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') {
                 doodler.dx = 5; // Move right
             } else if (e.key === ' ' && isGameOver) {
                 init(); // Restart game
@@ -200,12 +275,43 @@
         });
 
         document.addEventListener('keyup', (e) => {
-            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                doodler.dx = 0; // Stop horizontal movement
+            if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a' || 
+                e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') {
+                doodler.dx = 0; // Stop horizontal movement when key is released
+            }
+        });
+        
+        // Mobile/Joystick Event Handlers
+        function startMoving(direction) {
+            if (isGameOver) return;
+            doodler.dx = direction === 'left' ? -5 : 5;
+        }
+
+        function stopMoving() {
+            doodler.dx = 0;
+        }
+
+        // Joystick controls for Left Button
+        leftButton.addEventListener('mousedown', () => startMoving('left'));
+        leftButton.addEventListener('mouseup', stopMoving);
+        leftButton.addEventListener('touchstart', (e) => { e.preventDefault(); startMoving('left'); });
+        leftButton.addEventListener('touchend', stopMoving);
+
+        // Joystick controls for Right Button
+        rightButton.addEventListener('mousedown', () => startMoving('right'));
+        rightButton.addEventListener('mouseup', stopMoving);
+        rightButton.addEventListener('touchstart', (e) => { e.preventDefault(); startMoving('right'); });
+        rightButton.addEventListener('touchend', stopMoving);
+
+        // Canvas click/tap to restart on Game Over
+        canvas.addEventListener('click', () => {
+            if (isGameOver) {
+                init();
             }
         });
 
-        // 11. Start the Game
+
+        // Start the Game
         init();
 
     </script>
