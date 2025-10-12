@@ -1,22 +1,54 @@
-
 <!DOCTYPE html>
 <html>
 <head>
     <title>Snake Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        canvas { 
-            border: 1px solid black;
-            display: block;
-            margin: 0 auto;
-        }
-        body {
+        /* Fullscreen and Centering Styles */
+        html, body {
+            height: 100%; /* Take up full viewport height */
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* **Prevents browser scrolling** when swiping */
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
             text-align: center;
             background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
+            /* **Prevents text selection/copying** on long press/drag */
+            -webkit-user-select: none; /* Safari/iOS */
+            -moz-user-select: none;    /* Firefox */
+            -ms-user-select: none;     /* IE/Edge */
+            user-select: none;         /* Standard */
+            touch-action: manipulation; /* Improves responsiveness and prevents double-tap zoom */
+        }
+
+        canvas {
+            border: 1px solid black;
+            display: block;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Slight shadow for depth */
+        }
+
+        h1, p {
+            margin: 10px 0;
+        }
+
+        /* Home link styling (optional) */
+        .home-link {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            text-decoration: none;
+            z-index: 10;
+            color: #333;
         }
     </style>
 </head>
 <body>
-    <a href="../../index.html" style="position: fixed; top: 20px; left: 20px; font-size: 24px; text-decoration: none;">🏠</a>
+    <a href="../../index.html" class="home-link">🏠</a>
     <h1>Snake Game</h1>
     <canvas id="gameCanvas" width="400" height="400"></canvas>
     <p>Use arrow keys or swipe to move</p>
