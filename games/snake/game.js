@@ -1,13 +1,14 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-const snake = [{x: 200, y: 200}, {x: 190, y: 200}, {x: 180, y: 200}];
+let snake = [{x: 200, y: 200}, {x: 190, y: 200}, {x: 180, y: 200}];
 let dx = 10;
 let dy = 0;
 let foodX;
 let foodY;
 let foodType = 'regular';
 let score = 0;
+let changingDirection = false; // Flag to prevent multiple direction changes per tick
 
 const foods = {
     'regular': {color: '#ff0000', points: 10},
@@ -50,8 +51,15 @@ function drawSnake() {
 }
 
 function generateFood() {
-    foodX = Math.floor(Math.random() * 40) * 10;
-    foodY = Math.floor(Math.random() * 40) * 10;
+    // Ensure food is not placed on the snake
+    let newFoodX, newFoodY;
+    do {
+        newFoodX = Math.floor(Math.random() * 40) * 10;
+        newFoodY = Math.floor(Math.random() * 40) * 10;
+    } while (snake.some(part => part.x === newFoodX && part.y === newFoodY));
+
+    foodX = newFoodX;
+    foodY = newFoodY;
     foodType = Math.random() < 0.1 ? 'super' : Math.random() < 0.3 ? 'bonus' : 'regular';
 }
 
@@ -73,6 +81,10 @@ function drawFood() {
 function moveSnake() {
     const head = {x: snake[0].x + dx, y: snake[0].y + dy};
     snake.unshift(head);
+    
+    // Reset the direction change flag after movement
+    changingDirection = false; 
+
     if (head.x === foodX && head.y === foodY) {
         score += foods[foodType].points;
         generateFood();
@@ -86,6 +98,9 @@ function changeDirection(event) {
     const RIGHT_KEY = 39;
     const UP_KEY = 38;
     const DOWN_KEY = 40;
+
+    if (changingDirection) return; // Ignore input if already changed this tick
+    changingDirection = true;
 
     const keyPressed = event.keyCode;
     const goingUp = dy === -10;
@@ -118,6 +133,9 @@ function drawScore() {
 }
 
 function showGameOver() {
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'; // Semi-transparent white overlay
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     ctx.fillStyle = 'black';
     ctx.font = '40px Arial';
     ctx.fillText('Game Over!', canvas.width/2 - 100, canvas.height/2);
@@ -141,6 +159,7 @@ function gameLoop() {
 }
 
 document.addEventListener('keydown', function(event) {
+    // Restart logic
     if (event.key === 'r' && gameHasEnded()) {
         snake = [{x: 200, y: 200}, {x: 190, y: 200}, {x: 180, y: 200}];
         dx = 10;
@@ -149,6 +168,8 @@ document.addEventListener('keydown', function(event) {
         generateFood();
         gameLoop();
     }
+    // Direction change for keyboard
+    changeDirection(event);
 });
 
 function clearCanvas() {
@@ -172,35 +193,49 @@ let touchStartX = 0;
 let touchStartY = 0;
 
 document.addEventListener('touchstart', function(e) {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-    e.preventDefault();
+    if (e.touches.length === 1) {
+        const rect = canvas.getBoundingClientRect();
+        touchStartX = e.touches[0].clientX - rect.left;
+        touchStartY = e.touches[0].clientY - rect.top;
+    }
+    e.preventDefault(); // **Prevents scrolling/default touch action**
 });
 
 document.addEventListener('touchmove', function(e) {
-    if (!touchStartX || !touchStartY) return;
+    e.preventDefault(); // **Prevents scrolling/default touch action**
+});
 
-    let touchEndX = e.touches[0].clientX;
-    let touchEndY = e.touches[0].clientY;
+document.addEventListener('touchend', function(e) {
+    if (!touchStartX || !touchStartY || e.touches.length !== 0) return;
 
-    let dx = touchEndX - touchStartX;
-    let dy = touchEndY - touchStartY;
+    // Use changedTouches to get the end position
+    let touchEndX = e.changedTouches[0].clientX;
+    let touchEndY = e.changedTouches[0].clientY;
 
-    if (Math.abs(dx) > Math.abs(dy)) {
+    const rect = canvas.getBoundingClientRect();
+    let endX = touchEndX - rect.left;
+    let endY = touchEndY - rect.top;
+
+    let dx_swipe = endX - touchStartX;
+    let dy_swipe = endY - touchStartY;
+
+    // Ensure a sufficient swipe distance (e.g., 10 pixels)
+    if (Math.abs(dx_swipe) < 10 && Math.abs(dy_swipe) < 10) return;
+
+    if (Math.abs(dx_swipe) > Math.abs(dy_swipe)) {
         // Horizontal swipe
-        if (dx > 0) changeDirection({ keyCode: 39 }); // Right
+        if (dx_swipe > 0) changeDirection({ keyCode: 39 }); // Right
         else changeDirection({ keyCode: 37 }); // Left
     } else {
         // Vertical swipe
-        if (dy > 0) changeDirection({ keyCode: 40 }); // Down
+        if (dy_swipe > 0) changeDirection({ keyCode: 40 }); // Down
         else changeDirection({ keyCode: 38 }); // Up
     }
 
-    touchStartX = null;
-    touchStartY = null;
-    e.preventDefault();
+    touchStartX = 0;
+    touchStartY = 0;
 });
 
-document.addEventListener('keydown', changeDirection);
+// Initial setup
 generateFood();
 gameLoop();
