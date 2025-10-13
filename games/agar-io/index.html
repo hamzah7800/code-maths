@@ -3,16 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>Agar-like — Mobile Friendly</title>
+  <title>Agar-like — iPad Optimized</title>
   <style>
+    /* Ensure the body doesn't scroll or zoom */
     html,body{height:100%;margin:0;background:#0b1220;color:#ddd;font-family:Inter,Arial; overflow: hidden; touch-action: none;}
     #game{display:block;width:100%;height:100vh;background:linear-gradient(180deg,#07101a,#0b1220)}
-    #ui{position:fixed;left:0;right:0;top:0;z-index:10;padding:12px;display: flex; justify-content: space-between; align-items: flex-start;}
-    #info{background:rgba(0,0,0,0.4);padding:8px 12px;border-radius:8px;}
+    /* Positioning for iPad - controls are on the right/bottom for thumb access */
+    #ui{position:fixed;left:0;right:0;top:0;z-index:10;padding:15px 20px;display: flex; justify-content: space-between; align-items: flex-start;}
+    #info{background:rgba(0,0,0,0.4);padding:10px 15px;border-radius:8px; font-size: 16px;}
     button{
-      background: #3b82f6; color: white; border: none; padding: 10px 15px; border-radius: 6px;
-      margin-left: 10px; cursor: pointer; font-size: 16px;
+      background: #3b82f6; color: white; border: none; padding: 12px 18px; border-radius: 8px;
+      margin-left: 15px; cursor: pointer; font-size: 18px;
       transition: background 0.1s;
+      user-select: none; /* Prevents text selection on long press */
+      -webkit-tap-highlight-color: transparent; /* Removes tap highlight */
     }
     button:active { background: #2563eb; }
     #controls { display: flex; align-items: center; }
@@ -21,16 +25,16 @@
 <body>
   <canvas id="game"></canvas>
   <div id="ui">
-    <div id="info"><strong>Agar-like</strong> — Tap or drag to move.</div>
+    <div id="info"><strong>Agar-like</strong> — Tap and drag to move. Eat smaller cells!</div>
     <div id="controls">
       <button id="eject">Eject Mass</button>
-      <button id="run">Run</button>
+      <button id="run">Run 🏃</button>
       <button id="respawn">Respawn</button>
     </div>
   </div>
 
 <script>
-// Agar.io-like local game (single file) with mobile/touch support
+// Agar.io-like local game (iPad Optimized)
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -71,21 +75,14 @@ function randColor(){
   return palette[~~(Math.random()*palette.length)];
 }
 
-// --- Mobile/Touch Variables ---
-let touchX=W/2, touchY=H/2;
+// --- iPad/Touch Variables ---
+let touchX=W/2, touchY=H/2; // Initial touch point is center
 let runActive = false;
-let ejectActive = false; // For the button press
+let ejectActive = false; // Flag for single-click eject
 
-// Remove original mouse/keyboard listeners
-// canvas.addEventListener('mousemove', e=>{const rect=canvas.getBoundingClientRect();mouseX=e.clientX-rect.left;mouseY=e.clientY-rect.top});
-// canvas.addEventListener('mousedown', ()=>mouseDown=true);
-// canvas.addEventListener('mouseup', ()=>mouseDown=false);
-// window.addEventListener('keydown',e=>{keys[e.key]=true});
-// window.addEventListener('keyup',e=>{keys[e.key]=false});
-
-// --- Touch Handlers ---
+// --- Touch Handlers (Optimized for no scrolling) ---
 canvas.addEventListener('touchstart', e => {
-  e.preventDefault(); // Prevent scrolling/default touch actions
+  e.preventDefault(); 
   const touch = e.touches[0];
   const rect = canvas.getBoundingClientRect();
   touchX = touch.clientX - rect.left;
@@ -100,10 +97,7 @@ canvas.addEventListener('touchmove', e => {
   touchY = touch.clientY - rect.top;
 }, { passive: false });
 
-canvas.addEventListener('touchend', e => {
-  // touchX/Y remain at the last position for movement, simulating 'mouse move'
-});
-
+// No action needed for touchend, it just stops updating touchX/Y
 
 let camX=0, camY=0, camScale=1;
 
@@ -119,26 +113,22 @@ function loop(t){
 function update(dt){
   if(!player) spawnPlayer();
 
-  // Use touchX/Y for aiming instead of mouseX/Y
+  // Use touchX/Y for aiming
   const targetWorldX = camX + (touchX - W/2)/camScale;
   const targetWorldY = camY + (touchY - H/2)/camScale;
-
-  // Keyboard movement removed for mobile, relying solely on touch/aim
-  // let kbvx=0,kbvy=0;
-  // if(keys.ArrowUp||keys.w) kbvy-=1; if(keys.ArrowDown||keys.s) kbvy+=1; if(keys.ArrowLeft||keys.a) kbvx-=1; if(keys.ArrowRight||keys.d) kbvx+=1;
 
   let dirx = targetWorldX - player.x;
   let diry = targetWorldY - player.y;
   const len = Math.hypot(dirx,diry)||1;
   dirx/=len; diry/=len;
   const speedBase = 180 / Math.sqrt(player.r);
-  // Movement: Simplified for touch to be purely directional aiming
+  // Movement: purely directional aiming
   player.vx += dirx * speedBase * dt;
   player.vy += diry * speedBase * dt;
 
-  // --- RUN / DASH (controlled by the on-screen button 'runActive') ---
+  // --- RUN / DASH (Controlled by the on-screen button) ---
   if(runActive){
-    const dashPower = 450; // speed multiplier for run
+    const dashPower = 450; 
     player.vx += dirx * dashPower * dt;
     player.vy += diry * dashPower * dt;
     // Slight size penalty while running
@@ -204,7 +194,7 @@ function update(dt){
   camScale = 1.2 / Math.log10(player.r+10);
   camScale = clamp(camScale, 0.35, 1.2);
 
-  // --- Eject Mass (now controlled by 'ejectActive') ---
+  // --- Eject Mass (Controlled by 'ejectActive') ---
   if(ejectActive){
     const angle = Math.atan2(diry,dirx);
     const speed = 6 + player.r*0.02;
@@ -248,8 +238,8 @@ function render(){
 
   ctx.restore();
 
-  // The mass display uses W/H which are correct for the canvas
-  ctx.fillStyle='#fff'; ctx.font='18px Inter,Arial'; ctx.fillText('Mass: '+~~(player.r*player.r||0), 16, H-18);
+  // Mass display at the bottom left
+  ctx.fillStyle='#fff'; ctx.font='20px Inter,Arial'; ctx.fillText('Mass: '+~~(player.r*player.r||0), 20, H-20);
 }
 
 function drawCircle(x,y,r,color,glow=false){
@@ -275,15 +265,17 @@ function shadeColor(col, percent){
 // UI buttons
 document.getElementById('respawn').addEventListener('click', ()=>{spawnPlayer();});
 
-// --- New Mobile Controls ---
+// --- iPad Control Logic ---
 const runButton = document.getElementById('run');
+// Use touchstart/touchend for holding down the 'Run' button
 runButton.addEventListener('touchstart', (e)=>{ e.preventDefault(); runActive = true; });
 runButton.addEventListener('touchend', (e)=>{ e.preventDefault(); runActive = false; });
-// Also handle mouse for testing on desktop
+// Also keep mouse support for testing
 runButton.addEventListener('mousedown', ()=>{ runActive = true; });
 runButton.addEventListener('mouseup', ()=>{ runActive = false; });
 
 const ejectButton = document.getElementById('eject');
+// Use click (which also works for tap on mobile) for the single-action 'Eject Mass'
 ejectButton.addEventListener('click', ()=>{ ejectActive = true; });
 
 
