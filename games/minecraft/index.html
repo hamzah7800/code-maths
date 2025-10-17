@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
   <meta name="description" content="HZ OneBlock Client Optimized Ultra FPS - Input Lag & Chunk Delay Removal" />
   <meta name="keywords" content="eaglercraft, minecraft, oneblock, 1.8, spigot, fps, fix, lag" />
-  <title>HZ MC</title>
+  <title>HZ MC - MAX FPS</title>
   <link type="image/png" rel="shortcut icon" href="favicon.png" />
 
   <script>
@@ -18,14 +18,19 @@
       worldsDB: "worlds",
       logInvalidCerts: false,
       crashOnUncaughtExceptions: false,
-      // --- AGGRESSIVE OPTIMIZATION CHANGES ---
-      maxParticles: 5, // EVEN LOWER to drastically reduce particle rendering
-      disableInstancedRendering: true, 
+      // --- ULTIMATE AGGRESSIVE OPTIMIZATION CHANGES ---
+      maxParticles: 2, // ABSOLUTE MINIMUM for particles (was 5)
+      disableInstancedRendering: true, // Generally faster on low-end
       smoothGui: false,
-      renderScale: 0.33, // REDUCED for massive FPS boost (~33% resolution)
-      // --- NEW AGGRESSION: World Optimization Flags (if supported) ---
-      skipWorldUpdates: true, // Attempt to skip minor world ticks/updates
-      fastMath: true, // Use lower precision math where possible (if engine supports)
+      renderScale: 0.25, // CRITICAL: Attempt to drop to 25% resolution (was 0.33)
+      
+      // NEW: World Optimization Flags (If supported by your client version)
+      skipWorldUpdates: true, // Aggressive: may skip minor entity/tile entity ticks
+      fastMath: true, // Aggressive: uses lower precision math for speed
+      
+      // NEW: Texture Optimization
+      alwaysDisableTextureFiltering: true, // Forces nearest-neighbor for textures (sharper, faster)
+      textureAtlasSize: 1024, // Keep texture atlas small if possible
       // ---------------------------------------
       servers: [
         { addr: "ws://localhost:8081/", name: "Local OneBlock Server" }
@@ -63,7 +68,7 @@
         }
 
         const LOG = (...a) => console.log("[UltraFPS Optimized]", ...a);
-        LOG("⚡ Applying Optimized FPS patches...");
+        LOG("⚡ Applying ULTIMATE Optimized FPS patches...");
 
         // --- 1. Maximize Chunk Load Speed (Addresses "1ms" request) ---
         try {
@@ -78,35 +83,44 @@
             LOG("Error patching chunk builder:", e);
         }
 
-        // --- 2. Maximize GPU performance (The most aggressive graphics patch) ---
+        // --- 2. Maximize GPU/CPU performance (Force All Low Settings) ---
         try {
             let s = window.EaglercraftX.settings;
 
-            s.useFXAA = false;
-            s.dynamicLights = false;
+            // CORE GRAPHICS
+            s.graphics = "fast";
             s.renderDistance = 2; // Lowest render distance
+            s.entityRenderDistance = 1; // AGGRESSIVE: Render entities only in the closest chunks (was 4)
+            s.limitFramerate = 0; // No FPS cap
+
+            // VISUAL EFFECTS OFF
             s.smoothLighting = false;
+            s.ao = false; // Ambient Occlusion
             s.clouds = false;
             s.particles = "minimal";
-            s.graphics = "fast";
             s.entityShadows = false;
-            s.mipmapLevels = 0;
-            s.ao = false;
-            s.fancyLeaves = false; // Ensures leaves render as solid blocks, not transparent textures
-
-            // --- NEW AGGRESSIVE ADDITIONS ---
+            s.fancyLeaves = false;
+            s.useFXAA = false; // Anti-aliasing
+            s.dynamicLights = false;
             s.shaders = false; // Explicitly disable shaders
             s.fog = false; // Disable all fog rendering
-            s.limitFramerate = 0; // Ensure no artificial FPS cap is set
-            s.showFPS = false; // Hide FPS counter (tiny saving)
-            s.entityRenderDistance = 4; // Limit how far away entities are rendered
 
-            LOG("Graphics settings forced to absolute minimum for max performance.");
+            // TEXTURE / GPU OPTIMIZATION
+            s.mipmapLevels = 0; // No texture blurring/preprocessing
+            s.anisotropicFiltering = false; // No complex texture filtering
+            s.textureUpdatesPerFrame = 1; // Limit texture changes per frame
+            s.reduceTextureQuality = true; // Use lower-res textures internally (if available)
+
+            // MISC
+            s.showFPS = false; // Hide FPS counter (saves a tiny bit of CPU/GPU)
+            s.smoothWorld = false; // No smoothing during world loading/transitions
+            
+            LOG("Graphics settings forced to absolute ULTIMATE minimum for max performance.");
         } catch (e) {
             LOG("Error patching graphics settings:", e);
         }
 
-        LOG("✅ Optimized script applied. Input lag and chunk delay are now removed.");
+        LOG("✅ ULTIMATE Optimized script applied. All known resource hogs are minimized.");
     }
   </script>
 </body>
