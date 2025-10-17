@@ -19,10 +19,13 @@
       logInvalidCerts: false,
       crashOnUncaughtExceptions: false,
       // --- AGGRESSIVE OPTIMIZATION CHANGES ---
-      maxParticles: 20, // Reduced from 50
-      disableInstancedRendering: true, 
+      maxParticles: 5, // EVEN LOWER to drastically reduce particle rendering
+      disableInstancedRendering: true, 
       smoothGui: false,
-      renderScale: 0.33, // REDUCED for massive FPS boost (renders at ~33% resolution)
+      renderScale: 0.33, // REDUCED for massive FPS boost (~33% resolution)
+      // --- NEW AGGRESSION: World Optimization Flags (if supported) ---
+      skipWorldUpdates: true, // Attempt to skip minor world ticks/updates
+      fastMath: true, // Use lower precision math where possible (if engine supports)
       // ---------------------------------------
       servers: [
         { addr: "ws://localhost:8081/", name: "Local OneBlock Server" }
@@ -68,7 +71,7 @@
             if (typeof cb.buildNext === "function") {
                 const old = cb.buildNext.bind(cb);
                 // Revert to synchronous call for max speed
-                cb.buildNext = old; 
+                cb.buildNext = old; 
                 LOG("Chunk builder patched for synchronous/immediate loading (max speed). WARNING: May cause brief lag spikes on chunk generation.");
             }
         } catch (e) {
@@ -89,9 +92,14 @@
             s.entityShadows = false;
             s.mipmapLevels = 0;
             s.ao = false;
-            // --- NEW AGGRESSIVE ADDITION ---
             s.fancyLeaves = false; // Ensures leaves render as solid blocks, not transparent textures
-            // -------------------------------
+
+            // --- NEW AGGRESSIVE ADDITIONS ---
+            s.shaders = false; // Explicitly disable shaders
+            s.fog = false; // Disable all fog rendering
+            s.limitFramerate = 0; // Ensure no artificial FPS cap is set
+            s.showFPS = false; // Hide FPS counter (tiny saving)
+            s.entityRenderDistance = 4; // Limit how far away entities are rendered
 
             LOG("Graphics settings forced to absolute minimum for max performance.");
         } catch (e) {
