@@ -1,103 +1,105 @@
 <!DOCTYPE html>
 <html style="width:100%;height:100%;background-color:black;">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
-  <meta name="description" content="HZ OneBlock Client Optimized Ultra FPS - Input Lag & Chunk Delay Removal" />
-  <meta name="keywords" content="eaglercraft, minecraft, oneblock, 1.8, spigot, fps, fix, lag" />
-  <title>HZ MC</title>
-  <link type="image/png" rel="shortcut icon" href="favicon.png" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+  <meta name="description" content="HZ OneBlock Client Optimized Ultra FPS - Input Lag & Chunk Delay Removal" />
+  <meta name="keywords" content="eaglercraft, minecraft, oneblock, 1.8, spigot, fps, fix, lag" />
+  <title>HZ MC</title>
+  <link type="image/png" rel="shortcut icon" href="favicon.png" />
 
-  <script>
-    "use strict";
-    window.eaglercraftXOpts = {
-      demoMode: false,
-      container: "game_frame",
-      assetsURI: "assets.epk",
-      localesURI: "lang/",
-      worldsDB: "worlds",
-      logInvalidCerts: false,
-      crashOnUncaughtExceptions: false,
-      maxParticles: 50,
-      disableInstancedRendering: true,
-      smoothGui: false,
-      renderScale: 0.5,
-      servers: [
-        { addr: "ws://localhost:8081/", name: "Local OneBlock Server" }
-      ],
-      relays: [
-        { addr: "wss://relay.deev.is/", comment: "relay #1", primary: true },
-        { addr: "wss://relay.lax1dude.net/", comment: "relay #2" },
-        { addr: "wss://relay.shhnowisnottheti.me/", comment: "relay #3" }
-      ]
-    };
-  </script>
+  <script>
+    "use strict";
+    window.eaglercraftXOpts = {
+      demoMode: false,
+      container: "game_frame",
+      assetsURI: "assets.epk",
+      localesURI: "lang/",
+      worldsDB: "worlds",
+      logInvalidCerts: false,
+      crashOnUncaughtExceptions: false,
+      // --- AGGRESSIVE OPTIMIZATION CHANGES ---
+      maxParticles: 20, // Reduced from 50
+      disableInstancedRendering: true, 
+      smoothGui: false,
+      renderScale: 0.33, // REDUCED for massive FPS boost (renders at ~33% resolution)
+      // ---------------------------------------
+      servers: [
+        { addr: "ws://localhost:8081/", name: "Local OneBlock Server" }
+      ],
+      relays: [
+        { addr: "wss://relay.deev.is/", comment: "relay #1", primary: true },
+        { addr: "wss://relay.lax1dude.net/", comment: "relay #2" },
+        { addr: "wss://relay.shhnowisnottheti.me/", comment: "relay #3" }
+      ]
+    };
+  </script>
 
-  <script type="text/javascript" src="classes.js"></script>
+  <script type="text/javascript" src="classes.js"></script>
 </head>
 <body style="margin:0;width:100%;height:100%;overflow:hidden;background-color:black;" id="game_frame">
-  <script>
-    "use strict";
+  <script>
+    "use strict";
 
-    window.addEventListener("load", function() {
-      if (typeof main === "function") {
-        main();
-        console.log("✅ Game engine started.");
-        applyOptimizedFPSPatches();
-      } else {
-        alert("ERROR: main() not found in classes.js");
-      }
-    });
+    window.addEventListener("load", function() {
+      if (typeof main === "function") {
+        main();
+        console.log("✅ Game engine started.");
+        applyOptimizedFPSPatches();
+      } else {
+        alert("ERROR: main() not found in classes.js");
+      }
+    });
 
-    /* Optimized FPS Script: Removes input lag (restores rAF loop) and maximizes chunk loading speed (removes delay) */
-    function applyOptimizedFPSPatches() {
-        // Use requestAnimationFrame to safely poll for game readiness
-        if (!window.EaglercraftX || !window.EaglercraftX.settings || !window.EaglercraftX.chunkBuilder) {
-            requestAnimationFrame(applyOptimizedFPSPatches);
-            return;
-        }
+    /* Optimized FPS Script: Removes input lag (restores rAF loop) and maximizes chunk loading speed (removes delay) */
+    function applyOptimizedFPSPatches() {
+        // Use requestAnimationFrame to safely poll for game readiness
+        if (!window.EaglercraftX || !window.EaglercraftX.settings || !window.EaglercraftX.chunkBuilder) {
+            requestAnimationFrame(applyOptimizedFPSPatches);
+            return;
+        }
 
-        const LOG = (...a) => console.log("[UltraFPS Optimized]", ...a);
-        LOG("⚡ Applying Optimized FPS patches...");
+        const LOG = (...a) => console.log("[UltraFPS Optimized]", ...a);
+        LOG("⚡ Applying Optimized FPS patches...");
 
-        // --- 1. Input Lag Fix: The custom FPS loop has been REMOVED.
-        // The game will now use its native requestAnimationFrame (rAF) loop for stable, low-latency performance.
+        // --- 1. Maximize Chunk Load Speed (Addresses "1ms" request) ---
+        try {
+            const cb = window.EaglercraftX.chunkBuilder;
+            if (typeof cb.buildNext === "function") {
+                const old = cb.buildNext.bind(cb);
+                // Revert to synchronous call for max speed
+                cb.buildNext = old; 
+                LOG("Chunk builder patched for synchronous/immediate loading (max speed). WARNING: May cause brief lag spikes on chunk generation.");
+            }
+        } catch (e) {
+            LOG("Error patching chunk builder:", e);
+        }
 
-        // --- 2. Maximize Chunk Load Speed (Addresses "1ms" request) ---
-        try {
-            const cb = window.EaglercraftX.chunkBuilder;
-            if (typeof cb.buildNext === "function") {
-                const old = cb.buildNext.bind(cb);
-                // Remove the 'setTimeout' delay wrapper by setting buildNext back to the original function.
-                cb.buildNext = old; // Revert to synchronous call for max speed
-                LOG("Chunk builder patched for synchronous/immediate loading (max speed). WARNING: May cause brief lag spikes on chunk generation.");
-            }
-        } catch (e) {
-            LOG("Error patching chunk builder:", e);
-        }
+        // --- 2. Maximize GPU performance (The most aggressive graphics patch) ---
+        try {
+            let s = window.EaglercraftX.settings;
 
-        // --- 3. Maximize GPU performance (The original graphics patch) ---
-        try {
-            let s = window.EaglercraftX.settings;
+            s.useFXAA = false;
+            s.dynamicLights = false;
+            s.renderDistance = 2; // Lowest render distance
+            s.smoothLighting = false;
+            s.clouds = false;
+            s.particles = "minimal";
+            s.graphics = "fast";
+            s.entityShadows = false;
+            s.mipmapLevels = 0;
+            s.ao = false;
+            // --- NEW AGGRESSIVE ADDITION ---
+            s.fancyLeaves = false; // Ensures leaves render as solid blocks, not transparent textures
+            // -------------------------------
 
-            s.useFXAA = false;
-            s.dynamicLights = false;
-            s.renderDistance = 2; // Ultra-low render distance
-            s.smoothLighting = false;
-            s.clouds = false;
-            s.particles = "minimal";
-            s.graphics = "fast";
-            s.entityShadows = false;
-            s.mipmapLevels = 0;
-            s.ao = false;
+            LOG("Graphics settings forced to absolute minimum for max performance.");
+        } catch (e) {
+            LOG("Error patching graphics settings:", e);
+        }
 
-            LOG("Graphics settings forced to minimum for max performance.");
-        } catch (e) {
-            LOG("Error patching graphics settings:", e);
-        }
-
-        LOG("✅ Optimized script applied. Input lag and chunk delay are now removed.");
-    }
-  </script>
+        LOG("✅ Optimized script applied. Input lag and chunk delay are now removed.");
+    }
+  </script>
 </body>
 </html>
