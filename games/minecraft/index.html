@@ -19,7 +19,7 @@
       logInvalidCerts: false,
       crashOnUncaughtExceptions: false,
       // --- ULTIMATE AGGRESSIVE OPTIMIZATION CHANGES ---
-      maxParticles: 2, // ABSOLUTE MINIMUM for particles (was 5)
+      maxParticles: 0, // ABSOLUTE MINIMUM for particles (changed from 2 to 0 for max aggression)
       disableInstancedRendering: true, // Generally faster on low-end
       smoothGui: false,
       renderScale: 0.25, // CRITICAL: Attempt to drop to 25% resolution (was 0.33)
@@ -112,7 +112,7 @@
             s.reduceTextureQuality = true; // Use lower-res textures internally (if available)
 
             // MISC
-            s.showFPS = false; // Hide FPS counter (saves a tiny bit of CPU/GPU)
+            s.showFPS = true; // CHANGED: Show FPS counter for visibility
             s.smoothWorld = false; // No smoothing during world loading/transitions
             
             LOG("Graphics settings forced to absolute ULTIMATE minimum for max performance.");
