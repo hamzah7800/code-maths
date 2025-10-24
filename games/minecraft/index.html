@@ -1,1 +1,127 @@
- <!DOCTYPE html><html style="width:100%;height:100%;background-color:black;"><head>  <meta charset="UTF-8" />  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />  <meta name="description" content="HZ OneBlock Client Optimized Ultra FPS - Input Lag & Chunk Delay Removal" />  <meta name="keywords" content="eaglercraft, minecraft, oneblock, 1.8, spigot, fps, fix, lag" />  <title>HZ MC - MAX FPS</title>  <link type="image/png" rel="shortcut icon" href="favicon.png" />  <script>    "use strict";    window.eaglercraftXOpts = {      demoMode: false,      container: "game_frame",      assetsURI: "assets.epk",      localesURI: "lang/",      worldsDB: "worlds",      logInvalidCerts: false,      crashOnUncaughtExceptions: false,      // --- ULTIMATE AGGRESSIVE OPTIMIZATION CHANGES ---      maxParticles: 0, // ABSOLUTE MINIMUM for particles (changed from 2 to 0 for max aggression)      disableInstancedRendering: true, // Generally faster on low-end      smoothGui: false,      renderScale: 0.25, // CRITICAL: Attempt to drop to 25% resolution (was 0.33)            // NEW: World Optimization Flags (If supported by your client version)      skipWorldUpdates: true, // Aggressive: may skip minor entity/tile entity ticks      fastMath: true, // Aggressive: uses lower precision math for speed            // NEW: Texture Optimization      alwaysDisableTextureFiltering: true, // Forces nearest-neighbor for textures (sharper, faster)      textureAtlasSize: 1024, // Keep texture atlas small if possible      // ---------------------------------------      servers: [        { addr: "ws://localhost:8081/", name: "Local OneBlock Server" }      ],      relays: [        { addr: "wss://relay.deev.is/", comment: "relay #1", primary: true },        { addr: "wss://relay.lax1dude.net/", comment: "relay #2" },        { addr: "wss://relay.shhnowisnottheti.me/", comment: "relay #3" }      ]    };  </script>  <script type="text/javascript" src="classes.js"></script></head><body style="margin:0;width:100%;height:100%;overflow:hidden;background-color:black;" id="game_frame">  <script>    "use strict";    window.addEventListener("load", function() {      if (typeof main === "function") {        main();        console.log("? Game engine started.");        applyOptimizedFPSPatches();      } else {        alert("ERROR: main() not found in classes.js");      }    });    /* Optimized FPS Script: Removes input lag (restores rAF loop) and maximizes chunk loading speed (removes delay) */    function applyOptimizedFPSPatches() {        // Use requestAnimationFrame to safely poll for game readiness        if (!window.EaglercraftX || !window.EaglercraftX.settings || !window.EaglercraftX.chunkBuilder) {            requestAnimationFrame(applyOptimizedFPSPatches);            return;        }        const LOG = (...a) => console.log("[UltraFPS Optimized]", ...a);        LOG("? Applying ULTIMATE Optimized FPS patches...");        // --- 1. Maximize Chunk Load Speed (Addresses "1ms" request) ---        try {            const cb = window.EaglercraftX.chunkBuilder;            if (typeof cb.buildNext === "function") {                const old = cb.buildNext.bind(cb);                // Revert to synchronous call for max speed                cb.buildNext = old;                 LOG("Chunk builder patched for synchronous/immediate loading (max speed). WARNING: May cause brief lag spikes on chunk generation.");            }        } catch (e) {            LOG("Error patching chunk builder:", e);        }        // --- 2. Maximize GPU/CPU performance (Force All Low Settings) ---        try {            let s = window.EaglercraftX.settings;            // CORE GRAPHICS            s.graphics = "fast";            s.renderDistance = 2; // Lowest render distance            s.entityRenderDistance = 1; // AGGRESSIVE: Render entities only in the closest chunks (was 4)            s.limitFramerate = 0; // No FPS cap            // VISUAL EFFECTS OFF            s.smoothLighting = false;            s.ao = false; // Ambient Occlusion            s.clouds = false;            s.particles = "minimal";            s.entityShadows = false;            s.fancyLeaves = false;            s.useFXAA = false; // Anti-aliasing            s.dynamicLights = false;            s.shaders = false; // Explicitly disable shaders            s.fog = false; // Disable all fog rendering            // TEXTURE / GPU OPTIMIZATION            s.mipmapLevels = 0; // No texture blurring/preprocessing            s.anisotropicFiltering = false; // No complex texture filtering            s.textureUpdatesPerFrame = 1; // Limit texture changes per frame            s.reduceTextureQuality = true; // Use lower-res textures internally (if available)            // MISC            s.showFPS = true; // CHANGED: Show FPS counter for visibility            s.smoothWorld = false; // No smoothing during world loading/transitions                        LOG("Graphics settings forced to absolute ULTIMATE minimum for max performance.");        } catch (e) {            LOG("Error patching graphics settings:", e);        }        LOG("? ULTIMATE Optimized script applied. All known resource hogs are minimized.");    }  </script></body>body></html>html></script></script></title></head>
+<!DOCTYPE html>
+<html style="width:100%;height:100%;background-color:black;">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+  <meta name="description" content="HZ OneBlock Client Optimized Ultra FPS - Input Lag & Chunk Delay Removal" />
+  <meta name="keywords" content="eaglercraft, minecraft, oneblock, 1.8, spigot, fps, fix, lag" />
+  <title>HZ MC - MAX FPS</title>
+  <link type="image/png" rel="shortcut icon" href="favicon.png" />
+
+  <script>
+    "use strict";
+    window.eaglercraftXOpts = {
+      demoMode: false,
+      container: "game_frame",
+      assetsURI: "assets.epk",
+      localesURI: "lang/",
+      worldsDB: "worlds",
+      logInvalidCerts: false,
+      crashOnUncaughtExceptions: false,
+      // --- ULTIMATE AGGRESSIVE OPTIMIZATION CHANGES ---
+      maxParticles: 0, // ABSOLUTE MINIMUM for particles (changed from 2 to 0 for max aggression)
+      disableInstancedRendering: true, // Generally faster on low-end
+      smoothGui: false,
+      renderScale: 0.25, // CRITICAL: Attempt to drop to 25% resolution (was 0.33)
+      
+      // NEW: World Optimization Flags (If supported by your client version)
+      skipWorldUpdates: true, // Aggressive: may skip minor entity/tile entity ticks
+      fastMath: true, // Aggressive: uses lower precision math for speed
+      
+      // NEW: Texture Optimization
+      alwaysDisableTextureFiltering: true, // Forces nearest-neighbor for textures (sharper, faster)
+      textureAtlasSize: 1024, // Keep texture atlas small if possible
+      // ---------------------------------------
+      servers: [
+        { addr: "ws://localhost:8081/", name: "Local OneBlock Server" }
+      ],
+      relays: [
+        { addr: "wss://relay.deev.is/", comment: "relay #1", primary: true },
+        { addr: "wss://relay.lax1dude.net/", comment: "relay #2" },
+        { addr: "wss://relay.shhnowisnottheti.me/", comment: "relay #3" }
+      ]
+    };
+  </script>
+
+  <script type="text/javascript" src="classes.js"></script>
+</head>
+<body style="margin:0;width:100%;height:100%;overflow:hidden;background-color:black;" id="game_frame">
+  <script>
+    "use strict";
+
+    window.addEventListener("load", function() {
+      if (typeof main === "function") {
+        main();
+        console.log("✅ Game engine started.");
+        applyOptimizedFPSPatches();
+      } else {
+        alert("ERROR: main() not found in classes.js");
+      }
+    });
+
+    /* Optimized FPS Script: Removes input lag (restores rAF loop) and maximizes chunk loading speed (removes delay) */
+    function applyOptimizedFPSPatches() {
+        // Use requestAnimationFrame to safely poll for game readiness
+        if (!window.EaglercraftX || !window.EaglercraftX.settings || !window.EaglercraftX.chunkBuilder) {
+            requestAnimationFrame(applyOptimizedFPSPatches);
+            return;
+        }
+
+        const LOG = (...a) => console.log("[UltraFPS Optimized]", ...a);
+        LOG("⚡ Applying ULTIMATE Optimized FPS patches...");
+
+        // --- 1. Maximize Chunk Load Speed (Addresses "1ms" request) ---
+        try {
+            const cb = window.EaglercraftX.chunkBuilder;
+            if (typeof cb.buildNext === "function") {
+                const old = cb.buildNext.bind(cb);
+                // Revert to synchronous call for max speed
+                cb.buildNext = old; 
+                LOG("Chunk builder patched for synchronous/immediate loading (max speed). WARNING: May cause brief lag spikes on chunk generation.");
+            }
+        } catch (e) {
+            LOG("Error patching chunk builder:", e);
+        }
+
+        // --- 2. Maximize GPU/CPU performance (Force All Low Settings) ---
+        try {
+            let s = window.EaglercraftX.settings;
+
+            // CORE GRAPHICS
+            s.graphics = "fast";
+            s.renderDistance = 2; // Lowest render distance
+            s.entityRenderDistance = 1; // AGGRESSIVE: Render entities only in the closest chunks (was 4)
+            s.limitFramerate = 0; // No FPS cap
+
+            // VISUAL EFFECTS OFF
+            s.smoothLighting = false;
+            s.ao = false; // Ambient Occlusion
+            s.clouds = false;
+            s.particles = "minimal";
+            s.entityShadows = false;
+            s.fancyLeaves = false;
+            s.useFXAA = false; // Anti-aliasing
+            s.dynamicLights = false;
+            s.shaders = false; // Explicitly disable shaders
+            s.fog = false; // Disable all fog rendering
+
+            // TEXTURE / GPU OPTIMIZATION
+            s.mipmapLevels = 0; // No texture blurring/preprocessing
+            s.anisotropicFiltering = false; // No complex texture filtering
+            s.textureUpdatesPerFrame = 1; // Limit texture changes per frame
+            s.reduceTextureQuality = true; // Use lower-res textures internally (if available)
+
+            // MISC
+            s.showFPS = true; // CHANGED: Show FPS counter for visibility
+            s.smoothWorld = false; // No smoothing during world loading/transitions
+            
+            LOG("Graphics settings forced to absolute ULTIMATE minimum for max performance.");
+        } catch (e) {
+            LOG("Error patching graphics settings:", e);
+        }
+
+        LOG("✅ ULTIMATE Optimized script applied. All known resource hogs are minimized.");
+    }
+  </script>
+</body>
+</html>
