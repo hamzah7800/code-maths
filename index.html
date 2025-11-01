@@ -181,7 +181,6 @@
       color: #fff;
     }
 
-    /* Responsive */
     @media (max-width: 600px) {
       h1 { font-size: 2rem; }
       .game { padding: 15px; }
@@ -236,7 +235,6 @@
   </div>
 
   <script>
-    // Validate login credentials and unlock the game section on success
     function validateLogin() {
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value.trim();
@@ -253,7 +251,6 @@
       }
     }
 
-    // Setup dark mode with persistence
     function setupDarkMode() {
       const body = document.body;
       const button = document.getElementById("darkModeButton");
@@ -265,7 +262,6 @@
       });
     }
 
-    // Launch a Bing search in a new window/tab
     function searchWeb() {
       const query = document.getElementById("searchBox").value.trim();
       if (query) {
@@ -276,20 +272,28 @@
       }
     }
 
-    // Array of games and their details (no images)
     const games = [
-      { id: 'flappybird', name: 'Flappy Bird', category: 'Arcade', description: 'Fly the bird through pipes!', url: 'games/flappybird/index.html' },
       { id: '2048', name: '2048', category: 'Puzzle', description: 'Combine tiles to reach 2048.', url: 'games/2048/index.html' },
-      { id: 'snake', name: 'Snake', category: 'Arcade', description: 'Control the snake and eat to grow!', url: 'games/snake/index.html' },
-      { id: 'tetris', name: 'Tetris', category: 'Puzzle', description: 'Fit the falling blocks!', url: 'games/tetris/index.html' },
-      { id: 'pong', name: 'Pong', category: 'Sports', description: 'The classic ping-pong game!', url: 'games/pong/index.html' },
+      { id: 'advanced-parkour', name: 'Advanced Parkour', category: 'Platformer', description: 'Jump and run through challenging parkour levels.', url: 'games/advanced-parkour/index.html' },
+      { id: 'afterblast', name: 'Afterblast', category: 'Shooter', description: 'Action-packed blasting fun!', url: 'games/afterblast/index.html' },
+      { id: 'agar-io', name: 'Agar.io', category: 'Arcade', description: 'Eat cells and grow bigger in this classic.', url: 'games/agar-io/index.html' },
+      { id: 'car-racing', name: 'Car Racing', category: 'Sports', description: 'Race cars and beat your best time.', url: 'games/car-racing/index.html' },
+      { id: 'checkers', name: 'Checkers', category: 'Strategy', description: 'Classic board game of kings and jumps.', url: 'games/checkers/index.html' },
+      { id: 'chess', name: 'Chess', category: 'Strategy', description: 'Classic strategy board game.', url: 'games/chess/index.html' },
+      { id: 'crossy-road', name: 'Crossy Road', category: 'Arcade', description: 'Cross the road without getting hit!', url: 'games/crossy-road/index.html' },
+      { id: 'doodle-jump', name: 'Doodle Jump', category: 'Arcade', description: 'Jump up and avoid falling.', url: 'games/doodle-jump/index.html' },
+      { id: 'flappybird', name: 'Flappy Bird', category: 'Arcade', description: 'Fly the bird through pipes!', url: 'games/flappybird/index.html' },
+      { id: 'galaga', name: 'Galaga', category: 'Shooter', description: 'Defend the galaxy from aliens.', url: 'games/galaga/index.html' },
       { id: 'minecraft', name: 'Minecraft', category: 'Sandbox', description: 'Build and explore infinite worlds.', url: 'games/minecraft/index.html' },
       { id: 'pacman', name: 'Pac-Man', category: 'Arcade', description: 'Classic maze chase game.', url: 'games/pacman/index.html' },
+      { id: 'pong', name: 'Pong', category: 'Sports', description: 'The classic ping-pong game!', url: 'games/pong/index.html' },
+      { id: 'snake', name: 'Snake', category: 'Arcade', description: 'Control the snake and eat to grow!', url: 'games/snake/index.html' },
       { id: 'space-invaders', name: 'Space Invaders', category: 'Shooter', description: 'Defend against alien invaders!', url: 'games/space-invaders/index.html' },
-      { id: 'super-mario', name: 'Super Mario', category: 'Platformer', description: 'Run and jump through classic levels.', url: 'games/super-mario/index.html' }
+      { id: 'street-fighter', name: 'Street Fighter', category: 'Fighting', description: 'Battle it out in classic arcade style.', url: 'games/street-fighter/index.html' },
+      { id: 'super-mario', name: 'Super Mario', category: 'Platformer', description: 'Run and jump through classic levels.', url: 'games/super-mario/index.html' },
+      { id: 'tetris', name: 'Tetris', category: 'Puzzle', description: 'Fit the falling blocks!', url: 'games/tetris/index.html' }
     ];
 
-    // Load games into the game list based on the selected category
     function loadGames(category = 'All') {
       const gameList = document.getElementById("gameList");
       gameList.innerHTML = "";
@@ -305,7 +309,6 @@
       });
     }
 
-    // Set up initial behaviors
     document.addEventListener("DOMContentLoaded", () => {
       setupDarkMode();
       loadGames();
