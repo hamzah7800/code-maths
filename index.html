@@ -13,6 +13,7 @@
       background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #00ff00, #00bfff, #0000ff, #8a00d4);
       background-size: 400% 400%;
       animation: gradientAnimation 10s ease infinite;
+      transition: background 0.5s, color 0.5s;
     }
 
     h1 {
@@ -70,6 +71,8 @@
     /* Games Section */
     #gameSection {
       display: none;
+      opacity: 0;
+      transition: opacity 0.8s ease;
     }
 
     #darkModeButton {
@@ -158,6 +161,12 @@
       transform: scale(1.05);
     }
 
+    .game img {
+      width: 100%;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
     .game a {
       display: inline-block;
       background-color: #ff4500;
@@ -168,19 +177,21 @@
     }
 
     @keyframes gradientAnimation {
-      0% {
-        background-position: 0% 50%;
-      }
-      50% {
-        background-position: 100% 50%;
-      }
-      100% {
-        background-position: 0% 50%;
-      }
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     .dark-mode {
-      background: #222;
+      background: #121212;
+      color: #fff;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      h1 { font-size: 2rem; }
+      .game { padding: 15px; }
+      #darkModeButton { top: 10px; right: 10px; padding: 8px; }
     }
   </style>
 </head>
@@ -222,12 +233,11 @@
     <!-- Discord Redirect -->
     <div style="text-align:center; margin-top:40px;">
       <h2>Join Our Discord</h2>
-      <iframe src="https://pizza.emtbiceland.is"
-              width="350" height="100"
-              frameborder="0"
+      <iframe src="https://pizza.emtbiceland.is" width="350" height="100" frameborder="0"
               style="border-radius:10px; background:#5865F2; color:white; text-align:center; font-size:20px; font-weight:bold;">
       </iframe>
-      <p><a href="https://pizza.emtbiceland.is" target="_blank" style="color:white; font-size:18px; text-decoration:none; font-weight:bold;">Click here if iframe doesn’t load</a></p>
+      <p><a href="https://pizza.emtbiceland.is" target="_blank" style="color:white; font-size:18px; text-decoration:none; font-weight:bold;">
+        Click here if iframe doesn’t load</a></p>
     </div>
   </div>
 
@@ -240,18 +250,24 @@
 
       if (username === "ryzen" && password === "4060") {
         alert("Login successful!");
-        // Hide the login container and show the games section
         document.getElementById("loginContainer").style.display = "none";
-        document.getElementById("gameSection").style.display = "block";
+        const gameSection = document.getElementById("gameSection");
+        gameSection.style.display = "block";
+        setTimeout(() => gameSection.style.opacity = 1, 100);
       } else {
         errorMessage.textContent = "Invalid username or password. Try again.";
       }
     }
 
-    // Setup dark mode toggle functionality
+    // Setup dark mode with persistence
     function setupDarkMode() {
-      document.getElementById("darkModeButton").addEventListener("click", () => {
-        document.body.classList.toggle("dark-mode");
+      const body = document.body;
+      const button = document.getElementById("darkModeButton");
+      if (localStorage.getItem("darkMode") === "true") body.classList.add("dark-mode");
+
+      button.addEventListener("click", () => {
+        body.classList.toggle("dark-mode");
+        localStorage.setItem("darkMode", body.classList.contains("dark-mode"));
       });
     }
 
@@ -266,27 +282,17 @@
       }
     }
 
-    // Array of games and their details
+    // Array of games and their details (added optional images)
     const games = [
-      { id: 'flappybird', name: 'Flappy Bird', category: 'Arcade', description: 'Fly the bird through pipes!', url: 'games/flappybird/index.html' },
-      { id: '2048', name: '2048', category: 'Puzzle', description: 'Combine tiles to reach 2048.', url: 'games/2048/index.html' },
-      { id: 'snake', name: 'Snake', category: 'Arcade', description: 'Control the snake and eat to grow!', url: 'games/snake/index.html' },
-      { id: 'tetris', name: 'Tetris', category: 'Puzzle', description: 'Fit the falling blocks!', url: 'games/tetris/index.html' },
-      { id: 'pong', name: 'Pong', category: 'Sports', description: 'The classic ping-pong game!', url: 'games/pong/index.html' },
-      { id: 'minecraft', name: 'Minecraft', category: 'Sandbox', description: 'Build and explore infinite worlds.', url: 'games/minecraft/index.html' },
-      { id: 'pacman', name: 'Pac-Man', category: 'Arcade', description: 'Classic maze chase game.', url: 'games/pacman/index.html' },
-      { id: 'space-invaders', name: 'Space Invaders', category: 'Shooter', description: 'Defend against alien invaders!', url: 'games/space-invaders/index.html' },
-      { id: 'super-mario', name: 'Super Mario', category: 'Platformer', description: 'Run and jump through classic levels.', url: 'games/super-mario/index.html' },
-      { id: 'crossy-road', name: 'Crossy Road', category: 'Arcade', description: 'Help the character cross the road safely.', url: 'games/crossy-road/index.html' },
-      { id: 'chess', name: 'Chess', category: 'Strategy', description: 'Play chess against AI or a friend.', url: 'games/chess/index.html' },
-      { id: 'checkers', name: 'Checkers', category: 'Strategy', description: 'Classic checkers game.', url: 'games/checkers/index.html' },
-      { id: 'easywind', name: 'EasyWind', category: 'Shooter', description: 'Inspired off winwing.', url: 'games/galaga/index.html' },
-      { id: 'car-racing', name: 'Car Racing', category: 'Sports', description: 'Race to the finish line!', url: 'games/car-racing/index.html' },
-      { id: 'street-fighter', name: 'Street Fighter', category: 'Fighting', description: 'Battle against strong opponents in this classic fighter game.', url: 'games/street-fighter/index.html' },
-      { id: 'advanced-parkour', name: 'Advanced Parkour', category: 'Platformer', description: 'Leap, slide, and run through challenging urban environments!', url: 'games/advanced-parkour/index.html' },
-      { id: 'doodle-jump', name: 'Doodle Jump', category: 'Arcade', description: 'Bounce your way to the top in this endless arcade jumper!', url: 'games/doodle-jump/index.html' },
-      { id: 'afterblast', name: 'Afterblast', category: 'Shooter', description: 'Survive intense battles in a futuristic arena!', url: 'games/afterblast/index.html' },
-      { id: 'agar-io', name: 'Agar.io', category: 'Sandbox', description: 'Absorb cells to grow larger in this multiplayer game!', url: 'games/agar-io/index.html' }
+      { id: 'flappybird', name: 'Flappy Bird', category: 'Arcade', description: 'Fly the bird through pipes!', url: 'games/flappybird/index.html', img: 'images/flappybird.jpg' },
+      { id: '2048', name: '2048', category: 'Puzzle', description: 'Combine tiles to reach 2048.', url: 'games/2048/index.html', img: 'images/2048.jpg' },
+      { id: 'snake', name: 'Snake', category: 'Arcade', description: 'Control the snake and eat to grow!', url: 'games/snake/index.html', img: 'images/snake.jpg' },
+      { id: 'tetris', name: 'Tetris', category: 'Puzzle', description: 'Fit the falling blocks!', url: 'games/tetris/index.html', img: 'images/tetris.jpg' },
+      { id: 'pong', name: 'Pong', category: 'Sports', description: 'The classic ping-pong game!', url: 'games/pong/index.html', img: 'images/pong.jpg' },
+      { id: 'minecraft', name: 'Minecraft', category: 'Sandbox', description: 'Build and explore infinite worlds.', url: 'games/minecraft/index.html', img: 'images/minecraft.jpg' },
+      { id: 'pacman', name: 'Pac-Man', category: 'Arcade', description: 'Classic maze chase game.', url: 'games/pacman/index.html', img: 'images/pacman.jpg' },
+      { id: 'space-invaders', name: 'Space Invaders', category: 'Shooter', description: 'Defend against alien invaders!', url: 'games/space-invaders/index.html', img: 'images/spaceinvaders.jpg' },
+      { id: 'super-mario', name: 'Super Mario', category: 'Platformer', description: 'Run and jump through classic levels.', url: 'games/super-mario/index.html', img: 'images/mario.jpg' }
     ];
 
     // Load games into the game list based on the selected category
@@ -297,6 +303,7 @@
       filteredGames.forEach(game => {
         gameList.innerHTML += `
           <div class="game">
+            ${game.img ? `<img src="${game.img}" alt="${game.name}">` : ""}
             <h3>${game.name}</h3>
             <p>${game.description}</p>
             <a href="${game.url}" target="_blank">Play Now</a>
@@ -305,12 +312,19 @@
       });
     }
 
-    // Set up initial behaviors when the DOM is ready
+    // Set up initial behaviors
     document.addEventListener("DOMContentLoaded", () => {
       setupDarkMode();
       loadGames();
-      document.getElementById("searchBox").addEventListener("input", () => {
-        document.getElementById("searchButton").disabled = document.getElementById("searchBox").value.trim() === "";
+      const searchBox = document.getElementById("searchBox");
+      const searchButton = document.getElementById("searchButton");
+
+      searchBox.addEventListener("input", () => {
+        searchButton.disabled = searchBox.value.trim() === "";
+      });
+
+      searchBox.addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && searchBox.value.trim() !== "") searchWeb();
       });
     });
   </script>
