@@ -161,12 +161,6 @@
       transform: scale(1.05);
     }
 
-    .game img {
-      width: 100%;
-      border-radius: 10px;
-      margin-bottom: 10px;
-    }
-
     .game a {
       display: inline-block;
       background-color: #ff4500;
@@ -282,17 +276,17 @@
       }
     }
 
-    // Array of games and their details (added optional images)
+    // Array of games and their details (no images)
     const games = [
-      { id: 'flappybird', name: 'Flappy Bird', category: 'Arcade', description: 'Fly the bird through pipes!', url: 'games/flappybird/index.html', img: 'images/flappybird.jpg' },
-      { id: '2048', name: '2048', category: 'Puzzle', description: 'Combine tiles to reach 2048.', url: 'games/2048/index.html', img: 'images/2048.jpg' },
-      { id: 'snake', name: 'Snake', category: 'Arcade', description: 'Control the snake and eat to grow!', url: 'games/snake/index.html', img: 'images/snake.jpg' },
-      { id: 'tetris', name: 'Tetris', category: 'Puzzle', description: 'Fit the falling blocks!', url: 'games/tetris/index.html', img: 'images/tetris.jpg' },
-      { id: 'pong', name: 'Pong', category: 'Sports', description: 'The classic ping-pong game!', url: 'games/pong/index.html', img: 'images/pong.jpg' },
-      { id: 'minecraft', name: 'Minecraft', category: 'Sandbox', description: 'Build and explore infinite worlds.', url: 'games/minecraft/index.html', img: 'images/minecraft.jpg' },
-      { id: 'pacman', name: 'Pac-Man', category: 'Arcade', description: 'Classic maze chase game.', url: 'games/pacman/index.html', img: 'images/pacman.jpg' },
-      { id: 'space-invaders', name: 'Space Invaders', category: 'Shooter', description: 'Defend against alien invaders!', url: 'games/space-invaders/index.html', img: 'images/spaceinvaders.jpg' },
-      { id: 'super-mario', name: 'Super Mario', category: 'Platformer', description: 'Run and jump through classic levels.', url: 'games/super-mario/index.html', img: 'images/mario.jpg' }
+      { id: 'flappybird', name: 'Flappy Bird', category: 'Arcade', description: 'Fly the bird through pipes!', url: 'games/flappybird/index.html' },
+      { id: '2048', name: '2048', category: 'Puzzle', description: 'Combine tiles to reach 2048.', url: 'games/2048/index.html' },
+      { id: 'snake', name: 'Snake', category: 'Arcade', description: 'Control the snake and eat to grow!', url: 'games/snake/index.html' },
+      { id: 'tetris', name: 'Tetris', category: 'Puzzle', description: 'Fit the falling blocks!', url: 'games/tetris/index.html' },
+      { id: 'pong', name: 'Pong', category: 'Sports', description: 'The classic ping-pong game!', url: 'games/pong/index.html' },
+      { id: 'minecraft', name: 'Minecraft', category: 'Sandbox', description: 'Build and explore infinite worlds.', url: 'games/minecraft/index.html' },
+      { id: 'pacman', name: 'Pac-Man', category: 'Arcade', description: 'Classic maze chase game.', url: 'games/pacman/index.html' },
+      { id: 'space-invaders', name: 'Space Invaders', category: 'Shooter', description: 'Defend against alien invaders!', url: 'games/space-invaders/index.html' },
+      { id: 'super-mario', name: 'Super Mario', category: 'Platformer', description: 'Run and jump through classic levels.', url: 'games/super-mario/index.html' }
     ];
 
     // Load games into the game list based on the selected category
@@ -303,7 +297,6 @@
       filteredGames.forEach(game => {
         gameList.innerHTML += `
           <div class="game">
-            ${game.img ? `<img src="${game.img}" alt="${game.name}">` : ""}
             <h3>${game.name}</h3>
             <p>${game.description}</p>
             <a href="${game.url}" target="_blank">Play Now</a>
