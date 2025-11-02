@@ -10,207 +10,80 @@
       padding: 20px;
       font-family: Arial, sans-serif;
       color: #fff;
-      background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #00ff00, #00bfff, #0000ff, #8a00d4);
+      background: linear-gradient(45deg,#ff0000,#ff7300,#fffb00,#00ff00,#00bfff,#0000ff,#8a00d4);
       background-size: 400% 400%;
       animation: gradientAnimation 10s ease infinite;
-      transition: background 0.5s, color 0.5s;
     }
-
-    h1 {
-      font-size: 3rem;
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    /* Login Section */
+    h1 { text-align:center; font-size:3rem; margin-bottom:30px; }
     .login-container {
-      width: 100%;
-      max-width: 400px;
-      margin: 0 auto;
-      background: rgba(0, 0, 0, 0.7);
-      padding: 20px;
-      border-radius: 10px;
-      text-align: center;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+      width:100%; max-width:400px; margin:0 auto;
+      background:rgba(0,0,0,0.7); padding:20px; border-radius:10px; text-align:center;
     }
-
-    .login-container h2 {
-      margin-bottom: 15px;
-    }
-
-    .login-input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 5px;
-      border: none;
-      background: rgba(255, 255, 255, 0.8);
-      font-size: 16px;
-    }
-
+    .login-input { width:100%; padding:10px; margin:10px 0; border:none; border-radius:5px; }
     .login-button {
-      width: 100%;
-      padding: 12px;
-      background-color: #ff4500;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 18px;
+      width:100%; padding:12px; background:#ff4500; color:#fff; border:none;
+      border-radius:5px; cursor:pointer; font-size:18px;
     }
-
-    .login-button:hover {
-      background-color: #e63900;
-    }
-
-    #error-message {
-      color: red;
-      margin-top: 10px;
-    }
-
-    /* Games Section */
-    #gameSection {
-      display: none;
-      opacity: 0;
-      transition: opacity 0.8s ease;
-    }
-
+    #gameSection { display:none; opacity:0; transition:opacity 0.8s ease; }
     #darkModeButton {
-      padding: 12px;
-      background-color: #333;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      position: absolute;
-      top: 20px;
-      right: 20px;
+      position:absolute; top:20px; right:20px; padding:12px;
+      background:#333; color:#fff; border:none; border-radius:5px; cursor:pointer;
     }
-
-    #darkModeButton:hover {
-      background-color: #e63900;
-    }
-
     #searchContainer {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 30px;
-      flex-wrap: wrap;
+      display:flex; justify-content:center; gap:10px; margin-bottom:30px; flex-wrap:wrap;
     }
-
     #searchBox {
-      width: 100%;
-      max-width: 300px;
-      padding: 12px;
-      border-radius: 5px;
-      border: none;
-      background-color: rgba(0, 0, 0, 0.6);
-      color: white;
-      font-size: 16px;
+      width:100%; max-width:300px; padding:12px; border:none; border-radius:5px;
+      background:rgba(0,0,0,0.6); color:white;
     }
-
     #searchButton {
-      padding: 14px 22px;
-      background-color: #e63900;
-      border: none;
-      border-radius: 5px;
-      color: white;
-      cursor: pointer;
+      padding:14px 22px; background:#e63900; border:none; border-radius:5px; color:white; cursor:pointer;
     }
-
-    #categoryFilterContainer {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
+    #categoryFilterContainer { text-align:center; margin-bottom:20px; }
     .categoryButton {
-      padding: 10px;
-      background-color: #333;
-      color: white;
-      border-radius: 5px;
-      cursor: pointer;
-      margin: 5px;
-      border: none;
+      padding:10px; background:#333; color:white; border:none; border-radius:5px;
+      cursor:pointer; margin:5px;
     }
-
-    .categoryButton:hover {
-      background-color: #e63900;
-    }
-
     #gameList {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 20px;
-      width: 90%;
-      max-width: 1000px;
-      margin: 0 auto;
-      margin-top: 30px;
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+      gap:20px; width:90%; max-width:1000px; margin:30px auto 0;
     }
-
     .game {
-      background: rgba(0, 0, 0, 0.7);
-      padding: 20px 15px;
-      border-radius: 15px;
-      text-align: center;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
-      transition: transform 0.3s;
+      background:rgba(0,0,0,0.7); padding:20px 15px; border-radius:15px; text-align:center;
     }
-
-    .game:hover {
-      transform: scale(1.05);
-    }
-
     .game a {
-      display: inline-block;
-      background-color: #ff4500;
-      padding: 10px 20px;
-      color: white;
-      border-radius: 5px;
-      text-decoration: none;
+      display:inline-block; background:#ff4500; padding:10px 20px;
+      color:white; border-radius:5px; text-decoration:none;
     }
-
     @keyframes gradientAnimation {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+      0%{background-position:0% 50%;}
+      50%{background-position:100% 50%;}
+      100%{background-position:0% 50%;}
     }
-
-    .dark-mode {
-      background: #121212;
-      color: #fff;
-    }
-
-    @media (max-width: 600px) {
-      h1 { font-size: 2rem; }
-      .game { padding: 15px; }
-      #darkModeButton { top: 10px; right: 10px; padding: 8px; }
-    }
+    .dark-mode { background:#121212; color:#fff; }
   </style>
 </head>
 <body>
   <h1>Unblocked Games Hub</h1>
 
-  <!-- Login Section -->
   <div id="loginContainer" class="login-container">
     <h2>Login</h2>
-    <input type="text" id="username" class="login-input" placeholder="Username" required />
-    <input type="password" id="password" class="login-input" placeholder="Password" required />
+    <input id="username" class="login-input" placeholder="Username" />
+    <input id="password" class="login-input" type="password" placeholder="Password" />
     <button class="login-button" onclick="validateLogin()">Login</button>
-    <p id="error-message"></p>
+    <p id="error-message" style="color:red"></p>
   </div>
 
-  <!-- Games Section -->
   <div id="gameSection">
     <button id="darkModeButton">Toggle Dark Mode</button>
 
     <div id="searchContainer">
-      <input type="text" id="searchBox" placeholder="Search the web..." aria-label="Search input" required />
-      <button id="searchButton" onclick="searchWeb()" disabled aria-label="Search button">🔍 Search</button>
+      <input type="text" id="searchBox" placeholder="Search privately..." />
+      <button id="searchButton" onclick="searchWeb()" disabled>🔍 Search</button>
     </div>
 
     <div id="categoryFilterContainer">
-      <button class="categoryButton" onclick="loadGames('All')">All Categories</button>
+      <button class="categoryButton" onclick="loadGames('All')">All</button>
       <button class="categoryButton" onclick="loadGames('Arcade')">Arcade</button>
       <button class="categoryButton" onclick="loadGames('Puzzle')">Puzzle</button>
       <button class="categoryButton" onclick="loadGames('Sports')">Sports</button>
@@ -223,104 +96,86 @@
 
     <div id="gameList"></div>
 
-    <!-- Discord Link -->
     <div style="text-align:center; margin-top:40px;">
       <h2>Join Our Discord</h2>
-      <p>
-        <a href="https://discord.gg/D9ASGfSjk4" target="_blank" style="color:white; font-size:18px; text-decoration:none; font-weight:bold;">
-          Click Me
-        </a>
-      </p>
+      <p><a href="https://discord.gg/D9ASGfSjk4" target="_blank" style="color:white;font-size:18px;">Click Me</a></p>
     </div>
   </div>
 
   <script>
-    function validateLogin() {
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const errorMessage = document.getElementById("error-message");
-
-      if (username === "ryzen" && password === "4060") {
-        alert("Login successful!");
-        document.getElementById("loginContainer").style.display = "none";
-        const gameSection = document.getElementById("gameSection");
-        gameSection.style.display = "block";
-        setTimeout(() => gameSection.style.opacity = 1, 100);
-      } else {
-        errorMessage.textContent = "Invalid username or password. Try again.";
-      }
+    function validateLogin(){
+      const u=document.getElementById("username").value.trim();
+      const p=document.getElementById("password").value.trim();
+      const err=document.getElementById("error-message");
+      if(u==="ryzen"&&p==="4060"){
+        document.getElementById("loginContainer").style.display="none";
+        const sec=document.getElementById("gameSection");
+        sec.style.display="block";
+        setTimeout(()=>sec.style.opacity=1,100);
+      } else err.textContent="Invalid username or password.";
     }
 
-    function setupDarkMode() {
-      const body = document.body;
-      const button = document.getElementById("darkModeButton");
-      if (localStorage.getItem("darkMode") === "true") body.classList.add("dark-mode");
-
-      button.addEventListener("click", () => {
-        body.classList.toggle("dark-mode");
-        localStorage.setItem("darkMode", body.classList.contains("dark-mode"));
+    function setupDarkMode(){
+      const b=document.body,btn=document.getElementById("darkModeButton");
+      if(localStorage.getItem("darkMode")==="true") b.classList.add("dark-mode");
+      btn.addEventListener("click",()=>{
+        b.classList.toggle("dark-mode");
+        localStorage.setItem("darkMode",b.classList.contains("dark-mode"));
       });
     }
 
-    function searchWeb() {
-      const query = document.getElementById("searchBox").value.trim();
-      if (query) {
-        const searchUrl = "https://www.bing.com/search?q=" + encodeURIComponent(query);
-        window.open(searchUrl, "_blank", "noopener,noreferrer");
-      } else {
-        alert("Please enter a search term.");
+    // Privacy-friendly search
+    function searchWeb(){
+      const q=document.getElementById("searchBox").value.trim();
+      if(q){
+        const url="https://duckduckgo.com/?q="+encodeURIComponent(q);
+        window.open(url,"_blank","noopener,noreferrer");
       }
     }
 
-    const games = [
-      { id: '2048', name: '2048', category: 'Puzzle', description: 'Combine tiles to reach 2048.', url: 'games/2048/index.html' },
-      { id: 'advanced-parkour', name: 'Advanced Parkour', category: 'Platformer', description: 'Jump and run through challenging parkour levels.', url: 'games/advanced-parkour/index.html' },
-      { id: 'afterblast', name: 'Afterblast', category: 'Shooter', description: 'Action-packed blasting fun!', url: 'games/afterblast/index.html' },
-      { id: 'agar-io', name: 'Agar.io', category: 'Arcade', description: 'Eat cells and grow bigger in this classic.', url: 'games/agar-io/index.html' },
-      { id: 'car-racing', name: 'Car Racing', category: 'Sports', description: 'Race cars and beat your best time.', url: 'games/car-racing/index.html' },
-      { id: 'checkers', name: 'Checkers', category: 'Strategy', description: 'Classic board game of kings and jumps.', url: 'games/checkers/index.html' },
-      { id: 'chess', name: 'Chess', category: 'Strategy', description: 'Classic strategy board game.', url: 'games/chess/index.html' },
-      { id: 'crossy-road', name: 'Crossy Road', category: 'Arcade', description: 'Cross the road without getting hit!', url: 'games/crossy-road/index.html' },
-      { id: 'doodle-jump', name: 'Doodle Jump', category: 'Arcade', description: 'Jump up and avoid falling.', url: 'games/doodle-jump/index.html' },
-      { id: 'flappybird', name: 'Flappy Bird', category: 'Arcade', description: 'Fly the bird through pipes!', url: 'games/flappybird/index.html' },
-      { id: 'galaga', name: 'Galaga', category: 'Shooter', description: 'Defend the galaxy from aliens.', url: 'games/galaga/index.html' },
-      { id: 'minecraft', name: 'Minecraft', category: 'Sandbox', description: 'Build and explore infinite worlds.', url: 'games/minecraft/index.html' },
-      { id: 'pacman', name: 'Pac-Man', category: 'Arcade', description: 'Classic maze chase game.', url: 'games/pacman/index.html' },
-      { id: 'pong', name: 'Pong', category: 'Sports', description: 'The classic ping-pong game!', url: 'games/pong/index.html' },
-      { id: 'snake', name: 'Snake', category: 'Arcade', description: 'Control the snake and eat to grow!', url: 'games/snake/index.html' },
-      { id: 'space-invaders', name: 'Space Invaders', category: 'Shooter', description: 'Defend against alien invaders!', url: 'games/space-invaders/index.html' },
-      { id: 'street-fighter', name: 'Street Fighter', category: 'Fighting', description: 'Battle it out in classic arcade style.', url: 'games/street-fighter/index.html' },
-      { id: 'super-mario', name: 'Super Mario', category: 'Platformer', description: 'Run and jump through classic levels.', url: 'games/super-mario/index.html' },
-      { id: 'tetris', name: 'Tetris', category: 'Puzzle', description: 'Fit the falling blocks!', url: 'games/tetris/index.html' }
+    const games=[
+      {id:'2048',name:'2048',category:'Puzzle',description:'Combine tiles to reach 2048.',url:'games/2048/index.html'},
+      {id:'advanced-parkour',name:'Advanced Parkour',category:'Platformer',description:'Jump and run through challenging parkour levels.',url:'games/advanced-parkour/index.html'},
+      {id:'afterblast',name:'Afterblast',category:'Shooter',description:'Action-packed blasting fun!',url:'games/afterblast/index.html'},
+      {id:'agar-io',name:'Agar.io',category:'Arcade',description:'Eat cells and grow bigger.',url:'games/agar-io/index.html'},
+      {id:'car-racing',name:'Car Racing',category:'Sports',description:'Race cars and beat your best time.',url:'games/car-racing/index.html'},
+      {id:'checkers',name:'Checkers',category:'Strategy',description:'Classic board game.',url:'games/checkers/index.html'},
+      {id:'chess',name:'Chess',category:'Strategy',description:'Classic strategy game.',url:'games/chess/index.html'},
+      {id:'crossy-road',name:'Crossy Road',category:'Arcade',description:'Cross the road without getting hit!',url:'games/crossy-road/index.html'},
+      {id:'doodle-jump',name:'Doodle Jump',category:'Arcade',description:'Jump up and avoid falling.',url:'games/doodle-jump/index.html'},
+      {id:'flappybird',name:'Flappy Bird',category:'Arcade',description:'Fly the bird through pipes!',url:'games/flappybird/index.html'},
+      {id:'galaga',name:'Galaga',category:'Shooter',description:'Defend the galaxy from aliens.',url:'games/galaga/index.html'},
+      {id:'minecraft',name:'Minecraft',category:'Sandbox',description:'Build and explore infinite worlds.',url:'games/minecraft/index.html'},
+      {id:'pacman',name:'Pac-Man',category:'Arcade',description:'Classic maze chase game.',url:'games/pacman/index.html'},
+      {id:'pong',name:'Pong',category:'Sports',description:'The classic ping-pong game.',url:'games/pong/index.html'},
+      {id:'snake',name:'Snake',category:'Arcade',description:'Control the snake and eat to grow!',url:'games/snake/index.html'},
+      {id:'space-invaders',name:'Space Invaders',category:'Shooter',description:'Defend against alien invaders!',url:'games/space-invaders/index.html'},
+      {id:'street-fighter',name:'Street Fighter',category:'Fighting',description:'Battle it out in arcade style.',url:'games/street-fighter/index.html'},
+      {id:'super-mario',name:'Super Mario',category:'Platformer',description:'Run and jump through classic levels.',url:'games/super-mario/index.html'},
+      {id:'tetris',name:'Tetris',category:'Puzzle',description:'Fit the falling blocks!',url:'games/tetris/index.html'}
     ];
 
-    function loadGames(category = 'All') {
-      const gameList = document.getElementById("gameList");
-      gameList.innerHTML = "";
-      const filteredGames = category === 'All' ? games : games.filter(game => game.category === category);
-      filteredGames.forEach(game => {
-        gameList.innerHTML += `
-          <div class="game">
-            <h3>${game.name}</h3>
-            <p>${game.description}</p>
-            <a href="${game.url}" target="_blank">Play Now</a>
-          </div>
-        `;
+    function loadGames(cat='All'){
+      const list=document.getElementById("gameList");
+      list.innerHTML="";
+      const filtered=cat==='All'?games:games.filter(g=>g.category===cat);
+      filtered.forEach(g=>{
+        list.innerHTML+=`
+        <div class="game">
+          <h3>${g.name}</h3><p>${g.description}</p>
+          <a href="${g.url}" target="_blank">Play Now</a>
+        </div>`;
       });
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded",()=>{
       setupDarkMode();
       loadGames();
-      const searchBox = document.getElementById("searchBox");
-      const searchButton = document.getElementById("searchButton");
-
-      searchBox.addEventListener("input", () => {
-        searchButton.disabled = searchBox.value.trim() === "";
-      });
-
-      searchBox.addEventListener("keypress", (e) => {
-        if (e.key === "Enter" && searchBox.value.trim() !== "") searchWeb();
+      const box=document.getElementById("searchBox");
+      const btn=document.getElementById("searchButton");
+      box.addEventListener("input",()=>btn.disabled=box.value.trim()==="");
+      box.addEventListener("keypress",e=>{
+        if(e.key==="Enter"&&box.value.trim()!=="") searchWeb();
       });
     });
   </script>
