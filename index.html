@@ -124,12 +124,22 @@
       });
     }
 
-    // Privacy-friendly search
-    function searchWeb(){
+    // ✅ Privacy-friendly DuckDuckGo proxy search
+    async function searchWeb(){
       const q=document.getElementById("searchBox").value.trim();
-      if(q){
-        const url="https://duckduckgo.com/?q="+encodeURIComponent(q);
-        window.open(url,"_blank","noopener,noreferrer");
+      if(!q) return alert("Please enter a search term.");
+
+      try{
+        const r=await fetch("https://unblocked-games-api.vercel.app/api/search?q="+encodeURIComponent(q));
+        const data=await r.json();
+
+        if(data.AbstractURL){
+          window.open(data.AbstractURL,"_blank","noopener,noreferrer");
+        }else{
+          window.open("https://duckduckgo.com/?q="+encodeURIComponent(q),"_blank","noopener,noreferrer");
+        }
+      }catch(e){
+        window.open("https://duckduckgo.com/?q="+encodeURIComponent(q),"_blank","noopener,noreferrer");
       }
     }
 
