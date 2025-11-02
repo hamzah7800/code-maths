@@ -1,85 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Unblocked Games Hub</title>
 <style>
+  /* General Body */
   body {
     margin: 0;
     padding: 20px;
     font-family: Arial, sans-serif;
     color: #fff;
-    background: linear-gradient(45deg,#ff0000,#ff7300,#fffb00,#00ff00,#00bfff,#0000ff,#8a00d4);
+    background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #00ff00, #00bfff, #0000ff, #8a00d4);
     background-size: 400% 400%;
-    animation: gradientAnimation 10s ease infinite;
+    animation: gradientAnimation 15s ease infinite;
+    transition: background 0.5s, color 0.5s;
   }
-  h1 { text-align:center; font-size:3rem; margin-bottom:30px; }
-  .login-container {
-    width:100%; max-width:400px; margin:0 auto;
-    background:rgba(0,0,0,0.7); padding:20px; border-radius:10px; text-align:center;
-  }
-  .login-input { width:100%; padding:10px; margin:10px 0; border:none; border-radius:5px; }
-  .login-button {
-    width:100%; padding:12px; background:#ff4500; color:#fff; border:none;
-    border-radius:5px; cursor:pointer; font-size:18px;
-  }
-  #gameSection { display:none; opacity:0; transition:opacity 0.8s ease; }
-  #darkModeButton {
-    position:absolute; top:20px; right:20px; padding:12px;
-    background:#333; color:#fff; border:none; border-radius:5px; cursor:pointer;
-  }
-  #searchContainer {
-    display:flex; justify-content:center; gap:10px; margin-bottom:30px; flex-wrap:wrap;
-  }
-  #searchBox {
-    width:100%; max-width:300px; padding:12px; border:none; border-radius:5px;
-    background:rgba(0,0,0,0.3); color:white; backdrop-filter: blur(5px);
-  }
-  #searchButton {
-    padding:14px 22px; background:#e63900; border:none; border-radius:5px; color:white; cursor:pointer;
-  }
-  #categoryFilterContainer { text-align:center; margin-bottom:20px; }
-  .categoryButton {
-    padding:10px; background:#333; color:white; border:none; border-radius:5px;
-    cursor:pointer; margin:5px;
-  }
-  #gameList {
-    display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
-    gap:20px; width:90%; max-width:1000px; margin:30px auto 0;
-  }
-  .game {
-    background:rgba(0,0,0,0.7); padding:20px 15px; border-radius:15px; text-align:center;
-  }
-  .game a {
-    display:inline-block; background:#ff4500; padding:10px 20px;
-    color:white; border-radius:5px; text-decoration:none;
-  }
+
   @keyframes gradientAnimation {
     0%{background-position:0% 50%;}
     50%{background-position:100% 50%;}
     100%{background-position:0% 50%;}
   }
+
+  /* Headings */
+  h1 { text-align:center; font-size:3rem; margin-bottom:30px; }
+
+  /* Login Form */
+  .login-container {
+    width:100%; max-width:400px; margin:0 auto;
+    background: rgba(0,0,0,0.6);
+    padding:20px; border-radius:10px;
+    text-align:center; backdrop-filter: blur(5px);
+  }
+
+  .login-input {
+    width:100%; padding:10px; margin:10px 0;
+    border:none; border-radius:5px;
+  }
+
+  .login-button {
+    width:100%; padding:12px;
+    background:#ff4500; color:#fff;
+    border:none; border-radius:5px; cursor:pointer;
+    font-size:18px;
+  }
+
+  #error-message { color:red; margin-top:10px; }
+
+  /* Game Section */
+  #gameSection { display:none; opacity:0; transition:opacity 0.8s ease; }
+  #darkModeButton {
+    position:absolute; top:20px; right:20px;
+    padding:12px; background:#333; color:#fff;
+    border:none; border-radius:5px; cursor:pointer;
+  }
+
+  #searchContainer {
+    display:flex; justify-content:center; gap:10px;
+    margin-bottom:30px; flex-wrap:wrap;
+  }
+
+  #searchBox {
+    width:100%; max-width:300px;
+    padding:12px; border:none; border-radius:5px;
+    background: rgba(255,255,255,0.2); color:white;
+    backdrop-filter: blur(5px);
+  }
+
+  #searchButton {
+    padding:14px 22px; background:#e63900;
+    border:none; border-radius:5px; color:white; cursor:pointer;
+  }
+
+  #categoryFilterContainer { text-align:center; margin-bottom:20px; }
+  .categoryButton {
+    padding:10px; background:#333; color:white;
+    border:none; border-radius:5px; cursor:pointer; margin:5px;
+  }
+
+  .categoryButton:hover { background:#e63900; }
+
+  #gameList {
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+    gap:20px; width:90%; max-width:1000px; margin:30px auto 0;
+  }
+
+  .game {
+    background: rgba(255,255,255,0.05);
+    padding:20px 15px; border-radius:15px; text-align:center;
+    backdrop-filter: blur(8px);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  .game:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255,69,0,0.7);
+  }
+
+  .game a {
+    display:inline-block; background:#ff4500; padding:10px 20px;
+    color:white; border-radius:5px; text-decoration:none;
+  }
+
   .dark-mode { background:#121212; color:#fff; }
+
 </style>
 </head>
 <body>
 <h1>Unblocked Games Hub</h1>
 
+<!-- Login Section -->
 <div id="loginContainer" class="login-container">
   <h2>Login</h2>
   <input id="username" class="login-input" placeholder="Username" />
   <input id="password" class="login-input" type="password" placeholder="Password" />
   <button class="login-button" onclick="validateLogin()">Login</button>
-  <p id="error-message" style="color:red"></p>
+  <p id="error-message"></p>
 </div>
 
+<!-- Game Section -->
 <div id="gameSection">
   <button id="darkModeButton">Toggle Dark Mode</button>
 
   <div id="searchContainer">
     <input type="text" id="searchBox" placeholder="Search privately..." />
-    <button id="searchButton" onclick="proxySearch()" disabled>🔍 Search</button>
+    <button id="searchButton" onclick="searchWeb()" disabled>🔍 Search</button>
   </div>
 
   <div id="categoryFilterContainer">
@@ -98,71 +144,66 @@
 
   <div style="text-align:center; margin-top:40px;">
     <h2>Join Our Discord</h2>
-    <p><a href="https://discord.gg/D9ASGfSjk4" target="_blank" style="color:white;font-size:18px;">Click Me</a></p>
+    <p>
+      <a href="https://discord.gg/D9ASGfSjk4" target="_blank" style="color:white;font-size:18px;">Click Me</a>
+    </p>
   </div>
 </div>
 
 <script>
-  // Load saved credentials
-  document.addEventListener("DOMContentLoaded",()=>{
-    setupDarkMode();
-    const savedUser=localStorage.getItem("username");
-    const savedPass=localStorage.getItem("password");
+  // Check saved login
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedUser = localStorage.getItem('ugHub_user');
+    const savedPass = localStorage.getItem('ugHub_pass');
     if(savedUser && savedPass){
-      document.getElementById("username").value=savedUser;
-      document.getElementById("password").value=savedPass;
-      validateLogin();
+      document.getElementById('username').value = savedUser;
+      document.getElementById('password').value = savedPass;
+      validateLogin(true);
     }
-    loadGames();
-    const box=document.getElementById("searchBox");
-    const btn=document.getElementById("searchButton");
-    box.addEventListener("input",()=>btn.disabled=box.value.trim()==="");
-    box.addEventListener("keypress",e=>{
-      if(e.key==="Enter"&&box.value.trim()!=="") proxySearch();
-    });
   });
 
-  function validateLogin(){
-    const u=document.getElementById("username").value.trim();
-    const p=document.getElementById("password").value.trim();
-    const err=document.getElementById("error-message");
-    if(u==="ryzen"&&p==="4060"){
-      localStorage.setItem("username",u);
-      localStorage.setItem("password",p);
+  function validateLogin(auto=false){
+    const u = document.getElementById("username").value.trim();
+    const p = document.getElementById("password").value.trim();
+    const err = document.getElementById("error-message");
+
+    if(u==="ryzen" && p==="4060"){
+      if(!auto){
+        localStorage.setItem('ugHub_user', u);
+        localStorage.setItem('ugHub_pass', p);
+      }
       document.getElementById("loginContainer").style.display="none";
       const sec=document.getElementById("gameSection");
       sec.style.display="block";
       setTimeout(()=>sec.style.opacity=1,100);
-    } else err.textContent="Invalid username or password.";
-  }
-
-  function setupDarkMode(){
-    const b=document.body,btn=document.getElementById("darkModeButton");
-    b.classList.add("dark-mode"); // default dark
-    btn.addEventListener("click",()=>{
-      b.classList.toggle("dark-mode");
-      localStorage.setItem("darkMode",b.classList.contains("dark-mode"));
-    });
-  }
-
-  async function proxySearch(){
-    const q=document.getElementById("searchBox").value.trim();
-    if(!q) return;
-    const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent("https://duckduckgo.com/html/?q="+q)}`;
-    try{
-      const res=await fetch(proxy);
-      if(!res.ok) throw new Error("Network error");
-      const data=await res.json();
-      const blob=new Blob([data.contents],{type:"text/html"});
-      const url=URL.createObjectURL(blob);
-      window.open(url,"_blank","noopener,noreferrer");
-    }catch(e){
-      // fallback
-      window.open("https://duckduckgo.com/?q="+encodeURIComponent(q)," _blank","noopener,noreferrer");
+    } else if(!auto){
+      err.textContent="Invalid username or password.";
     }
   }
 
-  const games=[
+  // Dark mode setup
+  function setupDarkMode(){
+    const b=document.body, btn=document.getElementById("darkModeButton");
+    const saved = localStorage.getItem("darkMode");
+    if(saved === "true" || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+      b.classList.add("dark-mode");
+    }
+    btn.addEventListener("click", ()=>{
+      b.classList.toggle("dark-mode");
+      localStorage.setItem("darkMode", b.classList.contains("dark-mode"));
+    });
+  }
+
+  // DuckDuckGo Search
+  function searchWeb(){
+    const q=document.getElementById("searchBox").value.trim();
+    if(q){
+      window.open(`https://duckduckgo.com/?q=${encodeURIComponent(q)}`, "_blank","noopener,noreferrer");
+    }
+  }
+
+  // Games List
+  const games = [
     {id:'2048',name:'2048',category:'Puzzle',description:'Combine tiles to reach 2048.',url:'games/2048/index.html'},
     {id:'advanced-parkour',name:'Advanced Parkour',category:'Platformer',description:'Jump and run through challenging parkour levels.',url:'games/advanced-parkour/index.html'},
     {id:'afterblast',name:'Afterblast',category:'Shooter',description:'Action-packed blasting fun!',url:'games/afterblast/index.html'},
@@ -176,7 +217,7 @@
     {id:'galaga',name:'Galaga',category:'Shooter',description:'Defend the galaxy from aliens.',url:'games/galaga/index.html'},
     {id:'minecraft',name:'Minecraft',category:'Sandbox',description:'Build and explore infinite worlds.',url:'games/minecraft/index.html'},
     {id:'pacman',name:'Pac-Man',category:'Arcade',description:'Classic maze chase game.',url:'games/pacman/index.html'},
-    {id:'pong',name:'Pong',category:'Sports',description:'The classic ping-pong game.',url:'games/pong/index.html'},
+    {id:'pong',name:'Pong',category:'Sports',description:'The classic ping-pong game!',url:'games/pong/index.html'},
     {id:'snake',name:'Snake',category:'Arcade',description:'Control the snake and eat to grow!',url:'games/snake/index.html'},
     {id:'space-invaders',name:'Space Invaders',category:'Shooter',description:'Defend against alien invaders!',url:'games/space-invaders/index.html'},
     {id:'street-fighter',name:'Street Fighter',category:'Fighting',description:'Battle it out in arcade style.',url:'games/street-fighter/index.html'},
@@ -191,11 +232,24 @@
     filtered.forEach(g=>{
       list.innerHTML+=`
       <div class="game">
-        <h3>${g.name}</h3><p>${g.description}</p>
+        <h3>${g.name}</h3>
+        <p>${g.description}</p>
         <a href="${g.url}" target="_blank">Play Now</a>
       </div>`;
     });
   }
+
+  document.addEventListener("DOMContentLoaded",()=>{
+    setupDarkMode();
+    loadGames();
+    const box=document.getElementById("searchBox");
+    const btn=document.getElementById("searchButton");
+    box.focus();
+    box.addEventListener("input",()=> btn.disabled = box.value.trim()==="");
+    box.addEventListener("keypress", e=>{
+      if(e.key==="Enter" && box.value.trim()!=="") searchWeb();
+    });
+  });
 </script>
 </body>
 </html>
