@@ -79,7 +79,7 @@
 
     <div id="searchContainer">
       <input type="text" id="searchBox" placeholder="Search privately..." />
-      <button id="searchButton" onclick="searchWeb()" disabled>🔍 Search</button>
+      <button id="searchButton" onclick="proxySearch()" disabled>🔍 Search</button>
     </div>
 
     <div id="categoryFilterContainer">
@@ -103,6 +103,7 @@
   </div>
 
   <script>
+    // login
     function validateLogin(){
       const u=document.getElementById("username").value.trim();
       const p=document.getElementById("password").value.trim();
@@ -115,6 +116,7 @@
       } else err.textContent="Invalid username or password.";
     }
 
+    // dark mode
     function setupDarkMode(){
       const b=document.body,btn=document.getElementById("darkModeButton");
       if(localStorage.getItem("darkMode")==="true") b.classList.add("dark-mode");
@@ -124,25 +126,25 @@
       });
     }
 
-    // ✅ Privacy-friendly DuckDuckGo proxy search
-    async function searchWeb(){
+    // proxy search (bypasses blocked duckduckgo)
+    async function proxySearch(){
       const q=document.getElementById("searchBox").value.trim();
-      if(!q) return alert("Please enter a search term.");
-
+      if(!q) return;
+      const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent("https://duckduckgo.com/html/?q="+q)}`;
       try{
-        const r=await fetch("https://unblocked-games-api.vercel.app/api/search?q="+encodeURIComponent(q));
-        const data=await r.json();
-
-        if(data.AbstractURL){
-          window.open(data.AbstractURL,"_blank","noopener,noreferrer");
-        }else{
-          window.open("https://duckduckgo.com/?q="+encodeURIComponent(q),"_blank","noopener,noreferrer");
-        }
+        const res=await fetch(proxy);
+        if(!res.ok) throw new Error("Network error");
+        const data=await res.json();
+        const blob=new Blob([data.contents],{type:"text/html"});
+        const url=URL.createObjectURL(blob);
+        window.open(url,"_blank","noopener,noreferrer");
       }catch(e){
+        // fallback to direct DDG if proxy blocked
         window.open("https://duckduckgo.com/?q="+encodeURIComponent(q),"_blank","noopener,noreferrer");
       }
     }
 
+    // game list
     const games=[
       {id:'2048',name:'2048',category:'Puzzle',description:'Combine tiles to reach 2048.',url:'games/2048/index.html'},
       {id:'advanced-parkour',name:'Advanced Parkour',category:'Platformer',description:'Jump and run through challenging parkour levels.',url:'games/advanced-parkour/index.html'},
@@ -185,7 +187,7 @@
       const btn=document.getElementById("searchButton");
       box.addEventListener("input",()=>btn.disabled=box.value.trim()==="");
       box.addEventListener("keypress",e=>{
-        if(e.key==="Enter"&&box.value.trim()!=="") searchWeb();
+        if(e.key==="Enter"&&box.value.trim()!=="") proxySearch();
       });
     });
   </script>
