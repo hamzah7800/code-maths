@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Unblocked Games Hub</title>
 <style>
-  /* General Body */
   body {
     margin: 0;
     padding: 20px;
@@ -23,10 +22,8 @@
     100%{background-position:0% 50%;}
   }
 
-  /* Headings */
   h1 { text-align:center; font-size:3rem; margin-bottom:30px; }
 
-  /* Login Form */
   .login-container {
     width:100%; max-width:400px; margin:0 auto;
     background: rgba(0,0,0,0.6);
@@ -48,7 +45,6 @@
 
   #error-message { color:red; margin-top:10px; }
 
-  /* Game Section */
   #gameSection { display:none; opacity:0; transition:opacity 0.8s ease; }
   #darkModeButton {
     position:absolute; top:20px; right:20px;
@@ -104,13 +100,11 @@
   }
 
   .dark-mode { background:#121212; color:#fff; }
-
 </style>
 </head>
 <body>
 <h1>Unblocked Games Hub</h1>
 
-<!-- Login Section -->
 <div id="loginContainer" class="login-container">
   <h2>Login</h2>
   <input id="username" class="login-input" placeholder="Username" />
@@ -119,7 +113,6 @@
   <p id="error-message"></p>
 </div>
 
-<!-- Game Section -->
 <div id="gameSection">
   <button id="darkModeButton">Toggle Dark Mode</button>
 
@@ -151,8 +144,7 @@
 </div>
 
 <script>
-  // Check saved login
-  window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', () => {
     const savedUser = localStorage.getItem('ugHub_user');
     const savedPass = localStorage.getItem('ugHub_pass');
     if(savedUser && savedPass){
@@ -160,9 +152,9 @@
       document.getElementById('password').value = savedPass;
       validateLogin(true);
     }
-  });
+});
 
-  function validateLogin(auto=false){
+function validateLogin(auto=false){
     const u = document.getElementById("username").value.trim();
     const p = document.getElementById("password").value.trim();
     const err = document.getElementById("error-message");
@@ -179,10 +171,9 @@
     } else if(!auto){
       err.textContent="Invalid username or password.";
     }
-  }
+}
 
-  // Dark mode setup
-  function setupDarkMode(){
+function setupDarkMode(){
     const b=document.body, btn=document.getElementById("darkModeButton");
     const saved = localStorage.getItem("darkMode");
     if(saved === "true" || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)){
@@ -192,18 +183,20 @@
       b.classList.toggle("dark-mode");
       localStorage.setItem("darkMode", b.classList.contains("dark-mode"));
     });
-  }
+}
 
-  // DuckDuckGo Search
-  function searchWeb(){
+// Search via void network proxy (poxel.idisk.space) to Bing
+function searchWeb(){
     const q=document.getElementById("searchBox").value.trim();
     if(q){
-      window.open(`https://duckduckgo.com/?q=${encodeURIComponent(q)}`, "_blank","noopener,noreferrer");
+        const proxyBase = "https://poxel.idisk.space/";
+        const bingURL = "https://www.bing.com/search?q=" + encodeURIComponent(q);
+        window.open(proxyBase + bingURL, "_blank","noopener,noreferrer");
     }
-  }
+}
 
-  // Games List
- const games = [
+// Games List
+const games = [
     {id:'2048',name:'2048',category:'Puzzle',description:'Combine tiles to reach 2048.',url:'games/2048/index.html'},
     {id:'advanced-parkour',name:'Advanced Parkour',category:'Platformer',description:'Jump and run through challenging parkour levels.',url:'games/advanced-parkour/index.html'},
     {id:'afterblast',name:'Afterblast',category:'Shooter',description:'Action-packed blasting fun!',url:'games/afterblast/index.html'},
@@ -223,12 +216,11 @@
     {id:'street-fighter',name:'Street Fighter',category:'Fighting',description:'Battle it out in arcade style.',url:'games/street-fighter/index.html'},
     {id:'super-mario',name:'Super Mario',category:'Platformer',description:'Run and jump through classic levels.',url:'games/super-mario/index.html'},
     {id:'tetris',name:'Tetris',category:'Puzzle',description:'Fit the falling blocks!',url:'games/tetris/index.html'},
-    {id:'tiktok',name:'TikTok',category:'Social',description:'Open TikTok and watch trending videos!',url:'games/tiktok/index.html'}
-   {id:'void',name:'void network v5',category:'puzzle',description:'Open and play many game such as roblox minecraft fortnite and stickman hook !',url:'https://poxel.idisk.space'}
+    {id:'tiktok',name:'TikTok',category:'Social',description:'Open TikTok and watch trending videos!',url:'games/tiktok/index.html'},
+    {id:'void',name:'Void Network v5',category:'Puzzle',description:'Open and play games like Roblox, Minecraft, Fortnite, and Stickman Hook!',url:'https://poxel.idisk.space'}
 ];
 
-
-  function loadGames(cat='All'){
+function loadGames(cat='All'){
     const list=document.getElementById("gameList");
     list.innerHTML="";
     const filtered=cat==='All'?games:games.filter(g=>g.category===cat);
@@ -240,9 +232,9 @@
         <a href="${g.url}" target="_blank">Play Now</a>
       </div>`;
     });
-  }
+}
 
-  document.addEventListener("DOMContentLoaded",()=>{
+document.addEventListener("DOMContentLoaded",()=>{
     setupDarkMode();
     loadGames();
     const box=document.getElementById("searchBox");
@@ -252,7 +244,7 @@
     box.addEventListener("keypress", e=>{
       if(e.key==="Enter" && box.value.trim()!=="") searchWeb();
     });
-  });
+});
 </script>
 </body>
 </html>
