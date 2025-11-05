@@ -144,16 +144,7 @@
 </div>
 
 <script>
-window.addEventListener('DOMContentLoaded', () => {
-    const savedUser = localStorage.getItem('ugHub_user');
-    const savedPass = localStorage.getItem('ugHub_pass');
-    if(savedUser && savedPass){
-      document.getElementById('username').value = savedUser;
-      document.getElementById('password').value = savedPass;
-      validateLogin(true);
-    }
-});
-
+// Login
 function validateLogin(auto=false){
     const u = document.getElementById("username").value.trim();
     const p = document.getElementById("password").value.trim();
@@ -173,6 +164,17 @@ function validateLogin(auto=false){
     }
 }
 
+window.addEventListener('DOMContentLoaded', () => {
+    const savedUser = localStorage.getItem('ugHub_user');
+    const savedPass = localStorage.getItem('ugHub_pass');
+    if(savedUser && savedPass){
+      document.getElementById('username').value = savedUser;
+      document.getElementById('password').value = savedPass;
+      validateLogin(true);
+    }
+});
+
+// Dark mode
 function setupDarkMode(){
     const b=document.body, btn=document.getElementById("darkModeButton");
     const saved = localStorage.getItem("darkMode");
@@ -195,7 +197,7 @@ function searchWeb(){
     }
 }
 
-// Games List
+// Games
 const games = [
     {id:'2048',name:'2048',category:'Puzzle',description:'Combine tiles to reach 2048.',url:'games/2048/index.html'},
     {id:'advanced-parkour',name:'Advanced Parkour',category:'Platformer',description:'Jump and run through challenging parkour levels.',url:'games/advanced-parkour/index.html'},
