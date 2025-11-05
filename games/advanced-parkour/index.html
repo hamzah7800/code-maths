@@ -2,112 +2,125 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>3D Parkour Game</title>
+  <title>3D </title>
   <style>
-    html, body { width:100%; height:100%; margin:0; overflow:hidden; }
-    canvas { width:100%; height:100%; display:block; }
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
   </style>
-  <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
 </head>
 <body>
-  <canvas id="renderCanvas"></canvas>
-  <script>
-    // Get the canvas
-    const canvas = document.getElementById("renderCanvas");
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/PointerLockControls.js"></script>
 
-    // Create BabylonJS engine
-    const engine = new BABYLON.Engine(canvas, true);
+<script>
+let scene, camera, renderer, controls;
+let player, velocity, canJump = false;
+const objects = [];
 
-    // Create scene
-    const createScene = () => {
-      const scene = new BABYLON.Scene(engine);
-      scene.clearColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+init();
+animate();
 
-      // Camera
-      const camera = new BABYLON.FollowCamera("followCam", new BABYLON.Vector3(0, 2, -10), scene);
-      camera.radius = 10;
-      camera.heightOffset = 3;
-      camera.rotationOffset = 0;
-      camera.cameraAcceleration = 0.05;
-      camera.maxCameraSpeed = 20;
+function init() {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x87ceeb); // sky blue
+    
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    
+    renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-      // Light
-      const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
-      light.intensity = 0.9;
+    // Lighting
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(5,10,7.5);
+    scene.add(light);
 
-      // Player
-      const player = BABYLON.MeshBuilder.CreateBox("player", {size:1}, scene);
-      player.position.y = 1;
-      player.position.z = 0;
-      player.checkCollisions = true;
+    // Player
+    const geometry = new THREE.BoxGeometry(1,2,1);
+    const material = new THREE.MeshStandardMaterial({color: 0xff0000});
+    player = new THREE.Mesh(geometry, material);
+    player.position.y = 5;
+    scene.add(player);
 
-      // Physics
-      scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), new BABYLON.CannonJSPlugin());
+    // Platforms
+    const platformGeometry = new THREE.BoxGeometry(10,1,10);
+    const platformMaterial = new THREE.MeshStandardMaterial({color:0x00ff00});
+    const platform1 = new THREE.Mesh(platformGeometry, platformMaterial);
+    platform1.position.set(0,0,0);
+    scene.add(platform1);
+    objects.push(platform1);
 
-      // Player Physics Impostor
-      player.physicsImpostor = new BABYLON.PhysicsImpostor(player, BABYLON.PhysicsImpostor.BoxImpostor, { mass:1, restitution:0 }, scene);
+    const platform2 = new THREE.Mesh(platformGeometry, platformMaterial);
+    platform2.position.set(15,3,0);
+    scene.add(platform2);
+    objects.push(platform2);
 
-      // Platforms
-      const platforms = [];
-      for(let i=0; i<20; i++){
-        const platform = BABYLON.MeshBuilder.CreateBox("platform"+i, {width:3, height:0.5, depth:3}, scene);
-        platform.position.y = 0;
-        platform.position.x = (Math.random()-0.5) * 10;
-        platform.position.z = i*5;
-        platform.checkCollisions = true;
-        platform.physicsImpostor = new BABYLON.PhysicsImpostor(platform, BABYLON.PhysicsImpostor.BoxImpostor, { mass:0, restitution:0 }, scene);
-        platforms.push(platform);
-      }
+    // Controls
+    controls = new THREE.PointerLockControls(camera, document.body);
+    document.body.addEventListener('click', () => { controls.lock(); });
+    
+    camera.position.set(0, 2, 5);
 
-      // Make camera follow player
-      camera.lockedTarget = player;
+    // Physics variables
+    velocity = new THREE.Vector3();
+    
+    // Movement keys
+    const keys = {};
+    document.addEventListener('keydown', (event) => { keys[event.code] = true; });
+    document.addEventListener('keyup', (event) => { keys[event.code] = false; });
 
-      // Keyboard controls
-      const inputMap = {};
-      scene.actionManager = new BABYLON.ActionManager(scene);
-      scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyDownTrigger, function(evt){ inputMap[evt.sourceEvent.key] = true; }));
-      scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyUpTrigger, function(evt){ inputMap[evt.sourceEvent.key] = false; }));
+    function movePlayer() {
+        const speed = 0.2;
+        if(keys['KeyW']) velocity.z = -speed;
+        else if(keys['KeyS']) velocity.z = speed;
+        else velocity.z = 0;
 
-      // Movement parameters
-      const speed = 0.2;
-      const jumpForce = 5;
-      let canJump = true;
+        if(keys['KeyA']) velocity.x = -speed;
+        else if(keys['KeyD']) velocity.x = speed;
+        else velocity.x = 0;
 
-      scene.onBeforeRenderObservable.add(() => {
-        let forward = new BABYLON.Vector3(0,0,1);
-        let right = new BABYLON.Vector3(1,0,0);
-
-        if(inputMap["w"] || inputMap["ArrowUp"]) player.physicsImpostor.applyImpulse(forward.scale(speed), player.getAbsolutePosition());
-        if(inputMap["s"] || inputMap["ArrowDown"]) player.physicsImpostor.applyImpulse(forward.scale(-speed), player.getAbsolutePosition());
-        if(inputMap["a"] || inputMap["ArrowLeft"]) player.physicsImpostor.applyImpulse(right.scale(-speed), player.getAbsolutePosition());
-        if(inputMap["d"] || inputMap["ArrowRight"]) player.physicsImpostor.applyImpulse(right.scale(speed), player.getAbsolutePosition());
-
-        if((inputMap[" "] || inputMap["Space"]) && canJump){
-          player.physicsImpostor.applyImpulse(new BABYLON.Vector3(0,jumpForce,0), player.getAbsolutePosition());
-          canJump = false;
+        if(keys['Space'] && canJump) {
+            velocity.y = 0.35;
+            canJump = false;
         }
-
-        // Reset jump if on a platform
-        platforms.forEach(platform => {
-          if(player.intersectsMesh(platform, false) && player.position.y - platform.position.y <= 1.1){
-            canJump = true;
-          }
-        });
-      });
-
-      return scene;
     }
 
-    const scene = createScene();
+    // Main update loop
+    const clock = new THREE.Clock();
+    function update() {
+        const delta = clock.getDelta();
+        movePlayer();
 
-    engine.runRenderLoop(() => {
-      scene.render();
-    });
+        // Gravity
+        velocity.y -= 0.01;
 
-    window.addEventListener("resize", () => {
-      engine.resize();
-    });
-  </script>
+        player.position.add(velocity);
+
+        // Simple collision with platforms
+        canJump = false;
+        objects.forEach(obj => {
+            const objBox = new THREE.Box3().setFromObject(obj);
+            const playerBox = new THREE.Box3().setFromObject(player);
+            if(playerBox.intersectsBox(objBox)) {
+                player.position.y = objBox.max.y + 1; // stand on top
+                velocity.y = 0;
+                canJump = true;
+            }
+        });
+
+        // Camera follow
+        camera.position.lerp(new THREE.Vector3(player.position.x, player.position.y + 2, player.position.z + 5), 0.1);
+        camera.lookAt(player.position);
+
+        requestAnimationFrame(update);
+        renderer.render(scene, camera);
+    }
+    update();
+}
+
+function animate() {
+    renderer.render(scene, camera);
+}
+</script>
 </body>
 </html>
