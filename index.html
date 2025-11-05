@@ -1,106 +1,102 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3D Parkour Game</title>
-<style>
-  html, body { width:100%; height:100%; margin:0; overflow:hidden; }
-  canvas { width:100%; height:100%; display:block; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Parkour Game</title>
+  <style>
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; }
+    canvas { width:100%; height:100%; display:block; }
+  </style>
 </head>
 <body>
-<canvas id="renderCanvas"></canvas>
+  <canvas id="renderCanvas"></canvas>
 
-<!-- Babylon.js -->
-<script src="https://cdn.babylonjs.com/babylon.js"></script>
-<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+  <!-- Babylon.js -->
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
 
-<!-- cannon-es physics -->
-<script src="https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"></script>
-<script>
-  // Make Cannon available globally
-  window.CANNON = window.CANNON || cannon;
+  <!-- Cannon.js physics engine -->
+  <script src="https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"></script>
+  <script>
+    // Make cannon global so Babylon.js can see it
+    window.CANNON = window.CANNON || cannon;
+  </script>
 
-  const canvas = document.getElementById("renderCanvas");
-  const engine = new BABYLON.Engine(canvas, true);
+  <script>
+    const canvas = document.getElementById("renderCanvas");
+    const engine = new BABYLON.Engine(canvas, true);
+    
+    const createScene = () => {
+      const scene = new BABYLON.Scene(engine);
 
-  const createScene = () => {
-    const scene = new BABYLON.Scene(engine);
+      // Camera
+      const camera = new BABYLON.UniversalCamera("cam", new BABYLON.Vector3(0,5,-10), scene);
+      camera.attachControl(canvas, true);
+      camera.speed = 0.5;
 
-    // Camera
-    const camera = new BABYLON.FollowCamera("cam", new BABYLON.Vector3(0,5,-10), scene);
-    camera.radius = 10;
-    camera.heightOffset = 4;
-    camera.rotationOffset = 0;
-    camera.cameraAcceleration = 0.05;
-    camera.maxCameraSpeed = 20;
+      // Light
+      const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0,1,0), scene);
 
-    // Light
-    const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0,1,0), scene);
+      // Physics
+      scene.enablePhysics(new BABYLON.Vector3(0,-9.81,0), new BABYLON.CannonJSPlugin());
 
-    // Enable physics
-    const gravityVector = new BABYLON.Vector3(0, -9.81, 0);
-    const physicsPlugin = new BABYLON.CannonJSPlugin();
-    scene.enablePhysics(gravityVector, physicsPlugin);
+      // Ground
+      const ground = BABYLON.MeshBuilder.CreateGround("ground", {width:50, height:50}, scene);
+      ground.position.y = 0;
+      ground.physicsImpostor = new BABYLON.PhysicsImpostor(
+        ground,
+        BABYLON.PhysicsImpostor.BoxImpostor,
+        { mass: 0, restitution: 0.1, friction: 1 },
+        scene
+      );
 
-    // Ground
-    const ground = BABYLON.MeshBuilder.CreateBox("ground", {width:20, height:1, depth:20}, scene);
-    ground.position.y = -0.5;
-    ground.physicsImpostor = new BABYLON.PhysicsImpostor(
-      ground,
-      BABYLON.PhysicsImpostor.BoxImpostor,
-      { mass:0, restitution:0.1 },
-      scene
-    );
+      // Player (cube)
+      const player = BABYLON.MeshBuilder.CreateBox("player", {size:1}, scene);
+      player.position.y = 1;
+      player.physicsImpostor = new BABYLON.PhysicsImpostor(
+        player,
+        BABYLON.PhysicsImpostor.BoxImpostor,
+        { mass: 1, restitution: 0, friction: 0.5 },
+        scene
+      );
 
-    // Platforms
-    const platforms = [];
-    for(let i=0; i<10; i++){
-      const platform = BABYLON.MeshBuilder.CreateBox("plat"+i, {width:3, height:0.5, depth:3}, scene);
-      platform.position = new BABYLON.Vector3(i*4, Math.random()*2 + 1, 0);
-      platform.physicsImpostor = new BABYLON.PhysicsImpostor(platform, BABYLON.PhysicsImpostor.BoxImpostor, {mass:0, restitution:0.1}, scene);
-      platforms.push(platform);
-    }
-
-    // Player
-    const player = BABYLON.MeshBuilder.CreateBox("player", {height:1, width:1, depth:1}, scene);
-    player.position = new BABYLON.Vector3(0,2,0);
-    player.physicsImpostor = new BABYLON.PhysicsImpostor(
-      player,
-      BABYLON.PhysicsImpostor.BoxImpostor,
-      { mass:1, restitution:0 },
-      scene
-    );
-
-    // Camera follows player
-    camera.lockedTarget = player;
-
-    // Controls
-    const inputMap = {};
-    scene.actionManager = new BABYLON.ActionManager(scene);
-    scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyDownTrigger, evt => inputMap[evt.sourceEvent.key] = true));
-    scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyUpTrigger, evt => inputMap[evt.sourceEvent.key] = false));
-
-    scene.onBeforeRenderObservable.add(()=>{
-      const speed = 0.2;
-      if(inputMap["w"]) player.physicsImpostor.applyImpulse(new BABYLON.Vector3(0,0,-speed), player.getAbsolutePosition());
-      if(inputMap["s"]) player.physicsImpostor.applyImpulse(new BABYLON.Vector3(0,0,speed), player.getAbsolutePosition());
-      if(inputMap["a"]) player.physicsImpostor.applyImpulse(new BABYLON.Vector3(-speed,0,0), player.getAbsolutePosition());
-      if(inputMap["d"]) player.physicsImpostor.applyImpulse(new BABYLON.Vector3(speed,0,0), player.getAbsolutePosition());
-      if(inputMap[" "]){
-        // Simple jump check
-        const playerY = player.position.y;
-        if(playerY < 1.1) player.physicsImpostor.applyImpulse(new BABYLON.Vector3(0,5,0), player.getAbsolutePosition());
+      // Simple obstacles
+      const obstacles = [];
+      for(let i=0; i<10; i++){
+        const box = BABYLON.MeshBuilder.CreateBox("obs"+i, {width:2, height:2, depth:2}, scene);
+        box.position.set(i*4,1,Math.random()*10-5);
+        box.physicsImpostor = new BABYLON.PhysicsImpostor(
+          box,
+          BABYLON.PhysicsImpostor.BoxImpostor,
+          { mass: 0, restitution: 0.1, friction: 1 },
+          scene
+        );
+        obstacles.push(box);
       }
-    });
 
-    return scene;
-  };
+      // Simple keyboard movement
+      const inputMap = {};
+      scene.actionManager = new BABYLON.ActionManager(scene);
+      scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyDownTrigger, e => inputMap[e.sourceEvent.key] = true));
+      scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyUpTrigger, e => inputMap[e.sourceEvent.key] = false));
 
-  const scene = createScene();
-  engine.runRenderLoop(()=> scene.render());
-  window.addEventListener("resize", ()=> engine.resize());
-</script>
+      scene.onBeforeRenderObservable.add(() => {
+        const force = 5;
+        if(inputMap["w"]) player.physicsImpostor.applyImpulse(new BABYLON.Vector3(0,0,force), player.getAbsolutePosition());
+        if(inputMap["s"]) player.physicsImpostor.applyImpulse(new BABYLON.Vector3(0,0,-force), player.getAbsolutePosition());
+        if(inputMap["a"]) player.physicsImpostor.applyImpulse(new BABYLON.Vector3(-force,0,0), player.getAbsolutePosition());
+        if(inputMap["d"]) player.physicsImpostor.applyImpulse(new BABYLON.Vector3(force,0,0), player.getAbsolutePosition());
+        if(inputMap[" "]) player.physicsImpostor.applyImpulse(new BABYLON.Vector3(0,5,0), player.getAbsolutePosition()); // jump
+      });
+
+      return scene;
+    };
+
+    const scene = createScene();
+    engine.runRenderLoop(() => scene.render());
+    window.addEventListener("resize", () => engine.resize());
+  </script>
 </body>
 </html>
