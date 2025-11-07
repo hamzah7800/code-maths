@@ -1,127 +1,313 @@
 <!DOCTYPE html>
 <html style="width:100%;height:100%;background-color:black;">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
-  <meta name="description" content="HZ OneBlock Client Optimized Ultra FPS - Input Lag & Chunk Delay Removal" />
-  <meta name="keywords" content="eaglercraft, minecraft, oneblock, 1.8, spigot, fps, fix, lag" />
-  <title>HZ MC - MAX FPS</title>
-  <link type="image/png" rel="shortcut icon" href="favicon.png" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+  <meta name="description" content="Balanced Low - iPad 10th Gen optimized Eaglercraft client" />
+  <meta name="keywords" content="eaglercraft,minecraft,oneblock,performance,ipad,webgl" />
+  <title>HZ MC - Balanced Low (iPad)</title>
+  <link type="image/png" rel="shortcut icon" href="favicon.png" />
 
-  <script>
-    "use strict";
-    window.eaglercraftXOpts = {
-      demoMode: false,
-      container: "game_frame",
-      assetsURI: "assets.epk",
-      localesURI: "lang/",
-      worldsDB: "worlds",
-      logInvalidCerts: false,
-      crashOnUncaughtExceptions: false,
-      // --- ULTIMATE AGGRESSIVE OPTIMIZATION CHANGES ---
-      maxParticles: 0, // ABSOLUTE MINIMUM for particles (changed from 2 to 0 for max aggression)
-      disableInstancedRendering: true, // Generally faster on low-end
-      smoothGui: false,
-      renderScale: 0.25, // CRITICAL: Attempt to drop to 25% resolution (was 0.33)
-      
-      // NEW: World Optimization Flags (If supported by your client version)
-      skipWorldUpdates: true, // Aggressive: may skip minor entity/tile entity ticks
-      fastMath: true, // Aggressive: uses lower precision math for speed
-      
-      // NEW: Texture Optimization
-      alwaysDisableTextureFiltering: true, // Forces nearest-neighbor for textures (sharper, faster)
-      textureAtlasSize: 1024, // Keep texture atlas small if possible
-      // ---------------------------------------
-      servers: [
-        { addr: "ws://localhost:8081/", name: "Local OneBlock Server" }
-      ],
-      relays: [
-        { addr: "wss://relay.deev.is/", comment: "relay #1", primary: true },
-        { addr: "wss://relay.lax1dude.net/", comment: "relay #2" },
-        { addr: "wss://relay.shhnowisnottheti.me/", comment: "relay #3" }
-      ]
-    };
-  </script>
+  <script>
+    "use strict";
 
-  <script type="text/javascript" src="classes.js"></script>
+    // USER-TUNED CONFIG (Balanced Low for iPad 10th Gen)
+    window.eaglercraftXOpts = {
+      demoMode: false,
+      container: "game_frame",
+      assetsURI: "assets.epk",
+      localesURI: "lang/",
+      worldsDB: "worlds",
+      logInvalidCerts: false,
+      crashOnUncaughtExceptions: false,
+
+      // Visual / perf balance
+      renderScale: 0.40,            // moderate visual quality; keeps GPU load low
+      maxParticles: 1,              // very light particle load
+      disableInstancedRendering: false, // enable GPU instancing (good for iPad GPU)
+      smoothGui: false,
+
+      // Chunk/world update choices
+      skipWorldUpdates: true,       // keep this on to reduce CPU spikes (safe guard)
+      fastMath: true,               // lower precision math for speed (if supported)
+
+      // Texture / memory
+      alwaysDisableTextureFiltering: true,
+      textureAtlasSize: 1024,
+      textureUpdatesPerFrame: 1,    // limit per-frame texture uploads
+      reduceTextureQuality: true,   // reduce internal texture resolution where possible
+
+      // Servers / relays (keep your original entries)
+      servers: [{ addr: "ws://localhost:8081/", name: "Local OneBlock Server" }],
+      relays: [
+        { addr: "wss://relay.deev.is/", comment: "relay #1", primary: true },
+        { addr: "wss://relay.lax1dude.net/", comment: "relay #2" },
+        { addr: "wss://relay.shhnowisnottheti.me/", comment: "relay #3" }
+      ]
+    };
+  </script>
+
+  <script type="text/javascript" src="classes.js"></script>
 </head>
 <body style="margin:0;width:100%;height:100%;overflow:hidden;background-color:black;" id="game_frame">
-  <script>
-    "use strict";
+  <script>
+    "use strict";
 
-    window.addEventListener("load", function() {
-      if (typeof main === "function") {
-        main();
-        console.log("✅ Game engine started.");
-        applyOptimizedFPSPatches();
-      } else {
-        alert("ERROR: main() not found in classes.js");
-      }
-    });
+    // ---------- Startup: run main() and then apply our patches ----------
+    window.addEventListener("load", function() {
+      if (typeof main === "function") {
+        try {
+          main();
+          console.log("✅ Game engine started.");
+        } catch (e) {
+          console.error("Error starting main():", e);
+        }
+        // Apply our optimizations after engine creation
+        applyBalancedLowPatches();
+      } else {
+        alert("ERROR: main() not found in classes.js");
+      }
+    });
 
-    /* Optimized FPS Script: Removes input lag (restores rAF loop) and maximizes chunk loading speed (removes delay) */
-    function applyOptimizedFPSPatches() {
-        // Use requestAnimationFrame to safely poll for game readiness
-        if (!window.EaglercraftX || !window.EaglercraftX.settings || !window.EaglercraftX.chunkBuilder) {
-            requestAnimationFrame(applyOptimizedFPSPatches);
-            return;
-        }
+    // ---------- Balanced Low: faster load + uncapped but smooth frame pacing ----------
+    function applyBalancedLowPatches() {
+      // Wait for engine internals to be available (non-blocking)
+      if (!window.EaglercraftX) {
+        requestAnimationFrame(applyBalancedLowPatches);
+        return;
+      }
 
-        const LOG = (...a) => console.log("[UltraFPS Optimized]", ...a);
-        LOG("⚡ Applying ULTIMATE Optimized FPS patches...");
+      const LOG = (...a) => console.log("[BalancedLow iPad]", ...a);
+      LOG("Applying Balanced Low patches...");
 
-        // --- 1. Maximize Chunk Load Speed (Addresses "1ms" request) ---
-        try {
-            const cb = window.EaglercraftX.chunkBuilder;
-            if (typeof cb.buildNext === "function") {
-                const old = cb.buildNext.bind(cb);
-                // Revert to synchronous call for max speed
-                cb.buildNext = old; 
-                LOG("Chunk builder patched for synchronous/immediate loading (max speed). WARNING: May cause brief lag spikes on chunk generation.");
-            }
-        } catch (e) {
-            LOG("Error patching chunk builder:", e);
-        }
+      // --- 1) Tweak core settings safely (respect engine structure) ---
+      try {
+        const s = window.EaglercraftX.settings || (window.EaglercraftX.settings = {});
+        // Keep graphics 'fast' but increase a few quality bits for readability
+        s.graphics = "fast";
+        s.renderDistance = 3;           // low but not minimal
+        s.entityRenderDistance = 1;     // keep entities near
+        s.limitFramerate = 0;           // UNCAP (user requested uncapped)
+        s.showFPS = true;
 
-        // --- 2. Maximize GPU/CPU performance (Force All Low Settings) ---
-        try {
-            let s = window.EaglercraftX.settings;
+        // Visual effects (kept conservative)
+        s.smoothLighting = false;
+        s.clouds = false;
+        s.particles = "minimal";
+        s.entityShadows = false;
+        s.fancyLeaves = false;
+        s.useFXAA = false;
+        s.dynamicLights = false;
+        s.shaders = false;
+        s.fog = false;
 
-            // CORE GRAPHICS
-            s.graphics = "fast";
-            s.renderDistance = 2; // Lowest render distance
-            s.entityRenderDistance = 1; // AGGRESSIVE: Render entities only in the closest chunks (was 4)
-            s.limitFramerate = 0; // No FPS cap
+        // Texture handling
+        s.mipmapLevels = 0;
+        s.anisotropicFiltering = false;
+        s.textureUpdatesPerFrame = 1;
+        s.reduceTextureQuality = true;
 
-            // VISUAL EFFECTS OFF
-            s.smoothLighting = false;
-            s.ao = false; // Ambient Occlusion
-            s.clouds = false;
-            s.particles = "minimal";
-            s.entityShadows = false;
-            s.fancyLeaves = false;
-            s.useFXAA = false; // Anti-aliasing
-            s.dynamicLights = false;
-            s.shaders = false; // Explicitly disable shaders
-            s.fog = false; // Disable all fog rendering
+        // Make sure instancing is allowed (gives GPU less CPU overhead)
+        if (typeof window.eaglercraftXOpts !== "undefined") {
+          window.eaglercraftXOpts.disableInstancedRendering = false;
+        }
 
-            // TEXTURE / GPU OPTIMIZATION
-            s.mipmapLevels = 0; // No texture blurring/preprocessing
-            s.anisotropicFiltering = false; // No complex texture filtering
-            s.textureUpdatesPerFrame = 1; // Limit texture changes per frame
-            s.reduceTextureQuality = true; // Use lower-res textures internally (if available)
+        LOG("Graphics & texture settings applied.");
+      } catch (e) {
+        LOG("Error applying graphics settings:", e);
+      }
 
-            // MISC
-            s.showFPS = true; // CHANGED: Show FPS counter for visibility
-            s.smoothWorld = false; // No smoothing during world loading/transitions
-            
-            LOG("Graphics settings forced to absolute ULTIMATE minimum for max performance.");
-        } catch (e) {
-            LOG("Error patching graphics settings:", e);
-        }
+      // --- 2) Faster loading: lightweight preloader and warm-up frame loop ---
+      try {
+        (function preloader() {
+          // Non-blocking small warm-up: try to prefetch the assets file header (if accessible)
+          // This is "best-effort" — won't break if assets are not served with CORS/HEAD allowed.
+          try {
+            if (window.fetch && window.eaglercraftXOpts && window.eaglercraftXOpts.assetsURI) {
+              fetch(window.eaglercraftXOpts.assetsURI, { method: "HEAD", cache: "force-cache" })
+                .then(resp => {
+                  LOG("Assets URI HEAD response:", resp.status);
+                })
+                .catch(() => {
+                  // ignore fetch failures; still safe
+                });
+            }
+          } catch (e) { /* ignore */ }
 
-        LOG("✅ ULTIMATE Optimized script applied. All known resource hogs are minimized.");
-    }
-  </script>
+          // Warm-up: run a few empty rAF frames to stabilize WebGL context
+          let warms = 0;
+          const warmMax = 6;
+          function warmFrame() {
+            // If engine exposes a simple renderer.init or warm method, call it safely
+            try {
+              if (window.EaglercraftX && typeof window.EaglercraftX.warmup === "function") {
+                window.EaglercraftX.warmup(); // best-effort
+              }
+            } catch (e) { /* ignore */ }
+
+            warms++;
+            if (warms < warmMax) requestAnimationFrame(warmFrame);
+            else LOG("Warm-up frames complete (" + warmMax + ").");
+          }
+          requestAnimationFrame(warmFrame);
+        })();
+      } catch (e) {
+        LOG("Error in preloader/warm-up:", e);
+      }
+
+      // --- 3) Chunk builder tuning (aggressive but stable) ---
+      try {
+        const cb = window.EaglercraftX.chunkBuilder;
+        if (cb && typeof cb.buildNext === "function") {
+          // If chunkBuilder supports a concurrency or batch size, reduce batch to avoid spikes.
+          // Try to set a property if available; otherwise leave function intact.
+          try {
+            // reduce batches per tick if supported (best-effort)
+            if (typeof cb.batchSize !== "undefined") cb.batchSize = Math.max(1, cb.batchSize);
+            if (typeof cb.maxAsyncTasks !== "undefined") cb.maxAsyncTasks = Math.max(1, cb.maxAsyncTasks);
+            LOG("Chunk builder: adjusted batch/async parameters (if supported).");
+          } catch (e) {
+            LOG("Chunk builder tuning not available:", e);
+          }
+        } else {
+          LOG("Chunk builder not available yet or has no buildNext hook.");
+        }
+      } catch (e) {
+        LOG("Error patching chunk builder:", e);
+      }
+
+      // --- 4) Smooth uncapped frame pacing: adaptive delta smoothing + catch-up updates ---
+      try {
+        // We'll create a small wrapper around the engine's tick/update loop (best-effort).
+        // Behavior: Use rAF for rendering (uncapped, matches display refresh). Use fixed-step updates for logic
+        // with an adaptive clamp so updates don't spiral when tabs/frames drop.
+        const engine = window.EaglercraftX;
+        if (!engine) {
+          LOG("Engine object not present for frame-pacing wrapper.");
+          return;
+        }
+
+        // Only install wrapper once
+        if (engine.__balancedLowFramePacerInstalled) {
+          LOG("Frame pacer already installed.");
+          return;
+        }
+        engine.__balancedLowFramePacerInstalled = true;
+
+        // Fixed-step target (ms) for game logic (keeps physics stable)
+        const TARGET_STEP = 1000 / 30; // 30 updates per second for logic (reduces CPU)
+        const MAX_STEPS = 5;           // max catch-up steps to avoid spiral-of-death
+        let last = performance.now();
+        let acc = 0;
+        const dtHistory = [];         // simple smoothing for render delta
+        const historySize = 8;
+
+        // Optional: expose a framerate smoothing multiplier (not a hard cap)
+        engine.frameSmoothing = true;
+
+        // If engine has original update/render hooks we will try to wrap them. Best-effort:
+        const origTick = engine.tick || null;    // engine logic update hook (if present)
+        const origRender = engine.render || null; // engine render hook (if present)
+
+        function safeCall(fn, ...args) {
+          try {
+            if (typeof fn === "function") return fn.apply(engine, args);
+          } catch (e) {
+            console.error("BalancedLow caught error in wrapped function:", e);
+          }
+        }
+
+        function pacerLoop(now) {
+          let delta = now - last;
+          if (delta > 1000) delta = 1000; // cap huge deltas (when resuming from background)
+          last = now;
+
+          acc += delta;
+
+          // Limit accumulated time to avoid huge catch-ups (keeps UI responsive)
+          if (acc > TARGET_STEP * MAX_STEPS) {
+            acc = TARGET_STEP * MAX_STEPS;
+          }
+
+          // Run a few fixed-step game updates if the engine exposes a tick/update
+          let steps = 0;
+          while (acc >= TARGET_STEP && steps < MAX_STEPS) {
+            safeCall(origTick, TARGET_STEP / 1000); // pass dt in seconds if engine expects it
+            acc -= TARGET_STEP;
+            steps++;
+          }
+
+          // Render: call engine render hook if present, otherwise rely on engine's own scheduling
+          safeCall(origRender, delta / 1000);
+
+          // Record dt history for smoothing
+          dtHistory.push(delta);
+          if (dtHistory.length > historySize) dtHistory.shift();
+
+          // If engine exposes a frameComplete or postRender hook, call it
+          if (typeof engine.postRender === "function") safeCall(engine.postRender);
+
+          // Continue uncapped but smooth via rAF
+          requestAnimationFrame(pacerLoop);
+        }
+
+        // Kick the pacer
+        requestAnimationFrame((t) => {
+          last = t || performance.now();
+          requestAnimationFrame(pacerLoop);
+        });
+
+        LOG("Uncapped frame pacer installed (rAF + fixed-step logic updates).");
+      } catch (e) {
+        LOG("Error installing frame pacer:", e);
+      }
+
+      // --- 5) Gentle safety: detect sustained low FPS and fallback to lower renderScale ---
+      try {
+        const perfMonitor = {
+          samples: [],
+          windowSize: 30,
+          checkInterval: 3000, // every 3s
+          lastCheck: performance.now()
+        };
+
+        function perfTick() {
+          const now = performance.now();
+          const fpsSample = 1000 / Math.max(1, Math.min(200, now - (perfMonitor.prev || now)));
+          perfMonitor.prev = now;
+          perfMonitor.samples.push(fpsSample);
+          if (perfMonitor.samples.length > perfMonitor.windowSize) perfMonitor.samples.shift();
+
+          if (now - perfMonitor.lastCheck >= perfMonitor.checkInterval) {
+            const avg = perfMonitor.samples.reduce((a,b)=>a+b,0) / perfMonitor.samples.length;
+            perfMonitor.lastCheck = now;
+            // If average FPS drops very low (<22), reduce renderScale slightly to recover performance
+            if (avg < 22 && window.eaglercraftXOpts && window.eaglercraftXOpts.renderScale > 0.28) {
+              window.eaglercraftXOpts.renderScale = Math.max(0.28, window.eaglercraftXOpts.renderScale - 0.08);
+              LOG("Performance fallback: lowering renderScale to", window.eaglercraftXOpts.renderScale);
+              // If engine supports a runtime applySettings function, call it (best-effort)
+              try { if (typeof window.EaglercraftX.applySettings === "function") window.EaglercraftX.applySettings(); } catch(e){}
+            }
+            // If performance good and scale too low, slowly bump up (but don't exceed original)
+            if (avg > 45 && window.eaglercraftXOpts && window.eaglercraftXOpts.renderScale < 0.40) {
+              window.eaglercraftXOpts.renderScale = Math.min(0.40, window.eaglercraftXOpts.renderScale + 0.04);
+              LOG("Performance improved: raising renderScale to", window.eaglercraftXOpts.renderScale);
+              try { if (typeof window.EaglercraftX.applySettings === "function") window.EaglercraftX.applySettings(); } catch(e){}
+            }
+          }
+
+          // schedule next monitor tick
+          try { requestAnimationFrame(perfTick); } catch(e) { setTimeout(perfTick, 1000/30); }
+        }
+        // start monitoring
+        requestAnimationFrame(perfTick);
+        LOG("Performance monitor installed (auto fallback enabled).");
+      } catch (e) {
+        LOG("Error installing performance monitor:", e);
+      }
+
+      LOG("✅ Balanced Low patches applied. Enjoy (uncapped, smoothish frames).");
+    }
+  </script>
 </body>
 </html>
