@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html style="width:100%;height:100%;background-color:black;">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
-  <meta name="description" content="Balanced Low - iPad 10th Gen optimized Eaglercraft client" />
-  <meta name="keywords" content="eaglercraft,minecraft,oneblock,performance,ipad,webgl" />
-  <title>HZ MC - Balanced Low (iPad)</title>
-  <link type="image/png" rel="shortcut icon" href="favicon.png" />
+  <meta name="description" content="HZ MC - Ultra Potato (no particles, minimal GPU work)"/>
+  <meta name="keywords" content="eaglercraft,minecraft,oneblock,potato,performance,ultra,low" />
+  <title>HZ MC - Ultra Potato</title>
+  <link rel="shortcut icon" type="image/png" href="favicon.png" />
 
   <script>
     "use strict";
-
-    // USER-TUNED CONFIG (Balanced Low for iPad 10th Gen)
+    // -------------------- HZ MC - ULTRA POTATO CONFIG --------------------
+    // All particles removed, minimal textures, instancing enabled, uncapped rendering.
     window.eaglercraftXOpts = {
       demoMode: false,
       container: "game_frame",
@@ -21,23 +21,24 @@
       logInvalidCerts: false,
       crashOnUncaughtExceptions: false,
 
-      // Visual / perf balance
-      renderScale: 0.40,            // moderate visual quality; keeps GPU load low
-      maxParticles: 1,              // very light particle load
-      disableInstancedRendering: false, // enable GPU instancing (good for iPad GPU)
+      // MAX PERFORMANCE - potato visuals
+      renderScale: 0.20,              // very low render resolution (fast)
+      minRenderScale: 0.10,          // allow fallback if perf drops
+      maxParticles: 0,               // NO PARTICLES
+      disableInstancedRendering: false, // enable instancing for less CPU
       smoothGui: false,
 
-      // Chunk/world update choices
-      skipWorldUpdates: true,       // keep this on to reduce CPU spikes (safe guard)
-      fastMath: true,               // lower precision math for speed (if supported)
+      // World behavior
+      skipWorldUpdates: true,        // skip non-critical world ticks
+      fastMath: true,                // faster math where supported
 
-      // Texture / memory
-      alwaysDisableTextureFiltering: true,
-      textureAtlasSize: 1024,
-      textureUpdatesPerFrame: 1,    // limit per-frame texture uploads
-      reduceTextureQuality: true,   // reduce internal texture resolution where possible
+      // Textures / filtering
+      alwaysDisableTextureFiltering: true, // nearest-neighbor
+      textureAtlasSize: 512,
+      textureUpdatesPerFrame: 1,
+      reduceTextureQuality: true,
 
-      // Servers / relays (keep your original entries)
+      // servers (keep)
       servers: [{ addr: "ws://localhost:8081/", name: "Local OneBlock Server" }],
       relays: [
         { addr: "wss://relay.deev.is/", comment: "relay #1", primary: true },
@@ -49,264 +50,206 @@
 
   <script type="text/javascript" src="classes.js"></script>
 </head>
-<body style="margin:0;width:100%;height:100%;overflow:hidden;background-color:black;" id="game_frame">
+<body id="game_frame" style="margin:0;width:100%;height:100%;overflow:hidden;background-color:black;">
   <script>
     "use strict";
 
-    // ---------- Startup: run main() and then apply our patches ----------
+    // Start engine then apply ultra-potato patches
     window.addEventListener("load", function() {
       if (typeof main === "function") {
-        try {
-          main();
-          console.log("✅ Game engine started.");
-        } catch (e) {
-          console.error("Error starting main():", e);
-        }
-        // Apply our optimizations after engine creation
-        applyBalancedLowPatches();
+        try { main(); console.log("✅ HZ MC engine started."); } catch (e) { console.error("main() error:", e); }
+        applyUltraPotatoPatches();
       } else {
         alert("ERROR: main() not found in classes.js");
       }
     });
 
-    // ---------- Balanced Low: faster load + uncapped but smooth frame pacing ----------
-    function applyBalancedLowPatches() {
-      // Wait for engine internals to be available (non-blocking)
-      if (!window.EaglercraftX) {
-        requestAnimationFrame(applyBalancedLowPatches);
-        return;
-      }
+    // Ultra Potato: absolutely minimal visuals, no particles, aggressive culling & streaming
+    function applyUltraPotatoPatches() {
+      if (!window.EaglercraftX) { requestAnimationFrame(applyUltraPotatoPatches); return; }
+      const LOG = (...a) => console.log("[HZ MC UltraPotato]", ...a);
+      LOG("Applying Ultra Potato patches...");
 
-      const LOG = (...a) => console.log("[BalancedLow iPad]", ...a);
-      LOG("Applying Balanced Low patches...");
-
-      // --- 1) Tweak core settings safely (respect engine structure) ---
+      // 1) Force minimal settings (non-destructive)
       try {
         const s = window.EaglercraftX.settings || (window.EaglercraftX.settings = {});
-        // Keep graphics 'fast' but increase a few quality bits for readability
         s.graphics = "fast";
-        s.renderDistance = 3;           // low but not minimal
-        s.entityRenderDistance = 1;     // keep entities near
-        s.limitFramerate = 0;           // UNCAP (user requested uncapped)
+        s.renderDistance = 2;           // small geometry load (keeps draw calls low)
+        s.entityRenderDistance = 0;     // avoid rendering distant entities
+        s.limitFramerate = 0;           // uncapped - let browser/hardware decide
         s.showFPS = true;
 
-        // Visual effects (kept conservative)
+        // Turn everything visual off
         s.smoothLighting = false;
         s.clouds = false;
-        s.particles = "minimal";
+        s.particles = "off";            // engine-level particle off
         s.entityShadows = false;
         s.fancyLeaves = false;
         s.useFXAA = false;
         s.dynamicLights = false;
         s.shaders = false;
         s.fog = false;
-
-        // Texture handling
         s.mipmapLevels = 0;
         s.anisotropicFiltering = false;
         s.textureUpdatesPerFrame = 1;
         s.reduceTextureQuality = true;
 
-        // Make sure instancing is allowed (gives GPU less CPU overhead)
-        if (typeof window.eaglercraftXOpts !== "undefined") {
+        // Ensure opts reflect no particles etc.
+        if (window.eaglercraftXOpts) {
+          window.eaglercraftXOpts.maxParticles = 0;
+          window.eaglercraftXOpts.alwaysDisableTextureFiltering = true;
           window.eaglercraftXOpts.disableInstancedRendering = false;
         }
 
-        LOG("Graphics & texture settings applied.");
+        LOG("Graphics forced to ULTRA POTATO.");
       } catch (e) {
-        LOG("Error applying graphics settings:", e);
+        LOG("Error forcing graphics:", e);
       }
 
-      // --- 2) Faster loading: lightweight preloader and warm-up frame loop ---
+      // 2) Aggressive draw & chunk culling (best-effort, non-invasive)
       try {
-        (function preloader() {
-          // Non-blocking small warm-up: try to prefetch the assets file header (if accessible)
-          // This is "best-effort" — won't break if assets are not served with CORS/HEAD allowed.
-          try {
-            if (window.fetch && window.eaglercraftXOpts && window.eaglercraftXOpts.assetsURI) {
-              fetch(window.eaglercraftXOpts.assetsURI, { method: "HEAD", cache: "force-cache" })
-                .then(resp => {
-                  LOG("Assets URI HEAD response:", resp.status);
-                })
-                .catch(() => {
-                  // ignore fetch failures; still safe
-                });
-            }
-          } catch (e) { /* ignore */ }
+        const engine = window.EaglercraftX;
+        if (engine.chunkCache) {
+          // keep chunk cache but encourage minimal visible area by setting small radius
+          try { engine.chunkCache.maxVisibleChunks = 9; } catch(e){}
+        }
 
-          // Warm-up: run a few empty rAF frames to stabilize WebGL context
-          let warms = 0;
-          const warmMax = 6;
-          function warmFrame() {
-            // If engine exposes a simple renderer.init or warm method, call it safely
+        // If renderer has chunk draw hook wrap it to minimize work
+        if (engine.renderer && typeof engine.renderer.drawChunks === "function") {
+          const orig = engine.renderer.drawChunks.bind(engine.renderer);
+          engine.renderer.drawChunks = function() {
+            // Temporarily reduce detail flags if present
+            const prevLOD = this._forcedLOD;
             try {
-              if (window.EaglercraftX && typeof window.EaglercraftX.warmup === "function") {
-                window.EaglercraftX.warmup(); // best-effort
-              }
-            } catch (e) { /* ignore */ }
-
-            warms++;
-            if (warms < warmMax) requestAnimationFrame(warmFrame);
-            else LOG("Warm-up frames complete (" + warmMax + ").");
-          }
-          requestAnimationFrame(warmFrame);
-        })();
+              this._forcedLOD = this._forcedLOD !== undefined ? Math.max(2, this._forcedLOD) : 2;
+              return orig();
+            } finally {
+              this._forcedLOD = prevLOD;
+            }
+          };
+          LOG("Renderer drawChunks wrapped for lower LOD.");
+        }
       } catch (e) {
-        LOG("Error in preloader/warm-up:", e);
+        LOG("Draw culling patch error:", e);
       }
 
-      // --- 3) Chunk builder tuning (aggressive but stable) ---
+      // 3) Disable all particle systems at runtime (best-effort)
+      try {
+        const FX = window.EaglercraftX.particleSystem;
+        if (FX) {
+          if (Array.isArray(FX.emitters)) {
+            FX.emitters.length = 0;
+          }
+          if (typeof FX.clear === "function") FX.clear();
+        }
+        // Also try global engine particle arrays
+        try { if (window.EaglercraftX.particles) window.EaglercraftX.particles = []; } catch(e){}
+        LOG("Runtime particle systems wiped/disabled (best-effort).");
+      } catch (e) {
+        LOG("Particle disabling failed:", e);
+      }
+
+      // 4) Chunk builder: smooth but aggressive streaming (small batches so no big freeze)
       try {
         const cb = window.EaglercraftX.chunkBuilder;
-        if (cb && typeof cb.buildNext === "function") {
-          // If chunkBuilder supports a concurrency or batch size, reduce batch to avoid spikes.
-          // Try to set a property if available; otherwise leave function intact.
-          try {
-            // reduce batches per tick if supported (best-effort)
-            if (typeof cb.batchSize !== "undefined") cb.batchSize = Math.max(1, cb.batchSize);
-            if (typeof cb.maxAsyncTasks !== "undefined") cb.maxAsyncTasks = Math.max(1, cb.maxAsyncTasks);
-            LOG("Chunk builder: adjusted batch/async parameters (if supported).");
-          } catch (e) {
-            LOG("Chunk builder tuning not available:", e);
+        if (cb) {
+          if (typeof cb.batchSize !== "undefined") cb.batchSize = 1;
+          if (typeof cb.maxAsyncTasks !== "undefined") cb.maxAsyncTasks = 2;
+          if (typeof cb.buildNext === "function") {
+            const realBuild = cb.buildNext.bind(cb);
+            cb.buildNext = function() {
+              // run one small build per call to avoid spike
+              try { return realBuild(); } catch(e){ try { return realBuild(); } catch(e2){} }
+            };
           }
-        } else {
-          LOG("Chunk builder not available yet or has no buildNext hook.");
+          LOG("Chunk builder tuned to small streaming batches (fast, low spike).");
         }
       } catch (e) {
-        LOG("Error patching chunk builder:", e);
+        LOG("Chunk builder tuning failed:", e);
       }
 
-      // --- 4) Smooth uncapped frame pacing: adaptive delta smoothing + catch-up updates ---
+      // 5) Frame pacer: uncapped rendering via rAF plus extremely light game logic updates
       try {
-        // We'll create a small wrapper around the engine's tick/update loop (best-effort).
-        // Behavior: Use rAF for rendering (uncapped, matches display refresh). Use fixed-step updates for logic
-        // with an adaptive clamp so updates don't spiral when tabs/frames drop.
         const engine = window.EaglercraftX;
-        if (!engine) {
-          LOG("Engine object not present for frame-pacing wrapper.");
-          return;
-        }
+        if (!engine.__hzmcPacerInstalled) {
+          engine.__hzmcPacerInstalled = true;
 
-        // Only install wrapper once
-        if (engine.__balancedLowFramePacerInstalled) {
-          LOG("Frame pacer already installed.");
-          return;
-        }
-        engine.__balancedLowFramePacerInstalled = true;
+          const LOG2 = LOG;
+          const TARGET_LOGIC_STEP = 1000 / 20; // 20 TPS logic to minimize CPU
+          const MAX_STEPS = 3;
+          let last = performance.now();
+          let acc = 0;
 
-        // Fixed-step target (ms) for game logic (keeps physics stable)
-        const TARGET_STEP = 1000 / 30; // 30 updates per second for logic (reduces CPU)
-        const MAX_STEPS = 5;           // max catch-up steps to avoid spiral-of-death
-        let last = performance.now();
-        let acc = 0;
-        const dtHistory = [];         // simple smoothing for render delta
-        const historySize = 8;
+          const origTick = engine.tick || function(){};
+          const origRender = engine.render || function(){};
 
-        // Optional: expose a framerate smoothing multiplier (not a hard cap)
-        engine.frameSmoothing = true;
-
-        // If engine has original update/render hooks we will try to wrap them. Best-effort:
-        const origTick = engine.tick || null;    // engine logic update hook (if present)
-        const origRender = engine.render || null; // engine render hook (if present)
-
-        function safeCall(fn, ...args) {
-          try {
-            if (typeof fn === "function") return fn.apply(engine, args);
-          } catch (e) {
-            console.error("BalancedLow caught error in wrapped function:", e);
-          }
-        }
-
-        function pacerLoop(now) {
-          let delta = now - last;
-          if (delta > 1000) delta = 1000; // cap huge deltas (when resuming from background)
-          last = now;
-
-          acc += delta;
-
-          // Limit accumulated time to avoid huge catch-ups (keeps UI responsive)
-          if (acc > TARGET_STEP * MAX_STEPS) {
-            acc = TARGET_STEP * MAX_STEPS;
+          function safe(fn, ...args) {
+            try { if (typeof fn === "function") return fn.apply(engine, args); }
+            catch(e) { console.error("[HZMC] wrapped error:", e); }
           }
 
-          // Run a few fixed-step game updates if the engine exposes a tick/update
-          let steps = 0;
-          while (acc >= TARGET_STEP && steps < MAX_STEPS) {
-            safeCall(origTick, TARGET_STEP / 1000); // pass dt in seconds if engine expects it
-            acc -= TARGET_STEP;
-            steps++;
+          function loop(now) {
+            let delta = now - last;
+            if (delta > 1000) delta = 1000;
+            last = now;
+            acc += delta;
+            if (acc > TARGET_LOGIC_STEP * MAX_STEPS) acc = TARGET_LOGIC_STEP * MAX_STEPS;
+
+            let steps = 0;
+            while (acc >= TARGET_LOGIC_STEP && steps < MAX_STEPS) {
+              safe(origTick, TARGET_LOGIC_STEP / 1000);
+              acc -= TARGET_LOGIC_STEP;
+              steps++;
+            }
+
+            // Render every rAF call (uncapped by engine), minimal work inside render
+            safe(origRender, delta / 1000);
+
+            // Continue
+            requestAnimationFrame(loop);
           }
-
-          // Render: call engine render hook if present, otherwise rely on engine's own scheduling
-          safeCall(origRender, delta / 1000);
-
-          // Record dt history for smoothing
-          dtHistory.push(delta);
-          if (dtHistory.length > historySize) dtHistory.shift();
-
-          // If engine exposes a frameComplete or postRender hook, call it
-          if (typeof engine.postRender === "function") safeCall(engine.postRender);
-
-          // Continue uncapped but smooth via rAF
-          requestAnimationFrame(pacerLoop);
+          requestAnimationFrame((t) => { last = t || performance.now(); requestAnimationFrame(loop); });
+          LOG2("HZ MC pacer installed (render uncapped via rAF, logic ~20TPS).");
         }
-
-        // Kick the pacer
-        requestAnimationFrame((t) => {
-          last = t || performance.now();
-          requestAnimationFrame(pacerLoop);
-        });
-
-        LOG("Uncapped frame pacer installed (rAF + fixed-step logic updates).");
       } catch (e) {
-        LOG("Error installing frame pacer:", e);
+        LOG("Pacer install error:", e);
       }
 
-      // --- 5) Gentle safety: detect sustained low FPS and fallback to lower renderScale ---
+      // 6) Performance monitor with hard fallback to ultra-low renderScale
       try {
-        const perfMonitor = {
-          samples: [],
-          windowSize: 30,
-          checkInterval: 3000, // every 3s
-          lastCheck: performance.now()
-        };
-
-        function perfTick() {
+        const monitor = { samples: [], size: 30, lastCheck: performance.now(), interval: 2000 };
+        function monitorTick() {
           const now = performance.now();
-          const fpsSample = 1000 / Math.max(1, Math.min(200, now - (perfMonitor.prev || now)));
-          perfMonitor.prev = now;
-          perfMonitor.samples.push(fpsSample);
-          if (perfMonitor.samples.length > perfMonitor.windowSize) perfMonitor.samples.shift();
+          monitor.samples.push(1000 / Math.max(1, now - (monitor.prev || now)));
+          if (monitor.samples.length > monitor.size) monitor.samples.shift();
+          monitor.prev = now;
 
-          if (now - perfMonitor.lastCheck >= perfMonitor.checkInterval) {
-            const avg = perfMonitor.samples.reduce((a,b)=>a+b,0) / perfMonitor.samples.length;
-            perfMonitor.lastCheck = now;
-            // If average FPS drops very low (<22), reduce renderScale slightly to recover performance
-            if (avg < 22 && window.eaglercraftXOpts && window.eaglercraftXOpts.renderScale > 0.28) {
-              window.eaglercraftXOpts.renderScale = Math.max(0.28, window.eaglercraftXOpts.renderScale - 0.08);
-              LOG("Performance fallback: lowering renderScale to", window.eaglercraftXOpts.renderScale);
-              // If engine supports a runtime applySettings function, call it (best-effort)
+          if (now - monitor.lastCheck >= monitor.interval) {
+            monitor.lastCheck = now;
+            const avg = monitor.samples.reduce((a,b)=>a+b,0) / monitor.samples.length;
+            if (avg < 30 && window.eaglercraftXOpts && window.eaglercraftXOpts.renderScale > window.eaglercraftXOpts.minRenderScale) {
+              const old = window.eaglercraftXOpts.renderScale;
+              window.eaglercraftXOpts.renderScale = Math.max(window.eaglercraftXOpts.minRenderScale || 0.10, old - 0.05);
+              LOG("Perf fallback: lowered renderScale", old, "->", window.eaglercraftXOpts.renderScale);
               try { if (typeof window.EaglercraftX.applySettings === "function") window.EaglercraftX.applySettings(); } catch(e){}
             }
-            // If performance good and scale too low, slowly bump up (but don't exceed original)
-            if (avg > 45 && window.eaglercraftXOpts && window.eaglercraftXOpts.renderScale < 0.40) {
-              window.eaglercraftXOpts.renderScale = Math.min(0.40, window.eaglercraftXOpts.renderScale + 0.04);
-              LOG("Performance improved: raising renderScale to", window.eaglercraftXOpts.renderScale);
+            if (avg > 120 && window.eaglercraftXOpts && window.eaglercraftXOpts.renderScale < 0.25) {
+              // cautiously bump up if perf is great
+              window.eaglercraftXOpts.renderScale = Math.min(0.25, window.eaglercraftXOpts.renderScale + 0.02);
+              LOG("Perf good: increased renderScale to", window.eaglercraftXOpts.renderScale);
               try { if (typeof window.EaglercraftX.applySettings === "function") window.EaglercraftX.applySettings(); } catch(e){}
             }
           }
-
-          // schedule next monitor tick
-          try { requestAnimationFrame(perfTick); } catch(e) { setTimeout(perfTick, 1000/30); }
+          requestAnimationFrame(monitorTick);
         }
-        // start monitoring
-        requestAnimationFrame(perfTick);
-        LOG("Performance monitor installed (auto fallback enabled).");
+        requestAnimationFrame(monitorTick);
+        LOG("Performance monitor active (hard fallback enabled).");
       } catch (e) {
-        LOG("Error installing performance monitor:", e);
+        LOG("Performance monitor error:", e);
       }
 
-      LOG("✅ Balanced Low patches applied. Enjoy (uncapped, smoothish frames).");
+      LOG("✅ Ultra Potato patches applied: particles OFF, minimal visuals, fast streaming.");
+      LOG("NOTE: browser refresh rate / rAF limit may cap observed FPS; this maximizes engine-side throughput.");
     }
   </script>
 </body>
