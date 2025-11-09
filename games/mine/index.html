@@ -1,256 +1,120 @@
 <!DOCTYPE html>
-<html style="width:100%;height:100%;background-color:black;">
+<html style="width:100%;height:100%;background:black;">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
-  <meta name="description" content="HZ MC - Ultra Potato (no particles, minimal GPU work)"/>
-  <meta name="keywords" content="eaglercraft,minecraft,oneblock,potato,performance,ultra,low" />
-  <title>HZ MC - Ultra Potato</title>
-  <link rel="shortcut icon" type="image/png" href="favicon.png" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <title>HZ MC – 120 FPS iPad Edition</title>
 
   <script>
-    "use strict";
-    // -------------------- HZ MC - ULTRA POTATO CONFIG --------------------
-    // All particles removed, minimal textures, instancing enabled, uncapped rendering.
-    window.eaglercraftXOpts = {
-      demoMode: false,
-      container: "game_frame",
-      assetsURI: "assets.epk",
-      localesURI: "lang/",
-      worldsDB: "worlds",
-      logInvalidCerts: false,
-      crashOnUncaughtExceptions: false,
-
-      // MAX PERFORMANCE - potato visuals
-      renderScale: 0.20,              // very low render resolution (fast)
-      minRenderScale: 0.10,          // allow fallback if perf drops
-      maxParticles: 0,               // NO PARTICLES
-      disableInstancedRendering: false, // enable instancing for less CPU
-      smoothGui: false,
-
-      // World behavior
-      skipWorldUpdates: true,        // skip non-critical world ticks
-      fastMath: true,                // faster math where supported
-
-      // Textures / filtering
-      alwaysDisableTextureFiltering: true, // nearest-neighbor
-      textureAtlasSize: 512,
-      textureUpdatesPerFrame: 1,
-      reduceTextureQuality: true,
-
-      // servers (keep)
-      servers: [{ addr: "ws://localhost:8081/", name: "Local OneBlock Server" }],
-      relays: [
-        { addr: "wss://relay.deev.is/", comment: "relay #1", primary: true },
-        { addr: "wss://relay.lax1dude.net/", comment: "relay #2" },
-        { addr: "wss://relay.shhnowisnottheti.me/", comment: "relay #3" }
-      ]
-    };
+  "use strict";
+  window.eaglercraftXOpts = {
+    demoMode:false,
+    container:"game_frame",
+    assetsURI:"assets.epk",
+    localesURI:"lang/",
+    worldsDB:"worlds",
+    crashOnUncaughtExceptions:false,
+    renderScale:0.5,            // crisp but light for iPad GPU
+    maxParticles:0,             // none = best perf
+    disableInstancedRendering:false,
+    alwaysDisableTextureFiltering:true,
+    reduceTextureQuality:true,
+    textureAtlasSize:1024,
+    fastMath:true,
+    skipWorldUpdates:true,
+    servers:[{addr:"ws://localhost:8081/",name:"Local"}],
+    relays:[
+      {addr:"wss://relay.deev.is/",primary:true},
+      {addr:"wss://relay.lax1dude.net/"},
+      {addr:"wss://relay.shhnowisnottheti.me/"}
+    ]
+  };
   </script>
 
-  <script type="text/javascript" src="classes.js"></script>
+  <script src="classes.js"></script>
 </head>
-<body id="game_frame" style="margin:0;width:100%;height:100%;overflow:hidden;background-color:black;">
-  <script>
-    "use strict";
+<body id="game_frame" style="margin:0;width:100%;height:100%;overflow:hidden;background:black;">
+<script>
+"use strict";
+window.addEventListener("load",()=>{
+  if(typeof main==="function"){main();applyIpad120Hz();}else alert("main() missing");
+});
 
-    // Start engine then apply ultra-potato patches
-    window.addEventListener("load", function() {
-      if (typeof main === "function") {
-        try { main(); console.log("✅ HZ MC engine started."); } catch (e) { console.error("main() error:", e); }
-        applyUltraPotatoPatches();
-      } else {
-        alert("ERROR: main() not found in classes.js");
-      }
-    });
+function applyIpad120Hz(){
+  if(!window.EaglercraftX){requestAnimationFrame(applyIpad120Hz);return;}
+  const L=(...a)=>console.log("[HZMC-iPad]",...a);
 
-    // Ultra Potato: absolutely minimal visuals, no particles, aggressive culling & streaming
-    function applyUltraPotatoPatches() {
-      if (!window.EaglercraftX) { requestAnimationFrame(applyUltraPotatoPatches); return; }
-      const LOG = (...a) => console.log("[HZ MC UltraPotato]", ...a);
-      LOG("Applying Ultra Potato patches...");
+  try{
+    const s=window.EaglercraftX.settings||(window.EaglercraftX.settings={});
+    s.graphics="fast";
+    s.renderDistance=4;           // sweet spot for iPad 10th Gen
+    s.entityRenderDistance=2;
+    s.limitFramerate=0;           // uncapped internally
+    s.smoothLighting=false;
+    s.clouds=false;
+    s.fog=false;
+    s.particles="minimal";
+    s.entityShadows=false;
+    s.fancyLeaves=false;
+    s.shaders=false;
+    s.dynamicLights=false;
+    s.useFXAA=false;
+    s.mipmapLevels=0;
+    s.anisotropicFiltering=false;
+    s.showFPS=true;
+  }catch(e){L("settings failed",e);}
 
-      // 1) Force minimal settings (non-destructive)
-      try {
-        const s = window.EaglercraftX.settings || (window.EaglercraftX.settings = {});
-        s.graphics = "fast";
-        s.renderDistance = 2;           // small geometry load (keeps draw calls low)
-        s.entityRenderDistance = 0;     // avoid rendering distant entities
-        s.limitFramerate = 0;           // uncapped - let browser/hardware decide
-        s.showFPS = true;
+  // ---------- Smooth frame pacing for 120 Hz ----------
+  try{
+    const eng=window.EaglercraftX;
+    if(eng.__hzPacer) return; eng.__hzPacer=true;
+    const STEP=1000/60;  // logic fixed at 60 Hz
+    const FILTER=6;
+    let last=performance.now(),acc=0,dtList=[];
+    const tick=eng.tick||(()=>{}),render=eng.render||(()=>{});
+    const call=(f,t)=>{try{f.call(eng,t);}catch(e){console.error(e);}};
 
-        // Turn everything visual off
-        s.smoothLighting = false;
-        s.clouds = false;
-        s.particles = "off";            // engine-level particle off
-        s.entityShadows = false;
-        s.fancyLeaves = false;
-        s.useFXAA = false;
-        s.dynamicLights = false;
-        s.shaders = false;
-        s.fog = false;
-        s.mipmapLevels = 0;
-        s.anisotropicFiltering = false;
-        s.textureUpdatesPerFrame = 1;
-        s.reduceTextureQuality = true;
-
-        // Ensure opts reflect no particles etc.
-        if (window.eaglercraftXOpts) {
-          window.eaglercraftXOpts.maxParticles = 0;
-          window.eaglercraftXOpts.alwaysDisableTextureFiltering = true;
-          window.eaglercraftXOpts.disableInstancedRendering = false;
-        }
-
-        LOG("Graphics forced to ULTRA POTATO.");
-      } catch (e) {
-        LOG("Error forcing graphics:", e);
-      }
-
-      // 2) Aggressive draw & chunk culling (best-effort, non-invasive)
-      try {
-        const engine = window.EaglercraftX;
-        if (engine.chunkCache) {
-          // keep chunk cache but encourage minimal visible area by setting small radius
-          try { engine.chunkCache.maxVisibleChunks = 9; } catch(e){}
-        }
-
-        // If renderer has chunk draw hook wrap it to minimize work
-        if (engine.renderer && typeof engine.renderer.drawChunks === "function") {
-          const orig = engine.renderer.drawChunks.bind(engine.renderer);
-          engine.renderer.drawChunks = function() {
-            // Temporarily reduce detail flags if present
-            const prevLOD = this._forcedLOD;
-            try {
-              this._forcedLOD = this._forcedLOD !== undefined ? Math.max(2, this._forcedLOD) : 2;
-              return orig();
-            } finally {
-              this._forcedLOD = prevLOD;
-            }
-          };
-          LOG("Renderer drawChunks wrapped for lower LOD.");
-        }
-      } catch (e) {
-        LOG("Draw culling patch error:", e);
-      }
-
-      // 3) Disable all particle systems at runtime (best-effort)
-      try {
-        const FX = window.EaglercraftX.particleSystem;
-        if (FX) {
-          if (Array.isArray(FX.emitters)) {
-            FX.emitters.length = 0;
-          }
-          if (typeof FX.clear === "function") FX.clear();
-        }
-        // Also try global engine particle arrays
-        try { if (window.EaglercraftX.particles) window.EaglercraftX.particles = []; } catch(e){}
-        LOG("Runtime particle systems wiped/disabled (best-effort).");
-      } catch (e) {
-        LOG("Particle disabling failed:", e);
-      }
-
-      // 4) Chunk builder: smooth but aggressive streaming (small batches so no big freeze)
-      try {
-        const cb = window.EaglercraftX.chunkBuilder;
-        if (cb) {
-          if (typeof cb.batchSize !== "undefined") cb.batchSize = 1;
-          if (typeof cb.maxAsyncTasks !== "undefined") cb.maxAsyncTasks = 2;
-          if (typeof cb.buildNext === "function") {
-            const realBuild = cb.buildNext.bind(cb);
-            cb.buildNext = function() {
-              // run one small build per call to avoid spike
-              try { return realBuild(); } catch(e){ try { return realBuild(); } catch(e2){} }
-            };
-          }
-          LOG("Chunk builder tuned to small streaming batches (fast, low spike).");
-        }
-      } catch (e) {
-        LOG("Chunk builder tuning failed:", e);
-      }
-
-      // 5) Frame pacer: uncapped rendering via rAF plus extremely light game logic updates
-      try {
-        const engine = window.EaglercraftX;
-        if (!engine.__hzmcPacerInstalled) {
-          engine.__hzmcPacerInstalled = true;
-
-          const LOG2 = LOG;
-          const TARGET_LOGIC_STEP = 1000 / 20; // 20 TPS logic to minimize CPU
-          const MAX_STEPS = 3;
-          let last = performance.now();
-          let acc = 0;
-
-          const origTick = engine.tick || function(){};
-          const origRender = engine.render || function(){};
-
-          function safe(fn, ...args) {
-            try { if (typeof fn === "function") return fn.apply(engine, args); }
-            catch(e) { console.error("[HZMC] wrapped error:", e); }
-          }
-
-          function loop(now) {
-            let delta = now - last;
-            if (delta > 1000) delta = 1000;
-            last = now;
-            acc += delta;
-            if (acc > TARGET_LOGIC_STEP * MAX_STEPS) acc = TARGET_LOGIC_STEP * MAX_STEPS;
-
-            let steps = 0;
-            while (acc >= TARGET_LOGIC_STEP && steps < MAX_STEPS) {
-              safe(origTick, TARGET_LOGIC_STEP / 1000);
-              acc -= TARGET_LOGIC_STEP;
-              steps++;
-            }
-
-            // Render every rAF call (uncapped by engine), minimal work inside render
-            safe(origRender, delta / 1000);
-
-            // Continue
-            requestAnimationFrame(loop);
-          }
-          requestAnimationFrame((t) => { last = t || performance.now(); requestAnimationFrame(loop); });
-          LOG2("HZ MC pacer installed (render uncapped via rAF, logic ~20TPS).");
-        }
-      } catch (e) {
-        LOG("Pacer install error:", e);
-      }
-
-      // 6) Performance monitor with hard fallback to ultra-low renderScale
-      try {
-        const monitor = { samples: [], size: 30, lastCheck: performance.now(), interval: 2000 };
-        function monitorTick() {
-          const now = performance.now();
-          monitor.samples.push(1000 / Math.max(1, now - (monitor.prev || now)));
-          if (monitor.samples.length > monitor.size) monitor.samples.shift();
-          monitor.prev = now;
-
-          if (now - monitor.lastCheck >= monitor.interval) {
-            monitor.lastCheck = now;
-            const avg = monitor.samples.reduce((a,b)=>a+b,0) / monitor.samples.length;
-            if (avg < 30 && window.eaglercraftXOpts && window.eaglercraftXOpts.renderScale > window.eaglercraftXOpts.minRenderScale) {
-              const old = window.eaglercraftXOpts.renderScale;
-              window.eaglercraftXOpts.renderScale = Math.max(window.eaglercraftXOpts.minRenderScale || 0.10, old - 0.05);
-              LOG("Perf fallback: lowered renderScale", old, "->", window.eaglercraftXOpts.renderScale);
-              try { if (typeof window.EaglercraftX.applySettings === "function") window.EaglercraftX.applySettings(); } catch(e){}
-            }
-            if (avg > 120 && window.eaglercraftXOpts && window.eaglercraftXOpts.renderScale < 0.25) {
-              // cautiously bump up if perf is great
-              window.eaglercraftXOpts.renderScale = Math.min(0.25, window.eaglercraftXOpts.renderScale + 0.02);
-              LOG("Perf good: increased renderScale to", window.eaglercraftXOpts.renderScale);
-              try { if (typeof window.EaglercraftX.applySettings === "function") window.EaglercraftX.applySettings(); } catch(e){}
-            }
-          }
-          requestAnimationFrame(monitorTick);
-        }
-        requestAnimationFrame(monitorTick);
-        LOG("Performance monitor active (hard fallback enabled).");
-      } catch (e) {
-        LOG("Performance monitor error:", e);
-      }
-
-      LOG("✅ Ultra Potato patches applied: particles OFF, minimal visuals, fast streaming.");
-      LOG("NOTE: browser refresh rate / rAF limit may cap observed FPS; this maximizes engine-side throughput.");
+    function loop(now){
+      let d=now-last;if(d>1000)d=1000;last=now;acc+=d;
+      while(acc>=STEP){call(tick,STEP/1000);acc-=STEP;}
+      call(render,d/1000);
+      dtList.push(d);if(dtList.length>FILTER)dtList.shift();
+      requestAnimationFrame(loop);
     }
-  </script>
+    requestAnimationFrame(loop);
+    L("120 Hz pacer active");
+  }catch(e){L("pacer fail",e);}
+
+  // ---------- Smooth chunk streaming ----------
+  try{
+    const cb=EaglercraftX.chunkBuilder;
+    if(cb){
+      cb.batchSize=1;             // build one per frame = smooth
+      cb.maxAsyncTasks=1;
+      cb.delay=0;                 // no idle gap
+      L("chunkBuilder tuned");
+    }
+  }catch(e){L("chunk tune fail",e);}
+
+  // ---------- Gentle async prefetch ----------
+  try{
+    const warm=()=>{if(window.EaglercraftX?.warmup)window.EaglercraftX.warmup();};
+    for(let i=0;i<8;i++)requestAnimationFrame(warm);
+  }catch{}
+
+  // ---------- Adaptive FPS monitor (optional) ----------
+  try{
+    let last=performance.now(),frames=0,fps=0;
+    const label=document.createElement("div");
+    label.style="position:fixed;top:5px;right:8px;color:#0f0;font:12px monospace;z-index:9999;pointer-events:none;";
+    document.body.append(label);
+    function fpsLoop(t){
+      frames++;if(t-last>=1000){fps=frames;frames=0;last=t;label.textContent=fps+" fps";}
+      requestAnimationFrame(fpsLoop);
+    }
+    requestAnimationFrame(fpsLoop);
+  }catch{}
+}
+</script>
 </body>
 </html>
