@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>3D </title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/PointerLockControls.js"></script>
+
+<script>
+let scene, camera, renderer, controls;
+let player, velocity, canJump = false;
+const objects = [];
+
+init();
+animate();
+
+function init() {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x87ceeb); // sky blue
+    
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    
+    renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Lighting
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(5,10,7.5);
+    scene.add(light);
+
+    // Player
+    const geometry = new THREE.BoxGeometry(1,2,1);
+    const material = new THREE.MeshStandardMaterial({color: 0xff0000});
+    player = new THREE.Mesh(geometry, material);
+    player.position.y = 5;
+    scene.add(player);
+
+    // Platforms
+    const platformGeometry = new THREE.BoxGeometry(10,1,10);
+    const platformMaterial = new THREE.MeshStandardMaterial({color:0x00ff00});
+    const platform1 = new THREE.Mesh(platformGeometry, platformMaterial);
+    platform1.position.set(0,0,0);
+    scene.add(platform1);
+    objects.push(platform1);
+
+    const platform2 = new THREE.Mesh(platformGeometry, platformMaterial);
+    platform2.position.set(15,3,0);
+    scene.add(platform2);
+    objects.push(platform2);
+
+    // Controls
+    controls = new THREE.PointerLockControls(camera, document.body);
+    document.body.addEventListener('click', () => { controls.lock(); });
+    
+    camera.position.set(0, 2, 5);
+
+    // Physics variables
+    velocity = new THREE.Vector3();
+    
+    // Movement keys
+    const keys = {};
+    document.addEventListener('keydown', (event) => { keys[event.code] = true; });
+    document.addEventListener('keyup', (event) => { keys[event.code] = false; });
+
+    function movePlayer() {
+        const speed = 0.2;
+        if(keys['KeyW']) velocity.z = -speed;
+        else if(keys['KeyS']) velocity.z = speed;
+        else velocity.z = 0;
+
+        if(keys['KeyA']) velocity.x = -speed;
+        else if(keys['KeyD']) velocity.x = speed;
+        else velocity.x = 0;
+
+        if(keys['Space'] && canJump) {
+            velocity.y = 0.35;
+            canJump = false;
+        }
+    }
+
+    // Main update loop
+    const clock = new THREE.Clock();
+    function update() {
+        const delta = clock.getDelta();
+        movePlayer();
+
+        // Gravity
+        velocity.y -= 0.01;
+
+        player.position.add(velocity);
+
+        // Simple collision with platforms
+        canJump = false;
+        objects.forEach(obj => {
+            const objBox = new THREE.Box3().setFromObject(obj);
+            const playerBox = new THREE.Box3().setFromObject(player);
+            if(playerBox.intersectsBox(objBox)) {
+                player.position.y = objBox.max.y + 1; // stand on top
+                velocity.y = 0;
+                canJump = true;
+            }
+        });
+
+        // Camera follow
+        camera.position.lerp(new THREE.Vector3(player.position.x, player.position.y + 2, player.position.z + 5), 0.1);
+        camera.lookAt(player.position);
+
+        requestAnimationFrame(update);
+        renderer.render(scene, camera);
+    }
+    update();
+}
+
+function animate() {
+    renderer.render(scene, camera);
+}
+</script>
+</body>
+</html>
