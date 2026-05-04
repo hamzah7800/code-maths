@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mobile Ping Pong</title>
+<style>
+  body {
+    margin: 0;
+    background: #0b1220;
+    color: #e6eef8;
+    font-family: system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    overflow: hidden;
+  }
+  h2 {
+    margin: 8px 0;
+  }
+  canvas {
+    background: #07101a;
+    border-radius: 10px;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.6);
+    width: 95vw;
+    max-width: 800px;
+    height: 60vh;
+    touch-action: none;
+  }
+  .buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  button {
+    background: #111a2e;
+    color: #e6eef8;
+    border: 1px solid #334;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  button.active { background: #48c6ef; color: #04202f; font-weight: bold; }
+  .touch-controls {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    max-width: 800px;
+    margin-top: 12px;
+  }
+  .ctrl-set {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+  }
+  .ctrl-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    color: #48c6ef;
+    font-size: 20px;
+    padding: 14px 24px;
+    user-select: none;
+    touch-action: manipulation;
+  }
+  .scoreboard {
+    margin-top: 6px;
+    display: flex;
+    justify-content: space-between;
+    width: 95vw;
+    max-width: 800px;
+    font-size: 18px;
+  }
+</style>
+</head>
+<body>
+  <h2>🏓 Mobile Ping Pong</h2>
+  <canvas id="game" width="800" height="450"></canvas>
+  <div class="scoreboard">
+    <div id="score1">Player 1: 0</div>
+    <div id="score2">Player 2: 0</div>
+  </div>
+  <div class="buttons">
+    <button id="btnCPU" class="active">Vs Computer</button>
+    <button id="btn2P">2 Players</button>
+    <button id="btnReset">Reset</button>
+    <button id="btnPause">Pause</button>
+  </div>
+  <div class="touch-controls">
+    <div class="ctrl-set">
+      <div class="ctrl-btn" id="p1Up">▲</div>
+      <div class="ctrl-btn" id="p1Down">▼</div>
+    </div>
+    <div class="ctrl-set">
+      <div class="ctrl-btn" id="p2Up">▲</div>
+      <div class="ctrl-btn" id="p2Down">▼</div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+
+  const W = canvas.width, H = canvas.height;
+  const PADDLE_H = 90, PADDLE_W = 10, BALL_SIZE = 12;
+  const PADDLE_SPEED = 6, BALL_SPEED = 5;
+
+  let left = { x: 20, y: H/2 - PADDLE_H/2 };
+  let right = { x: W - 30, y: H/2 - PADDLE_H/2 };
+  let ball = { x: W/2, y: H/2, vx: BALL_SPEED, vy: 2 };
+  let leftScore = 0, rightScore = 0;
+  let paused = false, mode = 'CPU', winner = null;
+
+  const s1 = document.getElementById('score1');
+  const s2 = document.getElementById('score2');
+
+  const keys = {};
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space') { paused = !paused; return; }
+    keys[e.code] = true;
+  });
+  document.addEventListener('keyup', e => keys[e.code] = false);
+
+  // Mobile buttons
+  const p1Up = document.getElementById('p1Up'), p1Down = document.getElementById('p1Down');
+  const p2Up = document.getElementById('p2Up'), p2Down = document.getElementById('p2Down');
+  let touch = { p1Up:false, p1Down:false, p2Up:false, p2Down:false };
+  const setTouch = (btn, prop, state) => btn.addEventListener(state?'touchstart':'touchend', e => {
+    e.preventDefault();
+    touch[prop] = state;
+  });
+
+  // Add both start and end listeners
+  p1Up.addEventListener('touchstart', () => touch.p1Up=true);
+  p1Up.addEventListener('touchend', () => touch.p1Up=false);
+  p1Down.addEventListener('touchstart', () => touch.p1Down=true);
+  p1Down.addEventListener('touchend', () => touch.p1Down=false);
+  p2Up.addEventListener('touchstart', () => touch.p2Up=true);
+  p2Up.addEventListener('touchend', () => touch.p2Up=false);
+  p2Down.addEventListener('touchstart', () => touch.p2Down=true);
+  p2Down.addEventListener('touchend', () => touch.p2Down=false);
+
+  // Buttons
+  const btnCPU = document.getElementById('btnCPU');
+  const btn2P = document.getElementById('btn2P');
+  const btnReset = document.getElementById('btnReset');
+  const btnPause = document.getElementById('btnPause');
+  btnCPU.onclick = () => { mode='CPU'; btnCPU.classList.add('active'); btn2P.classList.remove('active'); resetBall(); };
+  btn2P.onclick = () => { mode='2P'; btn2P.classList.add('active'); btnCPU.classList.remove('active'); resetBall(); };
+  btnReset.onclick = () => { leftScore=rightScore=0; winner=null; paused=false; resetBall(); updateScore(); };
+  btnPause.onclick = () => { paused = !paused; };
+
+  function resetBall() {
+    ball.x = W/2; ball.y = H/2;
+    ball.vx = BALL_SPEED * (Math.random()>0.5?1:-1);
+    ball.vy = (Math.random()*2-1)*2;
+  }
+
+  function updateScore() {
+    s1.textContent = `Player 1: ${leftScore}`;
+    s2.textContent = `Player 2: ${rightScore}`;
+  }
+
+  function update() {
+    if (paused || winner) return;
+
+    // player 1
+    if (keys['KeyW'] || touch.p1Up) left.y -= PADDLE_SPEED;
+    if (keys['KeyS'] || touch.p1Down) left.y += PADDLE_SPEED;
+
+    // player 2 or AI
+    if (mode === '2P') {
+      if (keys['ArrowUp'] || touch.p2Up) right.y -= PADDLE_SPEED;
+      if (keys['ArrowDown'] || touch.p2Down) right.y += PADDLE_SPEED;
+    } else {
+      // simple AI
+      if (ball.vx > 0 && ball.x > W/2) {
+        if (ball.y < right.y + PADDLE_H/2 - 5) right.y -= PADDLE_SPEED*0.9;
+        else if (ball.y > right.y + PADDLE_H/2 + 5) right.y += PADDLE_SPEED*0.9;
+      }
+    }
+
+    // keep paddles in bounds
+    left.y = Math.max(0, Math.min(H - PADDLE_H, left.y));
+    right.y = Math.max(0, Math.min(H - PADDLE_H, right.y));
+
+    // move ball
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+
+    if (ball.y <= 0 || ball.y + BALL_SIZE >= H) ball.vy *= -1;
+
+    // paddle hit
+    if (ball.x <= left.x + PADDLE_W && ball.y+BALL_SIZE>=left.y && ball.y<=left.y+PADDLE_H) {
+      ball.x = left.x + PADDLE_W;
+      ball.vx *= -1;
+    }
+    if (ball.x + BALL_SIZE >= right.x && ball.y+BALL_SIZE>=right.y && ball.y<=right.y+PADDLE_H) {
+      ball.x = right.x - BALL_SIZE;
+      ball.vx *= -1;
+    }
+
+    // scoring
+    if (ball.x < 0) { rightScore++; resetBall(); updateScore(); }
+    if (ball.x > W) { leftScore++; resetBall(); updateScore(); }
+  }
+
+  function draw() {
+    ctx.fillStyle = '#07101a';
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle = '#48c6ef';
+    ctx.fillRect(W/2 - 1, 0, 2, H);
+
+    ctx.fillStyle = '#e6eef8';
+    ctx.fillRect(left.x, left.y, PADDLE_W, PADDLE_H);
+    ctx.fillRect(right.x, right.y, PADDLE_W, PADDLE_H);
+
+    ctx.fillStyle = '#48c6ef';
+    ctx.fillRect(ball.x, ball.y, BALL_SIZE, BALL_SIZE);
+  }
+
+  function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  updateScore();
+  resetBall();
+  loop();
+})();
+</script>
+</body>
+</html>
