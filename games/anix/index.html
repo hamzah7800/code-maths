@@ -6,115 +6,142 @@
     <title>ANIX | Attack on Titan</title>
     <style>
         :root {
-            --bg: #0b0c10;
+            --bg: #0b1116;
             --accent: #00bcd4;
-            --panel: #1b1b22;
+            --panel: #161d24;
+            --text: #ffffff;
         }
 
         body {
-            margin: 0; font-family: 'Segoe UI', sans-serif;
-            background: var(--bg); color: #fff;
-            display: flex; flex-direction: column; height: 100vh;
+            margin: 0; font-family: 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg); color: var(--text);
         }
 
-        /* --- Navbar --- */
+        /* --- Navigation --- */
         .navbar { 
-            background: #16161d; padding: 15px 30px; 
+            background: #000; padding: 15px 40px; 
             display: flex; align-items: center; justify-content: space-between;
-            border-bottom: 1px solid #2a2a35;
+            border-bottom: 2px solid var(--accent);
         }
         .logo { 
             font-weight: 900; color: var(--accent); 
-            text-decoration: none; font-size: 20px;
+            text-decoration: none; font-size: 24px; letter-spacing: 2px;
         }
 
-        /* --- Main Player Container --- */
-        .main-container { 
-            max-width: 1100px; width: 100%; margin: 20px auto; 
-            padding: 0 20px; box-sizing: border-box;
-        }
+        /* --- Player Section --- */
+        .main-container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
         
-        .video-box { 
+        .player-wrapper {
             background: #000; width: 100%; aspect-ratio: 16/9; 
-            border-radius: 12px; overflow: hidden; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-radius: 8px; overflow: hidden; position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
         iframe { width: 100%; height: 100%; border: none; }
 
-        /* --- Episode Section --- */
-        .ep-section { margin-top: 30px; padding-bottom: 50px; }
+        /* --- Info Bar --- */
+        .info-bar {
+            background: var(--panel); padding: 15px 20px;
+            margin-top: -5px; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .status-badge { font-size: 12px; color: #4caf50; font-weight: bold; }
+
+        /* --- Episode Selection --- */
+        .ep-container { margin-top: 40px; }
         .ep-grid { 
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); 
-            gap: 12px; margin-top: 15px; 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); 
+            gap: 12px; margin-top: 20px; 
         }
         .ep-item { 
-            background: #222; padding: 15px 0; text-align: center; 
-            cursor: pointer; border-radius: 6px; transition: 0.2s;
-            border: 1px solid #333; font-weight: bold;
+            background: #232d36; padding: 15px 0; text-align: center; 
+            cursor: pointer; border-radius: 4px; transition: 0.3s;
+            border-bottom: 3px solid transparent; font-weight: bold;
         }
         .ep-item.active { 
             background: var(--accent); color: #000; 
-            border-color: var(--accent); box-shadow: 0 0 10px rgba(0, 188, 212, 0.4);
+            border-bottom: 3px solid #008ba3;
         }
-        .ep-item:hover { background: #333; border-color: var(--accent); }
+        .ep-item:hover:not(.active) { background: #2f3b47; border-bottom: 3px solid var(--accent); }
 
-        h3 { border-left: 4px solid var(--accent); padding-left: 10px; }
+        h2 { font-weight: 300; letter-spacing: 1px; margin-bottom: 5px; }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 15px 20px; }
+            .logo { font-size: 18px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <a href="/code-maths/" class="logo">◁ ANIX HUB</a>
-    <div id="curTitle" style="font-size: 14px; color: #ccc;">Attack on Titan - Episode 1</div>
+    <a href="/code-maths/" class="logo">◁ ANIX</a>
+    <div id="curTitle" style="color: var(--accent); font-weight: bold;">Episode 1</div>
 </div>
 
 <div class="main-container">
-    <div class="video-box">
-        <iframe id="videoIframe" src="https://drive.google.com/file/d/1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX/preview" allow="autoplay" allowfullscreen></iframe>
+    <div class="player-wrapper">
+        <iframe id="mainPlayer" src="https://drive.google.com/file/d/1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX/preview" allow="autoplay" allowfullscreen></iframe>
+    </div>
+    
+    <div class="info-bar">
+        <div>
+            <h2 id="videoLabel">Attack on Titan: Season 1</h2>
+            <span class="status-badge">● STREAMING 1080P</span>
+        </div>
+        <div style="text-align: right; font-size: 13px; color: #888;">
+            Server: Google Direct<br>
+            Language: Subbed
+        </div>
     </div>
 
-    <div class="ep-section">
-        <h3>Season 1 Episodes</h3>
+    <div class="ep-container">
+        <h3>Select Episode</h3>
         <div class="ep-grid" id="epList"></div>
     </div>
 </div>
 
 <script>
-    // --- DATABASE: IDs you provided ---
-    const aotDriveIds = [
-        "1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX", // Ep 1
-        "1sBFo-tXs_pR0Y2BUgdQZA-dgW_hJ9n1Z", // Ep 2
-        "1ICpdFV8u6ddf-a0YwyiptlyDNQN-Whwh", // Ep 3
-        "1tVuyPztBo_4ocftjOcEutI1zauSLpNDi", // Ep 4
-        "1niPlio07f_99u1-OtW_54uWkJwBouocx", // Ep 5
-        "1-qB_bxTFlZoRJWE0jTx8gildU78ElXt9", // Ep 6
-        "1-P5fE4dRyvirGzlGkoTdsF6si9AwVpYJ"  // Ep 7 (Extracted from link)
+    // These are the IDs you grabbed from your Drive folder
+    const aotIds = [
+        "1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX", "1riigEtCvxHY4m5XBE3nSWCBYw3rzZV8i",
+        "1wcEn6TSdPqPDJ3m6RGtU5NsCO6rBklNP", "1U-X3qUGA2xPiy4oc-JEV1DhpGwUukoOv",
+        "1rc6YUeJEYXLI7I4UjPPiAKAknj8PGp0K", "1ueI6BjGjpCGop3KPEetH2aMAs8EdumVk",
+        "1VJ_OCFBt_vVreK_f7PJdimxi5ZPTjloQ", "1NpfySF0N3yRGLcUjHaIEWcXF6aLRacJ4",
+        "14L5kOrzHV4JO04xO8Bo8ibvV0TrefpWV", "1n3hmxNN_uuIF7dOoxiKiOLOprBSDX1mp",
+        "1sBFo-tXs_pR0Y2BUgdQZA-dgW_hJ9n1Z", "1o6Mgy_eKWV182EbTX6IUhU_D4tuNcd9u",
+        "1nOuX42GUZf5yCL72yb3-TesXNKW1eEHA", "1yNAjadmeNTeTpeRyHY7Fi0nH2op0OMag",
+        "1jMCsyNjy3Du0yN3o-DE9EgKXCeS5zTpR", "1IlUCW-o1kjOzAte682JQ_0yc4NJ1nvX7",
+        "1zHq8sb4PV8p41DLejAjL6REoKwx5hoQE", "1ICpdFV8u6ddf-a0YwyiptlyDNQN-Whwh",
+        "1tVuyPztBo_4ocftjOcEutI1zauSLpNDi", "1niPlio07f_99u1-OtW_54uWkJwBouocx",
+        "1-qB_bxTFlZoRJWE0jTx8gildU78ElXt9", "1-P5fE4dRyvirGzlGkoTdsF6si9AwVpYJ",
+        "1nsROetRCw6VEeT0zgDpiLVGng_zEQNut", "1VHBr6nap3clpLaOYUjz32QE63SssHe-4",
+        "14B-b7seCN8VS2IgpPYewDwTtc4UWwz3K"
+        // I removed the 26th ID because it was likely the folder link
     ];
 
-    const iframe = document.getElementById('videoIframe');
+    const player = document.getElementById('mainPlayer');
     const epList = document.getElementById('epList');
-    const titleText = document.getElementById('curTitle');
+    const titleDisp = document.getElementById('curTitle');
 
-    // --- Generate Episode Buttons ---
-    aotDriveIds.forEach((id, index) => {
-        const epNum = index + 1;
-        const div = document.createElement('div');
-        div.className = 'ep-item' + (epNum === 1 ? ' active' : '');
-        div.innerText = epNum;
+    // Load Buttons
+    aotIds.forEach((id, i) => {
+        const epNum = i + 1;
+        const btn = document.createElement('div');
+        btn.className = 'ep-item' + (epNum === 1 ? ' active' : '');
+        btn.innerText = epNum;
 
-        div.onclick = () => {
-            // Update Active UI
-            document.querySelectorAll('.ep-item').forEach(e => e.classList.remove('active'));
-            div.classList.add('active');
+        btn.onclick = () => {
+            document.querySelectorAll('.ep-item').forEach(el => el.classList.remove('active'));
+            btn.classList.add('active');
             
-            // Update Title
-            titleText.innerText = `Attack on Titan - Episode ${epNum}`;
-
-            // Change Iframe Source
-            iframe.src = `https://drive.google.com/file/d/${id}/preview`;
+            titleDisp.innerText = `Episode ${epNum}`;
+            player.src = `https://drive.google.com/file/d/${id}/preview`;
+            
+            // Scroll to top of player
+            window.scrollTo({top: 0, behavior: 'smooth'});
         };
 
-        epList.appendChild(div);
+        epList.appendChild(btn);
     });
 </script>
 
