@@ -3,62 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ANIX | Premium Player</title>
-    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <title>ANIX | Pro Streaming</title>
     <style>
-        :root { --bg: #050505; --accent: #00bcd4; --panel: #111; }
-        body { margin: 0; font-family: sans-serif; background: var(--bg); color: #fff; }
+        :root { --bg: #0b0c10; --accent: #00bcd4; --panel: #1b1b22; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; }
         
-        .navbar { background: #000; padding: 15px 30px; display: flex; justify-content: space-between; border-bottom: 1px solid #222; }
+        .navbar { background: #000; padding: 15px 30px; display: flex; justify-content: space-between; border-bottom: 2px solid var(--accent); }
         .logo { color: var(--accent); text-decoration: none; font-weight: 900; font-size: 22px; }
 
-        .main-container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
+        .main-container { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
         
-        /* Hide Google UI by using a container that clips the top */
-        .player-container { 
-            position: relative; 
+        /* Fixed Video Box - No more Zoom issues */
+        .video-box { 
             width: 100%; 
-            aspect-ratio: 16/9; 
             background: #000; 
-            border-radius: 12px; 
+            border-radius: 8px; 
             overflow: hidden; 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            aspect-ratio: 16/9;
         }
+        video { width: 100%; height: 100%; outline: none; }
 
-        /* The trick to hide the top-right logo: scale it slightly and hide overflow */
-        iframe {
-            position: absolute;
-            top: -50px; /* Moves the Google header out of view */
-            left: 0;
-            width: 100%;
-            height: calc(100% + 100px); /* Makes up for the shift */
-            border: none;
-        }
+        .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); gap: 10px; margin-top: 25px; }
+        .ep-item { background: #222; padding: 15px 0; text-align: center; cursor: pointer; border-radius: 4px; border: 1px solid #333; transition: 0.3s; }
+        .ep-item.active { background: var(--accent); color: #000; font-weight: bold; border-color: var(--accent); }
 
-        .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px; margin-top: 20px; }
-        .ep-item { background: #1a1a1a; padding: 15px; text-align: center; cursor: pointer; border-radius: 8px; transition: 0.3s; border: 1px solid #333; }
-        .ep-item.active { background: var(--accent); color: #000; font-weight: bold; }
-        
-        .save-notification {
-            position: fixed; bottom: 20px; right: 20px; background: var(--accent);
-            color: #000; padding: 10px 20px; border-radius: 5px; font-weight: bold;
-            display: none; z-index: 100;
-        }
+        .memory-note { color: var(--accent); font-size: 13px; margin-top: 10px; font-style: italic; }
     </style>
 </head>
 <body>
 
 <div class="navbar">
     <a href="/code-maths/" class="logo">ANIX</a>
-    <div id="epTitle">Episode 1</div>
+    <div id="curTitle">Loading Episode...</div>
 </div>
 
 <div class="main-container">
-    <div class="player-container">
-        <iframe id="mainPlayer" src="" allow="autoplay"></iframe>
+    <div class="video-box">
+        <video id="vPlayer" controls crossorigin="anonymous">
+            <source src="" type="video/mp4">
+        </video>
     </div>
-
-    <div id="saveNote" class="save-notification">Progress Saved!</div>
+    <div id="status" class="memory-note"></div>
 
     <h3>Episodes</h3>
     <div class="ep-grid" id="epList"></div>
@@ -81,54 +67,60 @@
         "14B-b7seCN8VS2IgpPYewDwTtc4UWwz3K"
     ];
 
-    const player = document.getElementById('mainPlayer');
+    const video = document.getElementById('vPlayer');
+    const status = document.getElementById('status');
+    let currentEpIndex = 0;
+
+    // --- 1. RENDER EPISODES ---
     const epList = document.getElementById('epList');
-
-    // --- MEMORY SYSTEM ---
-    function saveLastEpisode(index) {
-        localStorage.setItem('anix_last_ep', index);
-        showNote();
-    }
-
-    function showNote() {
-        const note = document.getElementById('saveNote');
-        note.style.display = 'block';
-        setTimeout(() => note.style.display = 'none', 2000);
-    }
-
-    // --- RENDER EPISODES ---
     aotIds.forEach((id, i) => {
-        const btn = document.createElement('div');
-        btn.className = 'ep-item';
-        btn.innerText = i + 1;
-        
-        btn.onclick = () => {
-            loadEpisode(i);
-        };
-        epList.appendChild(btn);
+        const div = document.createElement('div');
+        div.className = 'ep-item';
+        div.innerText = i + 1;
+        div.onclick = () => loadEpisode(i);
+        epList.appendChild(div);
     });
 
+    // --- 2. LOAD SYSTEM ---
     function loadEpisode(index) {
+        currentEpIndex = index;
         const id = aotIds[index];
-        player.src = `https://drive.google.com/file/d/${id}/preview`;
         
-        // Update Styles
-        document.querySelectorAll('.ep-item').forEach((el, i) => {
-            el.classList.toggle('active', i === index);
+        // Direct Download Link format (Necessary for Memory)
+        const streamUrl = `https://drive.google.com/uc?export=download&id=${id}`;
+        
+        video.src = streamUrl;
+        document.getElementById('curTitle').innerText = `Episode ${index + 1}`;
+        
+        // UI Active Class
+        document.querySelectorAll('.ep-item').forEach((item, i) => {
+            item.classList.toggle('active', i === index);
         });
-        document.getElementById('epTitle').innerText = `Episode ${index + 1}`;
-        
-        // Save to memory
+
+        // Check Memory for this specific episode
+        const savedTime = localStorage.getItem(`anix_time_ep${index}`);
+        if (savedTime) {
+            video.currentTime = parseFloat(savedTime);
+            status.innerText = `Resumed at ${Math.floor(savedTime/60)}m ${Math.floor(savedTime%60)}s`;
+        } else {
+            status.innerText = "Starting fresh...";
+        }
+
+        video.play();
         localStorage.setItem('anix_last_ep', index);
     }
 
-    // --- AUTO-RESUME ON LOAD ---
-    const savedEp = localStorage.getItem('anix_last_ep');
-    if (savedEp !== null) {
-        loadEpisode(parseInt(savedEp));
-    } else {
-        loadEpisode(0); // Start at Ep 1 if no memory
-    }
+    // --- 3. MEMORY TRACKER ---
+    // Every time the video plays, save the current second to local storage
+    video.ontimeupdate = () => {
+        if (video.currentTime > 0) {
+            localStorage.setItem(`anix_time_ep${currentEpIndex}`, video.currentTime);
+        }
+    };
+
+    // --- 4. STARTUP ---
+    const lastEp = localStorage.getItem('anix_last_ep');
+    loadEpisode(lastEp ? parseInt(lastEp) : 0);
 </script>
 
 </body>
