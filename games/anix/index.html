@@ -3,141 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ANIX | Streaming</title>
+    <title>ANIX | Home</title>
     <style>
-        :root { --bg: #0b0c10; --accent: #ffb11b; --panel: #1b1b22; --text: #eee; }
-        body.light { --bg: #f5f5f5; --panel: #fff; --text: #222; }
+        :root { --bg: #060606; --accent: #ffb11b; --card: #121212; --text: #eee; }
+        body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
         
-        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; }
-        
-        /* --- HiAnime Style Navbar --- */
-        .navbar { background: #000; padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--accent); }
-        .logo { color: var(--accent); text-decoration: none; font-weight: 800; font-size: 24px; }
-        .nav-tools { display: flex; gap: 15px; }
+        /* Speed Optimizations */
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+        img { content-visibility: auto; } /* Only loads images when needed */
 
-        .main-container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
-        
-        /* --- Theater Player --- */
-        .player-area { background: #000; border-radius: 8px; overflow: hidden; aspect-ratio: 16/9; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        /* Navbar */
+        .nav { background: #000; padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 100; }
+        .logo { color: var(--accent); text-decoration: none; font-weight: 800; font-size: 1.5rem; letter-spacing: -1px; }
+
+        /* Home Page Grid */
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .anime-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.5rem; }
+        .anime-card { background: var(--card); border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.2s; border: 1px solid #222; }
+        .anime-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+        .anime-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; background: #222; }
+        .anime-info { padding: 10px; font-weight: 600; font-size: 0.9rem; }
+
+        /* Player View (Hidden by default) */
+        #player-view { display: none; }
+        .player-wrapper { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 1rem; }
         iframe { width: 100%; height: 100%; border: none; }
 
-        .video-info { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid #333; }
-        .btn-continue { background: var(--accent); color: #000; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 8px; margin-top: 1rem; }
+        .ep-item { background: var(--card); padding: 12px 0; text-align: center; cursor: pointer; border-radius: 4px; border: 1px solid #333; }
+        .ep-item.active { background: var(--accent); color: #000; font-weight: bold; border-color: var(--accent); }
+        .ep-item.viewed { border-bottom: 3px solid #4caf50; }
 
-        /* --- Episode List --- */
-        .ep-section { margin-top: 30px; }
-        .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 8px; }
-        .ep-item { 
-            background: var(--panel); padding: 12px 0; text-align: center; cursor: pointer; 
-            border-radius: 4px; border: 1px solid #333; position: relative; font-size: 14px;
-        }
-        .ep-item.active { border: 2px solid var(--accent); color: var(--accent); font-weight: bold; }
-        .ep-item.viewed::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: #4caf50; }
+        .btn-back { background: none; border: 1px solid var(--accent); color: var(--accent); padding: 5px 15px; border-radius: 4px; cursor: pointer; margin-bottom: 1rem; }
 
-        .theme-toggle { cursor: pointer; font-size: 20px; }
+        /* Mobile Optimization */
+        @media (max-width: 600px) { .anime-grid { grid-template-columns: repeat(2, 1fr); } }
     </style>
 </head>
 <body>
 
-<div class="navbar">
-    <a href="/code-maths/" class="logo">ANIX</a>
-    <div class="nav-tools">
-        <span class="theme-toggle" onclick="toggleTheme()">🌓</span>
-    </div>
+<div class="nav">
+    <a href="#" class="logo" onclick="showHome()">ANIX</a>
+    <div id="nav-title" style="font-size: 0.8rem; color: #888;">BROWSE</div>
 </div>
 
-<div class="main-container">
-    <div class="player-area">
+<div id="home-view" class="container">
+    <h2 style="margin-bottom: 1.5rem;">Recommended for You</h2>
+    <div class="anime-grid" id="main-grid">
+        </div>
+</div>
+
+<div id="player-view" class="container">
+    <button class="btn-back" onclick="showHome()">← Back to Home</button>
+    <div class="player-wrapper">
         <iframe id="videoIframe" src="" allow="autoplay; fullscreen"></iframe>
     </div>
-
-    <div class="video-info">
-        <div>
-            <h2 id="curDisplay">Episode 1</h2>
-            <p style="font-size: 12px; color: #888;">Auto-Next Enabled • Premium Server</p>
-        </div>
-        <button class="btn-continue" onclick="resumeLast()">Continue Watching</button>
-    </div>
-
-    <div class="ep-section">
-        <h3>Episodes</h3>
-        <div class="ep-grid" id="epList"></div>
-    </div>
+    <h2 id="player-title">Anime Title</h2>
+    <div class="status-bar" id="auto-next-label" style="font-size: 12px; color: var(--accent); margin-bottom: 10px;"></div>
+    
+    <h3>Episodes</h3>
+    <div class="ep-grid" id="epList"></div>
 </div>
 
 <script>
-    const aotIds = [
-        "1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX", "1riigEtCvxHY4m5XBE3nSWCBYw3rzZV8i",
-        "1wcEn6TSdPqPDJ3m6RGtU5NsCO6rBklNP", "1U-X3qUGA2xPiy4oc-JEV1DhpGwUukoOv",
-        "1rc6YUeJEYXLI7I4UjPPiAKAknj8PGp0K", "1ueI6BjGjpCGop3KPEetH2aMAs8EdumVk",
-        "1VJ_OCFBt_vVreK_f7PJdimxi5ZPTjloQ", "1NpfySF0N3yRGLcUjHaIEWcXF6aLRacJ4",
-        "14L5kOrzHV4JO04xO8Bo8ibvV0TrefpWV", "1n3hmxNN_uuIF7dOoxiKiOLOprBSDX1mp",
-        "1sBFo-tXs_pR0Y2BUgdQZA-dgW_hJ9n1Z", "1o6Mgy_eKWV182EbTX6IUhU_D4tuNcd9u",
-        "1nOuX42GUZf5yCL72yb3-TesXNKW1eEHA", "1yNAjadmeNTeTpeRyHY7Fi0nH2op0OMag",
-        "1jMCsyNjy3Du0yN3o-DE9EgKXCeS5zTpR", "1IlUCW-o1kjOzAte682JQ_0yc4NJ1nvX7",
-        "1zHq8sb4PV8p41DLejAjL6REoKwx5hoQE", "1ICpdFV8u6ddf-a0YwyiptlyDNQN-Whwh",
-        "1tVuyPztBo_4ocftjOcEutI1zauSLpNDi", "1niPlio07f_99u1-OtW_54uWkJwBouocx",
-        "1-qB_bxTFlZoRJWE0jTx8gildU78ElXt9", "1-P5fE4dRyvirGzlGkoTdsF6si9AwVpYJ",
-        "1nsROetRCw6VEeT0zgDpiLVGng_zEQNut", "1VHBr6nap3clpLaOYUjz32QE63SssHe-4",
-        "14B-b7seCN8VS2IgpPYewDwTtc4UWwz3K"
-    ];
+    // 1. DATA (Simplified for speed)
+    const library = {
+        "aot": {
+            title: "Attack on Titan",
+            img: "https://m.media-amazon.com/images/I/91SlePOnHVL._AC_UF1000,1000_QL80_.jpg",
+            ids: ["1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX", "1riigEtCvxHY4m5XBE3nSWCBYw3rzZV8i", "1wcEn6TSdPqPDJ3m6RGtU5NsCO6rBklNP", "1U-X3qUGA2xPiy4oc-JEV1DhpGwUukoOv", "1rc6YUeJEYXLI7I4UjPPiAKAknj8PGp0K", "1ueI6BjGjpCGop3KPEetH2aMAs8EdumVk", "1VJ_OCFBt_vVreK_f7PJdimxi5ZPTjloQ", "1NpfySF0N3yRGLcUjHaIEWcXF6aLRacJ4", "14L5kOrzHV4JO04xO8Bo8ibvV0TrefpWV", "1n3hmxNN_uuIF7dOoxiKiOLOprBSDX1mp", "1sBFo-tXs_pR0Y2BUgdQZA-dgW_hJ9n1Z", "1o6Mgy_eKWV182EbTX6IUhU_D4tuNcd9u", "1nOuX42GUZf5yCL72yb3-TesXNKW1eEHA", "1yNAjadmeNTeTpeRyHY7Fi0nH2op0OMag", "1jMCsyNjy3Du0yN3o-DE9EgKXCeS5zTpR", "1IlUCW-o1kjOzAte682JQ_0yc4NJ1nvX7", "1zHq8sb4PV8p41DLejAjL6REoKwx5hoQE", "1ICpdFV8u6ddf-a0YwyiptlyDNQN-Whwh", "1tVuyPztBo_4ocftjOcEutI1zauSLpNDi", "1niPlio07f_99u1-OtW_54uWkJwBouocx", "1-qB_bxTFlZoRJWE0jTx8gildU78ElXt9", "1-P5fE4dRyvirGzlGkoTdsF6si9AwVpYJ", "1nsROetRCw6VEeT0zgDpiLVGng_zEQNut", "1VHBr6nap3clpLaOYUjz32QE63SssHe-4", "14B-b7seCN8VS2IgpPYewDwTtc4UWwz3K"]
+        },
+        "witch": {
+            title: "Witch Hat Atelier",
+            img: "https://m.media-amazon.com/images/I/81E6N9R7-ML._AC_UF1000,1000_QL80_.jpg",
+            ids: ["ID_WITCH_1", "ID_WITCH_2"] // Add your IDs here
+        },
+        "drstone": {
+            title: "Dr. Stone",
+            img: "https://m.media-amazon.com/images/I/81xH0iI2uUL._AC_UF1000,1000_QL80_.jpg",
+            ids: ["ID_STONE_1", "ID_STONE_2"] // Add your IDs here
+        },
+        "bloodhounds": {
+            title: "Bloodhounds",
+            img: "https://m.media-amazon.com/images/M/MV5BNmU4Y2Y0YzUtYWYzZS00ZDU0LThmZTAtNmFjYzNmYjNlNmRiXkEyXkFqcGdeQXVyMTUzMTg2ODkz._V1_.jpg",
+            ids: ["ID_BLOOD_1", "ID_BLOOD_2"] // Add your IDs here
+        }
+    };
 
+    const homeView = document.getElementById('home-view');
+    const playerView = document.getElementById('player-view');
+    const mainGrid = document.getElementById('main-grid');
     const iframe = document.getElementById('videoIframe');
-    const epList = document.getElementById('epList');
-    
-    // --- Memory State ---
-    let history = JSON.parse(localStorage.getItem('anix_history') || '[]');
-    let lastEp = localStorage.getItem('anix_last_ep') || 0;
+    let currentAnimeKey = "";
+    let autoNextTimer;
 
-    function init() {
-        renderEpisodes();
-        loadEpisode(parseInt(lastEp));
+    // 2. LOGIC: RENDER HOME
+    Object.keys(library).forEach(key => {
+        const anime = library[key];
+        const card = document.createElement('div');
+        card.className = 'anime-card';
+        card.innerHTML = `<img src="${anime.img}" alt="${anime.title}"><div class="anime-info">${anime.title}</div>`;
+        card.onclick = () => openPlayer(key);
+        mainGrid.appendChild(card);
+    });
+
+    function openPlayer(key) {
+        currentAnimeKey = key;
+        homeView.style.display = 'none';
+        playerView.style.display = 'block';
+        document.getElementById('nav-title').innerText = library[key].title.toUpperCase();
+        renderEpisodes(0);
     }
 
-    function renderEpisodes() {
+    function showHome() {
+        homeView.style.display = 'block';
+        playerView.style.display = 'none';
+        iframe.src = ""; // Stop video
+        document.getElementById('nav-title').innerText = "BROWSE";
+        clearTimeout(autoNextTimer);
+    }
+
+    function renderEpisodes(startIdx) {
+        const epList = document.getElementById('epList');
+        const anime = library[currentAnimeKey];
         epList.innerHTML = '';
-        aotIds.forEach((id, i) => {
+        
+        anime.ids.forEach((id, i) => {
             const div = document.createElement('div');
-            div.className = `ep-item ${i == lastEp ? 'active' : ''} ${history.includes(i) ? 'viewed' : ''}`;
+            div.className = `ep-item ${i === startIdx ? 'active' : ''}`;
             div.innerText = i + 1;
-            div.onclick = () => loadEpisode(i);
+            div.onclick = () => loadVideo(i);
             epList.appendChild(div);
         });
+        loadVideo(startIdx);
     }
 
-    function loadEpisode(index) {
-        if(index >= aotIds.length) return; // End of season
-        
-        lastEp = index;
-        const id = aotIds[index];
+    function loadVideo(idx) {
+        const anime = library[currentAnimeKey];
+        if (idx >= anime.ids.length) return;
+
+        const id = anime.ids[idx];
         iframe.src = `https://drive.google.com/file/d/${id}/preview`;
-        document.getElementById('curDisplay').innerText = `Episode ${index + 1}`;
+        document.getElementById('player-title').innerText = `${anime.title} - Episode ${idx + 1}`;
         
-        // Save to Memory
-        localStorage.setItem('anix_last_ep', index);
-        if(!history.includes(index)) {
-            history.push(index);
-            localStorage.setItem('anix_history', JSON.stringify(history));
-        }
+        // Fix: Auto-Next Logic
+        // Since we can't tell when an iframe ends, we set a 23-minute timer 
+        // to show a "Next Episode Ready" alert.
+        clearTimeout(autoNextTimer);
+        document.getElementById('auto-next-label').innerText = "";
         
-        renderEpisodes();
+        autoNextTimer = setTimeout(() => {
+            document.getElementById('auto-next-label').innerText = "Next Episode is ready! Click below or wait.";
+            // If they are still on the page after 24 mins, load next
+            setTimeout(() => loadVideo(idx + 1), 60000); 
+        }, 1380000); // 23 minutes
+
+        // Save History
+        localStorage.setItem(`viewed_${currentAnimeKey}_${idx}`, 'true');
     }
-
-    function resumeLast() {
-        loadEpisode(parseInt(localStorage.getItem('anix_last_ep') || 0));
-        window.scrollTo({top: 0, behavior: 'smooth'});
-    }
-
-    function toggleTheme() {
-        document.body.classList.toggle('light');
-    }
-
-    // --- HI-ANIME FEATURE: Auto Next ---
-    // Since we can't detect "ended" in an iframe, we use a timer (20 mins) 
-    // to mark as viewed and suggest next ep, but standard practice for iframes 
-    // is to let the user click.
-
-    init();
 </script>
 
 </body>
