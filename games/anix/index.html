@@ -3,277 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ANIX | Local AI Streaming</title>
+    <title>ANIX | AI Anime Player</title>
     <style>
         :root {
             --bg: #0b0c10;
             --accent: #00bcd4;
             --panel: #1b1b22;
-            --text-muted: #aaaaaa;
         }
 
         body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: var(--bg);
-            color: #fff;
-            overflow-x: hidden;
+            margin: 0; font-family: 'Segoe UI', sans-serif;
+            background: var(--bg); color: #fff;
         }
 
-        /* --- Navigation --- */
-        .navbar {
-            background: #16161d;
-            padding: 15px 30px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        /* --- Navbar --- */
+        .navbar { 
+            background: #16161d; padding: 15px 30px; 
+            display: flex; align-items: center; justify-content: space-between;
             border-bottom: 1px solid #2a2a35;
         }
-
-        .logo {
-            font-weight: 900;
-            font-size: 22px;
-            color: var(--accent);
-            text-decoration: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .logo { 
+            font-weight: 900; color: var(--accent); 
+            text-decoration: none; font-size: 20px;
         }
 
-        /* --- Main Layout --- */
-        .main-container {
-            max-width: 1100px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-
-        .video-box {
-            background: #000;
-            width: 100%;
-            aspect-ratio: 16/9;
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
+        /* --- Player Area --- */
+        .main-container { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
+        
+        .video-box { 
+            background: #000; width: 100%; aspect-ratio: 16/9; 
+            border-radius: 12px; overflow: hidden; position: relative;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
+        video { width: 100%; height: 100%; }
 
-        video {
-            width: 100%;
-            height: 100%;
-        }
-
-        /* --- Subtitle Overlay --- */
+        /* --- Subtitles --- */
         #subtitle-overlay {
-            position: absolute;
-            bottom: 12%;
-            width: 100%;
-            text-align: center;
-            pointer-events: none;
-            z-index: 10;
+            position: absolute; bottom: 12%; width: 100%; text-align: center;
+            pointer-events: none; z-index: 10;
         }
-
         .subtitle-text {
-            background: rgba(0, 0, 0, 0.75);
-            padding: 6px 16px;
-            border-radius: 5px;
-            font-size: 1.3rem;
-            display: inline-block;
-            max-width: 85%;
-            color: #ffffff;
-            text-shadow: 1px 1px 2px #000;
+            background: rgba(0, 0, 0, 0.7); padding: 5px 15px; border-radius: 5px;
+            font-size: 1.2rem; display: inline-block; max-width: 80%;
             min-height: 1.5em;
         }
 
-        /* --- AI Controls Panel --- */
-        .ai-status-box {
-            background: var(--panel);
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 25px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            border: 1px solid #333;
+        /* --- AI Controls --- */
+        .ai-panel {
+            background: var(--panel); padding: 15px; border-radius: 10px;
+            margin-top: 20px; display: flex; justify-content: space-between;
+            align-items: center; border: 1px solid #333;
         }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-        }
-
-        .status-dot {
-            height: 12px;
-            width: 12px;
-            background: #ff4b2b;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 10px;
-        }
-
-        .status-online {
-            background: #4caf50;
-            box-shadow: 0 0 12px #4caf50;
-        }
-
         .btn {
-            background: var(--accent);
-            color: #0b0c10;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: transform 0.2s, background 0.2s;
+            background: var(--accent); color: #000; border: none;
+            padding: 10px 20px; border-radius: 5px; font-weight: bold;
+            cursor: pointer; transition: 0.3s;
         }
+        .btn:disabled { background: #444; color: #888; }
 
-        .btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            background: #00e5ff;
+        /* --- Episode/Series Selection --- */
+        .series-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab-btn { background: #222; border: none; color: white; padding: 10px; cursor: pointer; border-radius: 5px; }
+        .tab-btn.active { background: var(--accent); color: black; font-weight: bold; }
+
+        .ep-grid { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); 
+            gap: 10px; margin-top: 20px; 
         }
-
-        .btn:disabled {
-            background: #444;
-            color: #888;
-            cursor: not-allowed;
+        .ep-item { 
+            background: #222; padding: 12px; text-align: center; 
+            cursor: pointer; border-radius: 5px; transition: 0.2s;
         }
-
-        /* --- Episode Grid --- */
-        .ep-section {
-            margin-top: 40px;
-        }
-
-        .ep-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .ep-item {
-            background: #23232e;
-            padding: 15px 0;
-            text-align: center;
-            cursor: pointer;
-            border-radius: 6px;
-            font-weight: bold;
-            transition: 0.2s;
-        }
-
-        .ep-item:hover { background: #333344; }
-        .ep-item.active { background: var(--accent); color: #000; }
-
-        @media (max-width: 600px) {
-            .navbar { padding: 15px; }
-            .ai-status-box { flex-direction: column; text-align: center; }
-        }
+        .ep-item.active { background: var(--accent); color: #000; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <!-- Using root-relative path for GitHub Pages -->
     <a href="/code-maths/" class="logo">◁ ANIX HUB</a>
-    <div style="font-size: 14px; color: var(--text-muted);">
-        Streaming: <span id="curTitle" style="color: #fff; font-weight: bold;">Attack on Titan</span>
-    </div>
+    <div id="curTitle">Attack on Titan - Episode 1</div>
 </div>
 
 <div class="main-container">
     <div class="video-box">
         <video id="videoPlayer" crossorigin="anonymous" controls>
-            <!-- Default path assumes videos are in root/videos/ -->
-            <source src="../../videos/Attack_on_Titan-E1-1080p.mp4" type="video/mp4">
+            <source src="" type="video/mp4">
         </video>
         <div id="subtitle-overlay">
-            <div id="ai-sub" class="subtitle-text">Waiting for AI Engine...</div>
+            <div id="ai-sub" class="subtitle-text">AI Subtitles Offline</div>
         </div>
     </div>
 
-    <div class="ai-status-box">
-        <div class="status-indicator">
-            <span id="dot" class="status-dot"></span>
-            <span id="status-text">AI Transcription: Offline (Local)</span>
-        </div>
-        <button id="load-ai" class="btn" onclick="initAI()">LOAD AI SUBTITLES</button>
+    <div class="ai-panel">
+        <div id="ai-status">AI Status: Local Engine Ready</div>
+        <button id="load-ai" class="btn" onclick="initAI()">ENABLE AI SUBS</button>
     </div>
 
-    <div class="ep-section">
-        <h3>Select Episode</h3>
-        <div class="ep-grid" id="epList"></div>
+    <h3>Series Selection</h3>
+    <div class="series-tabs" id="seriesTabs">
+        <button class="tab-btn active" onclick="switchSeries('aot')">Attack on Titan</button>
+        <button class="tab-btn" onclick="switchSeries('witch')">Witch Hat Atelier</button>
+        <button class="tab-btn" onclick="switchSeries('stone')">Dr. Stone</button>
     </div>
+
+    <h3>Episodes</h3>
+    <div class="ep-grid" id="epList"></div>
 </div>
 
 <script type="module">
-    // Using Transformers.js for browser-side AI
     import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1';
 
-    let transcriber;
-    const statusText = document.getElementById('status-text');
-    const dot = document.getElementById('dot');
-    const aiSub = document.getElementById('ai-sub');
-    const loadBtn = document.getElementById('load-ai');
     const video = document.getElementById('videoPlayer');
+    const aiSub = document.getElementById('ai-sub');
+    const status = document.getElementById('ai-status');
+    const epList = document.getElementById('epList');
+    let transcriber;
 
-    // Initialize AI Subtitle Engine
-    window.initAI = async () => {
-        loadBtn.disabled = true;
-        statusText.innerText = "Downloading AI Model (~75MB)... One moment.";
-        
-        try {
-            // Load Whisper-Tiny (fastest for browser usage)
-            transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en');
-            
-            dot.classList.add('status-online');
-            statusText.innerText = "AI Transcription: Online (Local Engine)";
-            aiSub.innerText = "AI Ready. Subtitles will appear when you play.";
-            
-            setupTranscription();
-        } catch (err) {
-            statusText.innerText = "AI Error: Model failed to load.";
-            console.error(err);
-            loadBtn.disabled = false;
+    // --- DATA CONFIGURATION ---
+    const animeData = {
+        'aot': {
+            title: "Attack on Titan",
+            ids: [
+                "1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX", // Ep 1 (The one you provided)
+                "SECOND_ID_HERE", 
+                "THIRD_ID_HERE"
+            ]
+        },
+        'witch': {
+            title: "Witch Hat Atelier",
+            ids: ["WITCH_ID_1", "WITCH_ID_2"]
+        },
+        'stone': {
+            title: "Dr. Stone",
+            ids: ["STONE_ID_1", "STONE_ID_2"]
         }
     };
 
-    function setupTranscription() {
-        video.addEventListener('timeupdate', () => {
-            // Logic to sync video time with AI generation
-            // Note: In browser, real-time sync works best by transcribing 
-            // the active audio buffer.
-            if(video.paused) return;
-            aiSub.innerText = "[AI Analyzing Audio...]";
-        });
-    }
+    let currentSeries = 'aot';
 
-    // Episode List Logic
-    const config = {
-        title: "Attack on Titan",
-        folder: "Attack_on_Titan",
-        totalEps: 25
+    // --- LOAD EPISODES ---
+    window.renderEpisodes = (seriesKey) => {
+        epList.innerHTML = '';
+        const series = animeData[seriesKey];
+        
+        series.ids.forEach((id, index) => {
+            const epNum = index + 1;
+            const div = document.createElement('div');
+            div.className = 'ep-item' + (epNum === 1 ? ' active' : '');
+            div.innerText = epNum;
+
+            div.onclick = () => {
+                document.querySelectorAll('.ep-item').forEach(e => e.classList.remove('active'));
+                div.classList.add('active');
+                document.getElementById('curTitle').innerText = `${series.title} - Episode ${epNum}`;
+                
+                // Using the specific format you found:
+                video.src = `https://drive.usercontent.google.com/download?id=${id}&export=download`;
+                video.play();
+            };
+            epList.appendChild(div);
+        });
+
+        // Set default source for first ep of selected series
+        video.src = `https://drive.usercontent.google.com/download?id=${series.ids[0]}&export=download`;
     };
 
-    const epList = document.getElementById('epList');
-    for(let i = 1; i <= config.totalEps; i++) {
-        const item = document.createElement('div');
-        item.className = 'ep-item' + (i === 1 ? ' active' : '');
-        item.innerText = i;
-        
-        item.onclick = () => {
-            document.querySelectorAll('.ep-item').forEach(el => el.classList.remove('active'));
-            item.classList.add('active');
-            
-            // Update source path
-            video.src = `../../videos/${config.folder}-E${i}-1080p.mp4`;
-            video.load();
-            video.play();
-        };
-        epList.appendChild(item);
-    }
+    window.switchSeries = (key) => {
+        currentSeries = key;
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        renderEpisodes(key);
+    };
+
+    // --- AI LOGIC ---
+    window.initAI = async () => {
+        status.innerText = "Loading AI Model (~75MB)...";
+        document.getElementById('load-ai').disabled = true;
+        try {
+            transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en');
+            status.innerText = "AI Engine: ONLINE";
+            aiSub.innerText = "[AI Ready]";
+        } catch (e) {
+            status.innerText = "AI Error: Failed to load";
+        }
+    };
+
+    // Start with AOT
+    renderEpisodes('aot');
 </script>
 
 </body>
