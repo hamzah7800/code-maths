@@ -35,46 +35,21 @@
             border-radius: 12px; overflow: hidden; position: relative;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        video { width: 100%; height: 100%; }
+        iframe { width: 100%; height: 100%; border: none; }
 
-        /* --- Subtitles --- */
-        #subtitle-overlay {
-            position: absolute; bottom: 12%; width: 100%; text-align: center;
-            pointer-events: none; z-index: 10;
-        }
-        .subtitle-text {
-            background: rgba(0, 0, 0, 0.7); padding: 5px 15px; border-radius: 5px;
-            font-size: 1.2rem; display: inline-block; max-width: 80%;
-            min-height: 1.5em;
-        }
-
-        /* --- AI Controls --- */
-        .ai-panel {
-            background: var(--panel); padding: 15px; border-radius: 10px;
-            margin-top: 20px; display: flex; justify-content: space-between;
-            align-items: center; border: 1px solid #333;
-        }
-        .btn {
-            background: var(--accent); color: #000; border: none;
-            padding: 10px 20px; border-radius: 5px; font-weight: bold;
-            cursor: pointer; transition: 0.3s;
-        }
-        .btn:disabled { background: #444; color: #888; }
-
-        /* --- Episode/Series Selection --- */
-        .series-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab-btn { background: #222; border: none; color: white; padding: 10px; cursor: pointer; border-radius: 5px; }
-        .tab-btn.active { background: var(--accent); color: black; font-weight: bold; }
-
+        /* --- Episodes --- */
+        .ep-section { margin-top: 30px; }
         .ep-grid { 
             display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); 
-            gap: 10px; margin-top: 20px; 
+            gap: 10px; margin-top: 15px; 
         }
         .ep-item { 
             background: #222; padding: 12px; text-align: center; 
             cursor: pointer; border-radius: 5px; transition: 0.2s;
+            border: 1px solid #333;
         }
-        .ep-item.active { background: var(--accent); color: #000; font-weight: bold; }
+        .ep-item.active { background: var(--accent); color: #000; font-weight: bold; border-color: var(--accent); }
+        .ep-item:hover { background: #333; border-color: var(--accent); }
     </style>
 </head>
 <body>
@@ -86,110 +61,47 @@
 
 <div class="main-container">
     <div class="video-box">
-        <video id="videoPlayer" crossorigin="anonymous" controls>
-            <source src="" type="video/mp4">
-        </video>
-        <div id="subtitle-overlay">
-            <div id="ai-sub" class="subtitle-text">AI Subtitles Offline</div>
-        </div>
+        <iframe id="videoIframe" src="https://drive.google.com/file/d/1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX/preview" allow="autoplay"></iframe>
     </div>
 
-    <div class="ai-panel">
-        <div id="ai-status">AI Status: Local Engine Ready</div>
-        <button id="load-ai" class="btn" onclick="initAI()">ENABLE AI SUBS</button>
+    <div class="ep-section">
+        <h3>Episodes</h3>
+        <div class="ep-grid" id="epList"></div>
     </div>
-
-    <h3>Series Selection</h3>
-    <div class="series-tabs" id="seriesTabs">
-        <button class="tab-btn active" onclick="switchSeries('aot')">Attack on Titan</button>
-        <button class="tab-btn" onclick="switchSeries('witch')">Witch Hat Atelier</button>
-        <button class="tab-btn" onclick="switchSeries('stone')">Dr. Stone</button>
-    </div>
-
-    <h3>Episodes</h3>
-    <div class="ep-grid" id="epList"></div>
 </div>
 
-<script type="module">
-    import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1';
+<script>
+    // 1. ADD YOUR FILE IDs HERE
+    const aotDriveIds = [
+        "1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX", // Ep 1 (The one you sent)
+        "PASTE_ID_FOR_EP_2",
+        "PASTE_ID_FOR_EP_3",
+        // ... add the rest
+    ];
 
-    const video = document.getElementById('videoPlayer');
-    const aiSub = document.getElementById('ai-sub');
-    const status = document.getElementById('ai-status');
+    const iframe = document.getElementById('videoIframe');
     const epList = document.getElementById('epList');
-    let transcriber;
+    const titleText = document.getElementById('curTitle');
 
-    // --- DATA CONFIGURATION ---
-    const animeData = {
-        'aot': {
-            title: "Attack on Titan",
-            ids: [
-                "1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX", // Ep 1 (The one you provided)
-                "SECOND_ID_HERE", 
-                "THIRD_ID_HERE"
-            ]
-        },
-        'witch': {
-            title: "Witch Hat Atelier",
-            ids: ["WITCH_ID_1", "WITCH_ID_2"]
-        },
-        'stone': {
-            title: "Dr. Stone",
-            ids: ["STONE_ID_1", "STONE_ID_2"]
-        }
-    };
+    // 2. GENERATE BUTTONS
+    aotDriveIds.forEach((id, index) => {
+        const epNum = index + 1;
+        const div = document.createElement('div');
+        div.className = 'ep-item' + (epNum === 1 ? ' active' : '');
+        div.innerText = epNum;
 
-    let currentSeries = 'aot';
+        div.onclick = () => {
+            // Update UI
+            document.querySelectorAll('.ep-item').forEach(e => e.classList.remove('active'));
+            div.classList.add('active');
+            titleText.innerText = `Attack on Titan - Episode ${epNum}`;
 
-    // --- LOAD EPISODES ---
-    window.renderEpisodes = (seriesKey) => {
-        epList.innerHTML = '';
-        const series = animeData[seriesKey];
-        
-        series.ids.forEach((id, index) => {
-            const epNum = index + 1;
-            const div = document.createElement('div');
-            div.className = 'ep-item' + (epNum === 1 ? ' active' : '');
-            div.innerText = epNum;
+            // Update Iframe Source to the Preview Link
+            iframe.src = `https://drive.google.com/file/d/${id}/preview`;
+        };
 
-            div.onclick = () => {
-                document.querySelectorAll('.ep-item').forEach(e => e.classList.remove('active'));
-                div.classList.add('active');
-                document.getElementById('curTitle').innerText = `${series.title} - Episode ${epNum}`;
-                
-                // Using the specific format you found:
-                video.src = `https://drive.usercontent.google.com/download?id=${id}&export=download`;
-                video.play();
-            };
-            epList.appendChild(div);
-        });
-
-        // Set default source for first ep of selected series
-        video.src = `https://drive.usercontent.google.com/download?id=${series.ids[0]}&export=download`;
-    };
-
-    window.switchSeries = (key) => {
-        currentSeries = key;
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-        renderEpisodes(key);
-    };
-
-    // --- AI LOGIC ---
-    window.initAI = async () => {
-        status.innerText = "Loading AI Model (~75MB)...";
-        document.getElementById('load-ai').disabled = true;
-        try {
-            transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en');
-            status.innerText = "AI Engine: ONLINE";
-            aiSub.innerText = "[AI Ready]";
-        } catch (e) {
-            status.innerText = "AI Error: Failed to load";
-        }
-    };
-
-    // Start with AOT
-    renderEpisodes('aot');
+        epList.appendChild(div);
+    });
 </script>
 
 </body>
