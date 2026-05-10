@@ -3,86 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ANIX | Streaming</title>
+    <title>ANIX | Premium</title>
     <style>
-        :root { --bg: #060606; --accent: #ffb11b; --card: #121212; --text: #eee; }
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); }
+        :root { --bg: #0b0b0b; --accent: #ffb11b; --card: #161616; --text: #ffffff; --glass: rgba(255, 255, 255, 0.05); }
         
-        /* Navbar */
-        .nav { background: #000; padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 1000; }
-        .logo { color: var(--accent); text-decoration: none; font-weight: 800; font-size: 1.6rem; cursor: pointer; }
-        .search-box { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 8px 15px; border-radius: 20px; outline: none; width: 200px; }
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+        body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
 
-        /* Container */
-        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
-        .anime-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.5rem; }
+        /* Ultra-Light UI: CSS Only */
+        .nav { background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass); position: sticky; top: 0; z-index: 1000; }
+        .logo { color: var(--accent); text-decoration: none; font-weight: 900; font-size: 1.8rem; letter-spacing: -1.5px; cursor: pointer; }
+        .nav-info { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+
+        .container { max-width: 1400px; margin: 1.5rem auto; padding: 0 1rem; }
         
-        /* Cards */
-        .anime-card { background: var(--card); border-radius: 10px; overflow: hidden; cursor: pointer; border: 1px solid #222; transition: 0.2s; }
-        .anime-card:hover { transform: scale(1.03); border-color: var(--accent); }
-        .anime-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
-        .anime-info { padding: 10px; font-weight: 600; text-align: center; font-size: 0.9rem; }
+        /* Grid Optimization: No giant framework */
+        .anime-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.2rem; }
+        .anime-card { 
+            background: var(--card); border-radius: 8px; overflow: hidden; cursor: pointer; 
+            border: 1px solid transparent; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .anime-card:hover { transform: translateY(-8px); border-color: var(--accent); box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
+        .anime-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; background: #222; }
+        .anime-info { padding: 10px; font-weight: 700; font-size: 0.85rem; border-top: 1px solid var(--glass); }
 
-        /* Player */
-        #player-view { display: none; }
-        .player-wrapper { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        /* Player Experience */
+        #player-view { display: none; animation: fadeIn 0.4s ease; }
+        .player-header { display: flex; align-items: center; gap: 15px; margin-bottom: 1.5rem; }
+        .player-wrapper { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; border: 1px solid var(--glass); }
         iframe { width: 100%; height: 100%; border: none; }
 
-        .season-select { display: flex; gap: 10px; margin: 20px 0; overflow-x: auto; padding-bottom: 5px; }
-        .tab { padding: 8px 16px; background: #222; border-radius: 4px; cursor: pointer; font-size: 14px; white-space: nowrap; }
+        .season-tabs { display: flex; gap: 10px; margin: 20px 0; overflow-x: auto; padding-bottom: 5px; }
+        .tab { padding: 8px 20px; background: var(--glass); border-radius: 5px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; border: 1px solid transparent; }
         .tab.active { background: var(--accent); color: #000; font-weight: bold; }
 
-        .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 8px; }
-        .ep-item { background: #1a1a1a; padding: 12px 0; text-align: center; cursor: pointer; border: 1px solid #333; border-radius: 4px; transition: 0.2s; }
-        .ep-item.active { background: var(--accent); color: #000; font-weight: bold; }
-        .ep-item:hover { border-color: var(--accent); }
+        .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); gap: 10px; }
+        .ep-item { 
+            background: var(--glass); padding: 15px 0; text-align: center; cursor: pointer; 
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; font-size: 14px; position: relative;
+        }
+        .ep-item.active { background: var(--accent); color: #000; font-weight: 800; border-color: var(--accent); }
+        .ep-item.viewed::after { content: "✓"; position: absolute; top: 2px; right: 4px; font-size: 9px; opacity: 0.7; }
 
-        .btn-back { background: none; border: 1px solid var(--accent); color: var(--accent); padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-bottom: 20px; font-weight: bold; }
+        .btn-back { background: var(--glass); border: 1px solid var(--glass); color: #fff; padding: 10px 18px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-back:hover { background: #fff; color: #000; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 600px) { .anime-grid { grid-template-columns: repeat(2, 1fr); } }
     </style>
 </head>
 <body>
 
 <nav class="nav">
     <a class="logo" onclick="showHome()">ANIX</a>
-    <input type="text" id="searchBar" class="search-box" placeholder="Search..." onkeyup="filterAnime()">
+    <div class="nav-info" id="breadcrumb">Home / Browse</div>
 </nav>
 
 <div id="home-view" class="container">
-    <h2 style="font-weight: 300; border-left: 3px solid var(--accent); padding-left: 10px; margin-bottom: 20px;">Library</h2>
     <div class="anime-grid" id="mainGrid"></div>
 </div>
 
 <div id="player-view" class="container">
-    <button class="btn-back" onclick="showHome()">← BACK TO BROWSE</button>
+    <div class="player-header">
+        <button class="btn-back" onclick="showHome()">← BACK</button>
+        <h3 id="displayTitle" style="margin:0; font-weight: 400;">Anime Title</h3>
+    </div>
+    
     <div class="player-wrapper">
-        <iframe id="videoIframe" src="" allowfullscreen></iframe>
+        <iframe id="videoIframe" src="" allowfullscreen sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-presentation"></iframe>
     </div>
-    <div class="controls">
-        <h2 id="displayTitle" style="margin-top:20px;">Anime Name</h2>
-        <div class="season-select" id="seasonTabs"></div>
-        <div class="ep-grid" id="epList"></div>
-    </div>
+
+    <div class="season-tabs" id="seasonTabs"></div>
+    <div class="ep-grid" id="epList"></div>
 </div>
 
 <script>
     const library = {
         "aot": {
             title: "Attack on Titan",
-            img: "https://m.media-amazon.com/images/I/91SlePOnHVL._AC_UF1000,1000_QL80_.jpg",
+            img: "https://image.tmdb.org/t/p/w500/hTP1DtL7v1hR68pOXuePMv9s7E9.jpg",
             seasons: [
-                {
-                    name: "Season 1",
-                    ids: ["1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX","1sBFo-tXs_pR0Y2BUgdQZA-dgW_hJ9n1Z","1ICpdFV8u6ddf-a0YwyiptlyDNQN-Whwh","1tVuyPztBo_4ocftjOcEutI1zauSLpNDi","1niPlio07f_99u1-OtW_54uWkJwBouocx","1-qB_bxTFlZoRJWE0jTx8gildU78ElXt9","1-P5fE4dRyvirGzlGkoTdsF6si9AwVpYJ","1nsROetRCw6VEeT0zgDpiLVGng_zEQNut","1VHBr6nap3clpLaOYUjz32QE63SssHe-4","1riigEtCvxHY4m5XBE3nSWCBYw3rzZV8i","1wcEn6TSdPqPDJ3m6RGtU5NsCO6rBklNP","1U-X3qUGA2xPiy4oc-JEV1DhpGwUukoOv","1rc6YUeJEYXLI7I4UjPPiAKAknj8PGp0K","1ueI6BjGjpCGop3KPEetH2aMAs8EdumVk","14B-b7seCN8VS2IgpPYewDwTtc4UWwz3K","1VJ_OCFBt_vVreK_f7PJdimxi5ZPTjloQ","1NpfySF0N3yRGLcUjHaIEWcXF6aLRacJ4","14L5kOrzHV4JO04xO8Bo8ibvV0TrefpWV","1n3hmxNN_uuIF7dOoxiKiOLOprBSDX1mp","1o6Mgy_eKWV182EbTX6IUhU_D4tuNcd9u","1nOuX42GUZf5yCL72yb3-TesXNKW1eEHA","1yNAjadmeTTeTpeRyHY7Fi0nH2op0OMag","1jMCsyNjy3Du0yN3o-DE9EgKXCeS5zTpR","1IlUCW-o1kjOzAte682JQ_0yc4NJ1nvX7","1zHq8sb4PV8p41DLejAjL6REoKwx5hoQE"]
-                },
-                {
-                    name: "Season 2",
-                    ids: ["1DfNiMEwPQFKe3fZOEddpZ6EkHPoCNlAU","1xl-ouijY6_kKpUQyICkSQPPih56sOOYA","1UtyYNTV1PgrPfKhT0RsMAftr1Uokfgsd","1QV6hTJ0OxATSZictaQPaBlau2qi-4XLp","1H1R_4LYJa2qflK1eZgYkDt4G69RISeri","1SK88R7f_82l7s04NEh4gIxZCA47m6mbA","1E6tV95OhzM8jDuBGoYAsm9oYaj8oNAPL","15bjnN0NWvtFUbRlRGuX81RPtZZCTFjZJ","13UR2S4vmgoqVz4yI6Lc7ylaTCxocfLQD","1zz6dB40uPyB-Ey7CBsZnaiNxRTPvAjYG","1EDK0bgd-iyQPvwSLAcMsOgQBNAo_4YE9","1K7esCh67CX_yv2-13B8fvMV1osbvyyrF"]
-                }
+                { name: "Season 1", ids: ["1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX","1sBFo-tXs_pR0Y2BUgdQZA-dgW_hJ9n1Z","1ICpdFV8u6ddf-a0YwyiptlyDNQN-Whwh","1tVuyPztBo_4ocftjOcEutI1zauSLpNDi","1niPlio07f_99u1-OtW_54uWkJwBouocx","1-qB_bxTFlZoRJWE0jTx8gildU78ElXt9","1-P5fE4dRyvirGzlGkoTdsF6si9AwVpYJ","1nsROetRCw6VEeT0zgDpiLVGng_zEQNut","1VHBr6nap3clpLaOYUjz32QE63SssHe-4","1riigEtCvxHY4m5XBE3nSWCBYw3rzZV8i","1wcEn6TSdPqPDJ3m6RGtU5NsCO6rBklNP","1U-X3qUGA2xPiy4oc-JEV1DhpGwUukoOv","1rc6YUeJEYXLI7I4UjPPiAKAknj8PGp0K","1ueI6BjGjpCGop3KPEetH2aMAs8EdumVk","14B-b7seCN8VS2IgpPYewDwTtc4UWwz3K","1VJ_OCFBt_vVreK_f7PJdimxi5ZPTjloQ","1NpfySF0N3yRGLcUjHaIEWcXF6aLRacJ4","14L5kOrzHV4JO04xO8Bo8ibvV0TrefpWV","1n3hmxNN_uuIF7dOoxiKiOLOprBSDX1mp","1o6Mgy_eKWV182EbTX6IUhU_D4tuNcd9u","1nOuX42GUZf5yCL72yb3-TesXNKW1eEHA","1yNAjadmeNTeTpeRyHY7Fi0nH2op0OMag","1jMCsyNjy3Du0yN3o-DE9EgKXCeS5zTpR","1IlUCW-o1kjOzAte682JQ_0yc4NJ1nvX7","1zHq8sb4PV8p41DLejAjL6REoKwx5hoQE"] },
+                { name: "Season 2", ids: ["1DfNiMEwPQFKe3fZOEddpZ6EkHPoCNlAU","1xl-ouijY6_kKpUQyICkSQPPih56sOOYA","1UtyYNTV1PgrPfKhT0RsMAftr1Uokfgsd","1QV6hTJ0OxATSZictaQPaBlau2qi-4XLp","1H1R_4LYJa2qflK1eZgYkDt4G69RISeri","1SK88R7f_82l7s04NEh4gIxZCA47m6mbA","1E6tV95OhzM8jDuBGoYAsm9oYaj8oNAPL","15bjnN0NWvtFUbRlRGuX81RPtZZCTFjZJ","13UR2S4vmgoqVz4yI6Lc7ylaTCxocfLQD","1zz6dB40uPyB-Ey7CBsZnaiNxRTPvAjYG","1EDK0bgd-iyQPvwSLAcMsOgQBNAo_4YE9","1K7esCh67CX_yv2-13B8fvMV1osbvyyrF"] }
             ]
         },
         "drstone": {
             title: "Dr. Stone",
-            img: "https://m.media-amazon.com/images/I/81xH0iI2uUL._AC_UF1000,1000_QL80_.jpg",
+            img: "https://image.tmdb.org/t/p/w500/pY4XAn4K77m0R465UofS7vAasG1.jpg",
             seasons: [{ name: "Season 1", ids: ["12etYKc9g_NHYJtwYKl1ix50V8ygmlmuO", "1Ld99fPLtcxALJy9r2MsTPvBIr8ouF5IO"] }]
         }
     };
@@ -95,7 +103,7 @@
         Object.keys(library).forEach(key => {
             const card = document.createElement('div');
             card.className = 'anime-card';
-            card.innerHTML = `<img src="${library[key].img}"><div class="anime-info">${library[key].title}</div>`;
+            card.innerHTML = `<img src="${library[key].img}" loading="lazy"><div class="anime-info">${library[key].title}</div>`;
             card.onclick = () => openPlayer(key);
             grid.appendChild(card);
         });
@@ -107,13 +115,15 @@
         document.getElementById('home-view').style.display = 'none';
         document.getElementById('player-view').style.display = 'block';
         updateUI();
+        window.scrollTo(0,0);
     }
 
     function updateUI() {
         const anime = library[activeKey];
-        document.getElementById('displayTitle').innerText = anime.title;
+        document.getElementById('breadcrumb').innerText = `Browse / ${anime.title}`;
+        document.getElementById('displayTitle').innerText = `${anime.title} - ${anime.seasons[activeSeason].name}`;
         
-        // Render Season Tabs
+        // Render Tabs
         const tabContainer = document.getElementById('seasonTabs');
         tabContainer.innerHTML = '';
         if (anime.seasons.length > 1) {
@@ -126,23 +136,43 @@
             });
         }
 
-        // Render Episodes
+        // Render Episodes with Security Check
         const epContainer = document.getElementById('epList');
         epContainer.innerHTML = '';
         anime.seasons[activeSeason].ids.forEach((id, i) => {
             const btn = document.createElement('div');
-            btn.className = 'ep-item';
+            const isViewed = localStorage.getItem(`viewed_${activeKey}_S${activeSeason}_E${i}`);
+            btn.className = `ep-item ${isViewed ? 'viewed' : ''}`;
             btn.innerText = i + 1;
             btn.onclick = () => playVideo(id, i);
             epContainer.appendChild(btn);
         });
-        playVideo(anime.seasons[activeSeason].ids[0], 0);
+        
+        // Auto-load last watched or Ep 1
+        const lastWatched = localStorage.getItem(`last_${activeKey}_season`) == activeSeason ? 
+                            localStorage.getItem(`last_${activeKey}_ep`) : 0;
+        playVideo(anime.seasons[activeSeason].ids[lastWatched || 0], lastWatched || 0);
     }
 
     function playVideo(id, idx) {
-        document.getElementById('videoIframe').src = `https://drive.google.com/file/d/${id}/preview`;
+        // Security: Ensure ID exists and is likely a Google Drive ID
+        if(!id || id.length < 20) {
+            console.error("Invalid Video ID");
+            return;
+        }
+
+        const iframe = document.getElementById('videoIframe');
+        iframe.src = `https://drive.google.com/file/d/${id}/preview`;
+        
+        // Update Local History
+        localStorage.setItem(`viewed_${activeKey}_S${activeSeason}_E${idx}`, 'true');
+        localStorage.setItem(`last_${activeKey}_season`, activeSeason);
+        localStorage.setItem(`last_${activeKey}_ep`, idx);
+
+        // Update UI Classes
         document.querySelectorAll('.ep-item').forEach((item, i) => {
-            item.classList.toggle('active', i === idx);
+            item.classList.toggle('active', i == idx);
+            if(i == idx) item.classList.add('viewed');
         });
     }
 
@@ -150,13 +180,7 @@
         document.getElementById('home-view').style.display = 'block';
         document.getElementById('player-view').style.display = 'none';
         document.getElementById('videoIframe').src = '';
-    }
-
-    function filterAnime() {
-        let q = document.getElementById('searchBar').value.toLowerCase();
-        document.querySelectorAll('.anime-card').forEach(c => {
-            c.style.display = c.innerText.toLowerCase().includes(q) ? 'block' : 'none';
-        });
+        document.getElementById('breadcrumb').innerText = "Home / Browse";
     }
 
     init();
