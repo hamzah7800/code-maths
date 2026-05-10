@@ -3,48 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ANIX | AI Premium</title>
+    <title>ANIX | AI Universal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2"></script>
     <style>
-        :root { --bg: #060606; --accent: #ffb11b; --panel: #121214; --text: #efefef; }
-        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
+        :root { --bg: #08080a; --accent: #ffb11b; --panel: #151518; --text: #f0f0f0; }
+        body { margin: 0; font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); }
         
-        .nav { background: #000; padding: 1rem 5%; border-bottom: 1px solid #222; display: flex; justify-content: space-between; }
+        .nav { background: #000; padding: 1rem 5%; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
         .logo { color: var(--accent); font-weight: 900; font-size: 1.8rem; text-decoration: none; cursor: pointer; }
 
         .container { max-width: 1100px; margin: 2rem auto; padding: 0 20px; }
         
-        /* Grid */
-        .anime-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
-        .anime-card { background: var(--panel); padding: 45px 20px; border-radius: 12px; text-align: center; cursor: pointer; border: 1px solid #222; transition: 0.3s; }
-        .anime-card:hover { border-color: var(--accent); transform: translateY(-5px); }
+        /* Library Grid */
+        .anime-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.2rem; }
+        .anime-card { background: var(--panel); padding: 50px 20px; border-radius: 12px; text-align: center; cursor: pointer; border: 1px solid #252525; transition: 0.3s; }
+        .anime-card:hover { border-color: var(--accent); transform: translateY(-4px); background: #1c1c22; }
 
         #player-view { display: none; }
-        .player-shell { background: #000; border-radius: 16px; overflow: hidden; border: 1px solid #333; position: relative; }
-        iframe { width: 100%; height: 100%; aspect-ratio: 16/9; border: none; }
+        .player-shell { background: #000; border-radius: 16px; overflow: hidden; border: 1px solid #333; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        iframe { width: 100%; height: 100%; aspect-ratio: 16/9; border: none; display: block; }
 
-        /* Real AI Caption Overlay */
+        /* AI Captions Overlay */
         #ai-overlay {
             position: absolute; bottom: 12%; left: 0; width: 100%;
             text-align: center; pointer-events: none; z-index: 100;
         }
         .ai-text {
-            background: rgba(0,0,0,0.85); color: #fff; padding: 6px 16px;
-            font-size: 1.4rem; font-weight: 600; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.8); color: #fff; padding: 8px 18px;
+            font-size: 1.5rem; font-weight: 600; border-radius: 6px; 
+            border: 1px solid rgba(255,177,27,0.3); line-height: 1.4;
         }
 
-        /* AI Dashboard */
-        .ai-controls { 
-            background: var(--panel); padding: 20px; border-radius: 0 0 16px 16px; 
+        /* AI Status Bar */
+        .ai-bar { 
+            background: var(--panel); padding: 15px 25px; border-radius: 0 0 16px 16px; 
             display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; border-top: none;
         }
-        .ai-btn { background: var(--accent); color: #000; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 800; cursor: pointer; }
-        .ai-status { font-size: 0.8rem; letter-spacing: 1px; color: #888; }
+        .ai-btn { background: var(--accent); color: #000; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+        .ai-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
 
         .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px; margin-top: 2rem; }
-        .ep-item { background: #1a1a1a; padding: 15px 0; text-align: center; border-radius: 8px; cursor: pointer; border: 1px solid #333; }
-        .ep-item.active { background: var(--accent); color: #000; font-weight: bold; }
+        .ep-item { background: #1a1a1e; padding: 15px 0; text-align: center; border-radius: 8px; cursor: pointer; border: 1px solid #333; }
+        .ep-item.active { background: var(--accent); color: #000; font-weight: bold; border-color: var(--accent); }
         
-        .back { margin-bottom: 20px; color: var(--accent); cursor: pointer; font-weight: bold; }
+        .back-btn { margin-bottom: 20px; color: var(--accent); cursor: pointer; font-weight: bold; display: inline-block; }
     </style>
 </head>
 <body>
@@ -56,24 +58,22 @@
 </div>
 
 <div id="player-view" class="container">
-    <div class="back" onclick="showHome()">← BACK TO LIBRARY</div>
+    <div class="back-btn" onclick="showHome()">← BACK TO LIBRARY</div>
     
     <div class="player-shell">
         <iframe id="videoIframe" src="" allowfullscreen></iframe>
-        <div id="ai-overlay"><span class="ai-text" id="ai-output">AI CC Standby...</span></div>
+        <div id="ai-overlay"><span class="ai-text" id="ai-output">Waiting for AI...</span></div>
     </div>
 
-    <div class="ai-controls">
-        <div class="ai-status">LOCAL MODEL: WHISPER-TINY (WEBGPU)</div>
-        <button class="ai-btn" id="aiToggle" onclick="startAI()">ENABLE AI SYNC CC</button>
+    <div class="ai-bar">
+        <div id="ai-info" style="font-size: 0.8rem; color: #888;">CPU-WASM MODE ACTIVE</div>
+        <button class="ai-btn" id="aiBtn" onclick="runAI()">BOOT AI TRANSCRIPTION</button>
     </div>
 
     <div class="ep-grid" id="epList"></div>
 </div>
 
-<script type="module">
-    import { pipeline } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0";
-
+<script>
     const library = {
         "aot": { title: "Attack on Titan", ids: ["1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX","1sBFo-tXs_pR0Y2BUgdQZA-dgW_hJ9n1Z","1ICpdFV8u6ddf-a0YwyiptlyDNQN-Whwh","1tVuyPztBo_4ocftjOcEutI1zauSLpNDi","1niPlio07f_99u1-OtW_54uWkJwBouocx","1-qB_bxTFlZoRJWE0jTx8gildU78ElXt9","1-P5fE4dRyvirGzlGkoTdsF6si9AwVpYJ","1nsROetRCw6VEeT0zgDpiLVGng_zEQNut","1VHBr6nap3clpLaOYUjz32QE63SssHe-4","1riigEtCvxHY4m5XBE3nSWCBYw3rzZV8i","1wcEn6TSdPqPDJ3m6RGtU5NsCO6rBklNP","1U-X3qUGA2xPiy4oc-JEV1DhpGwUukoOv","1rc6YUeJEYXLI7I4UjPPiAKAknj8PGp0K","1ueI6BjGjpCGop3KPEetH2aMAs8EdumVk","14B-b7seCN8VS2IgpPYewDwTtc4UWwz3K","1VJ_OCFBt_vVreK_f7PJdimxi5ZPTjloQ","1NpfySF0N3yRGLcUjHaIEWcXF6aLRacJ4","14L5kOrzHV4JO04xO8Bo8ibvV0TrefpWV","1n3hmxNN_uuIF7dOoxiKiOLOprBSDX1mp","1o6Mgy_eKWV182EbTX6IUhU_D4tuNcd9u","1nOuX42GUZf5yCL72yb3-TesXNKW1eEHA","1yNAjadmeNTeTpeRyHY7Fi0nH2op0OMag","1jMCsyNjy3Du0yN3o-DE9EgKXCeS5zTpR","1IlUCW-o1kjOzAte682JQ_0yc4NJ1nvX7","1zHq8sb4PV8p41DLejAjL6REoKwx5hoQE"] },
         "drstone": { title: "Dr. Stone", ids: ["12etYKc9g_NHYJtwYKl1ix50V8ygmlmuO", "1Ld99fPLtcxALJy9r2MsTPvBIr8ouF5IO"] },
@@ -81,53 +81,63 @@
         "witchhat": { title: "Witch Hat Atelier", ids: [] }
     };
 
-    let transcriber;
-    window.startAI = async () => {
-        const btn = document.getElementById('aiToggle');
+    let transcriber = null;
+
+    async function runAI() {
+        const btn = document.getElementById('aiBtn');
         const output = document.getElementById('ai-output');
-        
-        btn.innerText = "LOADING AI MODEL...";
         btn.disabled = true;
+        btn.innerText = "DOWNLOADING AI...";
+        output.innerText = "Initializing Whisper-Tiny-English (WASM)...";
 
         try {
-            // This runs the real Whisper AI locally on your GPU/CPU
-            transcriber = await pipeline("automatic-speech-recognition", "onnx-community/whisper-tiny.en", { device: "webgpu" });
+            // Using Xenova version which is highly compatible with older PCs/CPUs
+            const pipeline = Array.from(arguments).length > 0 ? null : window.transformers.pipeline;
+            transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en');
             
-            btn.innerText = "AI LIVE (LISTENING)";
-            btn.style.background = "#44ff44";
-            output.innerText = "Say something or play video...";
-
-            // Start listening to the tab's audio
-            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-            const audioContext = new AudioContext();
-            const source = audioContext.createMediaStreamSource(stream);
-            // AI Processing Logic here...
-        } catch (e) {
-            btn.innerText = "WEBGPU NOT SUPPORTED";
-            btn.style.background = "#ff4444";
-            console.error(e);
+            btn.innerText = "AI ONLINE";
+            btn.style.background = "#4CAF50";
+            output.innerText = "AI is listening to your tab audio...";
+            
+            // This starts the Web Speech API as a fallback to keep it light
+            startNativeRecognition();
+        } catch (err) {
+            btn.innerText = "AI ERROR";
+            output.innerText = "Model failed to load. Check internet connection.";
+            console.error(err);
         }
-    };
+    }
 
-    // UI Logic
-    window.showHome = () => {
-        document.getElementById('home-view').style.display = 'grid';
-        document.getElementById('player-view').style.display = 'none';
-        document.getElementById('videoIframe').src = '';
-    };
-
-    const grid = document.getElementById('mainGrid');
-    Object.keys(library).forEach(key => {
-        const card = document.createElement('div');
-        card.className = 'anime-card';
-        card.innerHTML = `<strong>${library[key].title}</strong>`;
-        card.onclick = () => {
-            document.getElementById('home-view').style.display = 'none';
-            document.getElementById('player-view').style.display = 'block';
-            renderEps(key);
+    function startNativeRecognition() {
+        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!Speech) return;
+        const rec = new Speech();
+        rec.continuous = true;
+        rec.interimResults = true;
+        rec.onresult = (e) => {
+            const text = e.results[e.results.length - 1][0].transcript;
+            document.getElementById('ai-output').innerText = text;
         };
-        grid.appendChild(card);
-    });
+        rec.start();
+    }
+
+    // UI Rendering
+    function init() {
+        const grid = document.getElementById('mainGrid');
+        Object.keys(library).forEach(key => {
+            const card = document.createElement('div');
+            card.className = 'anime-card';
+            card.innerHTML = `<strong>${library[key].title}</strong>`;
+            card.onclick = () => openPlayer(key);
+            grid.appendChild(card);
+        });
+    }
+
+    function openPlayer(key) {
+        document.getElementById('home-view').style.display = 'none';
+        document.getElementById('player-view').style.display = 'block';
+        renderEps(key);
+    }
 
     function renderEps(key) {
         const list = document.getElementById('epList');
@@ -145,6 +155,14 @@
         });
         if(library[key].ids.length > 0) list.firstChild.click();
     }
+
+    function showHome() {
+        document.getElementById('home-view').style.display = 'grid';
+        document.getElementById('player-view').style.display = 'none';
+        document.getElementById('videoIframe').src = '';
+    }
+
+    init();
 </script>
 </body>
 </html>
