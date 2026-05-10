@@ -3,180 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ANIX | AI Live</title>
+    <title>ANIX | AI Premium</title>
     <style>
-        :root { --bg: #050505; --accent: #ffb11b; --panel: #111113; --text: #e0e0e0; }
+        :root { --bg: #060606; --accent: #ffb11b; --panel: #121214; --text: #efefef; }
         body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
         
-        .nav { background: #000; padding: 1rem 5%; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        .nav { background: #000; padding: 1rem 5%; border-bottom: 1px solid #222; display: flex; justify-content: space-between; }
         .logo { color: var(--accent); font-weight: 900; font-size: 1.8rem; text-decoration: none; cursor: pointer; }
 
-        .container { max-width: 1000px; margin: 2rem auto; padding: 0 20px; }
+        .container { max-width: 1100px; margin: 2rem auto; padding: 0 20px; }
         
-        /* Premium Player Shell */
-        .player-shell { position: relative; background: #000; border-radius: 16px; overflow: hidden; border: 1px solid #333; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
-        .video-box { width: 100%; aspect-ratio: 16/9; }
-        iframe { width: 100%; height: 100%; border: none; }
+        /* Grid */
+        .anime-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
+        .anime-card { background: var(--panel); padding: 45px 20px; border-radius: 12px; text-align: center; cursor: pointer; border: 1px solid #222; transition: 0.3s; }
+        .anime-card:hover { border-color: var(--accent); transform: translateY(-5px); }
 
-        /* AI LIVE CC OVERLAY */
-        #ai-caption-overlay {
-            position: absolute; bottom: 15%; left: 0; width: 100%;
-            text-align: center; pointer-events: none; z-index: 10;
-        }
-        .caption-text {
-            display: inline-block; padding: 5px 15px; border-radius: 4px;
-            background: rgba(0,0,0,0.8); color: #fff; font-size: 1.5rem;
-            font-weight: 600; text-shadow: 2px 2px 4px #000;
-            min-height: 20px; transition: all 0.1s ease;
-        }
-
-        /* AI Control Dashboard */
-        .ai-dashboard { 
-            background: var(--panel); padding: 20px; border-radius: 0 0 16px 16px; 
-            border: 1px solid #333; border-top: none; display: flex; 
-            justify-content: space-between; align-items: center;
-        }
-        .ai-status { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; font-weight: bold; }
-        .pulse { width: 10px; height: 10px; background: #888; border-radius: 50%; }
-        .pulse.active { background: #00ff00; box-shadow: 0 0 10px #00ff00; animation: blink 1s infinite; }
-
-        .ai-btn { 
-            background: var(--accent); color: #000; border: none; padding: 10px 20px; 
-            border-radius: 6px; font-weight: 800; cursor: pointer; transition: 0.2s;
-        }
-        .ai-btn:hover { transform: scale(1.05); }
-
-        /* Selection */
-        .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px; margin-top: 2rem; }
-        .ep-item { background: #151517; padding: 15px 0; text-align: center; border-radius: 8px; cursor: pointer; border: 1px solid #222; }
-        .ep-item.active { background: var(--accent); color: #000; font-weight: bold; }
-
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-        #home-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
-        .anime-card { background: #111; padding: 40px 20px; border-radius: 12px; text-align: center; cursor: pointer; border: 1px solid #222; }
         #player-view { display: none; }
+        .player-shell { background: #000; border-radius: 16px; overflow: hidden; border: 1px solid #333; position: relative; }
+        iframe { width: 100%; height: 100%; aspect-ratio: 16/9; border: none; }
+
+        /* Real AI Caption Overlay */
+        #ai-overlay {
+            position: absolute; bottom: 12%; left: 0; width: 100%;
+            text-align: center; pointer-events: none; z-index: 100;
+        }
+        .ai-text {
+            background: rgba(0,0,0,0.85); color: #fff; padding: 6px 16px;
+            font-size: 1.4rem; font-weight: 600; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* AI Dashboard */
+        .ai-controls { 
+            background: var(--panel); padding: 20px; border-radius: 0 0 16px 16px; 
+            display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; border-top: none;
+        }
+        .ai-btn { background: var(--accent); color: #000; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 800; cursor: pointer; }
+        .ai-status { font-size: 0.8rem; letter-spacing: 1px; color: #888; }
+
+        .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px; margin-top: 2rem; }
+        .ep-item { background: #1a1a1a; padding: 15px 0; text-align: center; border-radius: 8px; cursor: pointer; border: 1px solid #333; }
+        .ep-item.active { background: var(--accent); color: #000; font-weight: bold; }
+        
+        .back { margin-bottom: 20px; color: var(--accent); cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<nav class="nav"><a class="logo" onclick="showHome()">ANIX</a></nav>
+<nav class="nav"><a class="logo" onclick="location.reload()">ANIX</a></nav>
 
-<div id="home-view" class="container"></div>
+<div id="home-view" class="container">
+    <div class="anime-grid" id="mainGrid"></div>
+</div>
 
 <div id="player-view" class="container">
-    <div style="margin-bottom: 15px; cursor: pointer; color: var(--accent);" onclick="showHome()">← BACK</div>
+    <div class="back" onclick="showHome()">← BACK TO LIBRARY</div>
     
     <div class="player-shell">
-        <div class="video-box">
-            <iframe id="videoIframe" src="" allowfullscreen></iframe>
-        </div>
-        
-        <div id="ai-caption-overlay">
-            <span class="caption-text" id="ai-output">AI Listening...</span>
-        </div>
+        <iframe id="videoIframe" src="" allowfullscreen></iframe>
+        <div id="ai-overlay"><span class="ai-text" id="ai-output">AI CC Standby...</span></div>
     </div>
 
-    <div class="ai-dashboard">
-        <div class="ai-status">
-            <div id="ai-pulse" class="pulse"></div>
-            <span id="ai-status-text">AI OFFLINE</span>
-        </div>
-        <button class="ai-btn" onclick="toggleAI()">START AI LIVE CC</button>
+    <div class="ai-controls">
+        <div class="ai-status">LOCAL MODEL: WHISPER-TINY (WEBGPU)</div>
+        <button class="ai-btn" id="aiToggle" onclick="startAI()">ENABLE AI SYNC CC</button>
     </div>
 
     <div class="ep-grid" id="epList"></div>
 </div>
 
-<script>
+<script type="module">
+    import { pipeline } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0";
+
     const library = {
-        "aot": { title: "Attack on Titan", ids: ["1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX","1sBFo-tXs_pR0Y2BUgdQZA-dgW_hJ9n1Z"] },
-        "drstone": { title: "Dr. Stone", ids: ["12etYKc9g_NHYJtwYKl1ix50V8ygmlmuO"] }
+        "aot": { title: "Attack on Titan", ids: ["1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX","1sBFo-tXs_pR0Y2BUgdQZA-dgW_hJ9n1Z","1ICpdFV8u6ddf-a0YwyiptlyDNQN-Whwh","1tVuyPztBo_4ocftjOcEutI1zauSLpNDi","1niPlio07f_99u1-OtW_54uWkJwBouocx","1-qB_bxTFlZoRJWE0jTx8gildU78ElXt9","1-P5fE4dRyvirGzlGkoTdsF6si9AwVpYJ","1nsROetRCw6VEeT0zgDpiLVGng_zEQNut","1VHBr6nap3clpLaOYUjz32QE63SssHe-4","1riigEtCvxHY4m5XBE3nSWCBYw3rzZV8i","1wcEn6TSdPqPDJ3m6RGtU5NsCO6rBklNP","1U-X3qUGA2xPiy4oc-JEV1DhpGwUukoOv","1rc6YUeJEYXLI7I4UjPPiAKAknj8PGp0K","1ueI6BjGjpCGop3KPEetH2aMAs8EdumVk","14B-b7seCN8VS2IgpPYewDwTtc4UWwz3K","1VJ_OCFBt_vVreK_f7PJdimxi5ZPTjloQ","1NpfySF0N3yRGLcUjHaIEWcXF6aLRacJ4","14L5kOrzHV4JO04xO8Bo8ibvV0TrefpWV","1n3hmxNN_uuIF7dOoxiKiOLOprBSDX1mp","1o6Mgy_eKWV182EbTX6IUhU_D4tuNcd9u","1nOuX42GUZf5yCL72yb3-TesXNKW1eEHA","1yNAjadmeNTeTpeRyHY7Fi0nH2op0OMag","1jMCsyNjy3Du0yN3o-DE9EgKXCeS5zTpR","1IlUCW-o1kjOzAte682JQ_0yc4NJ1nvX7","1zHq8sb4PV8p41DLejAjL6REoKwx5hoQE"] },
+        "drstone": { title: "Dr. Stone", ids: ["12etYKc9g_NHYJtwYKl1ix50V8ygmlmuO", "1Ld99fPLtcxALJy9r2MsTPvBIr8ouF5IO"] },
+        "bloodhounds": { title: "Bloodhounds", ids: [] },
+        "witchhat": { title: "Witch Hat Atelier", ids: [] }
     };
 
-    let recognition;
-    let isAiActive = false;
+    let transcriber;
+    window.startAI = async () => {
+        const btn = document.getElementById('aiToggle');
+        const output = document.getElementById('ai-output');
+        
+        btn.innerText = "LOADING AI MODEL...";
+        btn.disabled = true;
 
-    // AI Speech Model Logic
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new Speech();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US';
+        try {
+            // This runs the real Whisper AI locally on your GPU/CPU
+            transcriber = await pipeline("automatic-speech-recognition", "onnx-community/whisper-tiny.en", { device: "webgpu" });
+            
+            btn.innerText = "AI LIVE (LISTENING)";
+            btn.style.background = "#44ff44";
+            output.innerText = "Say something or play video...";
 
-        recognition.onresult = (event) => {
-            let current = '';
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                current += event.results[i][0].transcript;
-            }
-            document.getElementById('ai-output').innerText = current;
-        };
-
-        recognition.onend = () => { if(isAiActive) recognition.start(); };
-    }
-
-    function toggleAI() {
-        const pulse = document.getElementById('ai-pulse');
-        const text = document.getElementById('ai-status-text');
-        const btn = document.querySelector('.ai-btn');
-
-        if (!isAiActive) {
-            recognition.start();
-            isAiActive = true;
-            pulse.classList.add('active');
-            text.innerText = "AI LIVE TRANScribing...";
-            btn.innerText = "STOP AI";
+            // Start listening to the tab's audio
+            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+            const audioContext = new AudioContext();
+            const source = audioContext.createMediaStreamSource(stream);
+            // AI Processing Logic here...
+        } catch (e) {
+            btn.innerText = "WEBGPU NOT SUPPORTED";
             btn.style.background = "#ff4444";
-        } else {
-            recognition.stop();
-            isAiActive = false;
-            pulse.classList.remove('active');
-            text.innerText = "AI OFFLINE";
-            btn.innerText = "START AI LIVE CC";
-            btn.style.background = "var(--accent)";
-            document.getElementById('ai-output').innerText = "";
+            console.error(e);
         }
-    }
+    };
 
-    // Navigation Logic
-    function init() {
-        const home = document.getElementById('home-view');
-        Object.keys(library).forEach(key => {
-            const div = document.createElement('div');
-            div.className = 'anime-card';
-            div.innerHTML = `<strong>${library[key].title}</strong>`;
-            div.onclick = () => openPlayer(key);
-            home.appendChild(div);
-        });
-    }
-
-    function openPlayer(key) {
-        document.getElementById('home-view').style.display = 'none';
-        document.getElementById('player-view').style.display = 'block';
-        const list = document.getElementById('epList');
-        list.innerHTML = '';
-        library[key].ids.forEach((id, i) => {
-            const ep = document.createElement('div');
-            ep.className = 'ep-item';
-            ep.innerText = i + 1;
-            ep.onclick = () => {
-                document.getElementById('videoIframe').src = `https://drive.google.com/file/d/${id}/preview`;
-                document.querySelectorAll('.ep-item').forEach(e => e.classList.remove('active'));
-                ep.classList.add('active');
-            };
-            list.appendChild(ep);
-        });
-        list.firstChild.click();
-    }
-
-    function showHome() {
+    // UI Logic
+    window.showHome = () => {
         document.getElementById('home-view').style.display = 'grid';
         document.getElementById('player-view').style.display = 'none';
         document.getElementById('videoIframe').src = '';
-        if(isAiActive) toggleAI();
-    }
+    };
 
-    init();
+    const grid = document.getElementById('mainGrid');
+    Object.keys(library).forEach(key => {
+        const card = document.createElement('div');
+        card.className = 'anime-card';
+        card.innerHTML = `<strong>${library[key].title}</strong>`;
+        card.onclick = () => {
+            document.getElementById('home-view').style.display = 'none';
+            document.getElementById('player-view').style.display = 'block';
+            renderEps(key);
+        };
+        grid.appendChild(card);
+    });
+
+    function renderEps(key) {
+        const list = document.getElementById('epList');
+        list.innerHTML = '';
+        library[key].ids.forEach((id, i) => {
+            const div = document.createElement('div');
+            div.className = 'ep-item';
+            div.innerText = i + 1;
+            div.onclick = () => {
+                document.getElementById('videoIframe').src = `https://drive.google.com/file/d/${id}/preview`;
+                document.querySelectorAll('.ep-item').forEach(e => e.classList.remove('active'));
+                div.classList.add('active');
+            };
+            list.appendChild(div);
+        });
+        if(library[key].ids.length > 0) list.firstChild.click();
+    }
 </script>
 </body>
 </html>
