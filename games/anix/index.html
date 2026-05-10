@@ -3,42 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ANIX | Ghost Engine</title>
+    <title>ANIX | Ghost Engine V4</title>
     <style>
         :root { --bg: #050505; --accent: #ffb11b; --panel: #111113; --text: #eee; }
-        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
-        .nav { background: #000; padding: 1rem 5%; border-bottom: 1px solid #222; display: flex; justify-content: space-between; }
-        .logo { color: var(--accent); font-weight: 900; font-size: 1.8rem; cursor: pointer; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+        .nav { background: #000; padding: 1rem 5%; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        .logo { color: var(--accent); font-weight: 900; font-size: 1.8rem; text-decoration: none; cursor: pointer; }
         .container { max-width: 1000px; margin: 2rem auto; padding: 0 20px; }
         
-        /* Grid */
-        .anime-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
-        .anime-card { background: var(--panel); padding: 45px 20px; border-radius: 12px; text-align: center; cursor: pointer; border: 1px solid #222; transition: 0.2s; }
-        .anime-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+        /* Grid System */
+        .anime-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.2rem; }
+        .anime-card { background: var(--panel); padding: 50px 20px; border-radius: 12px; text-align: center; cursor: pointer; border: 1px solid #222; transition: 0.3s ease; }
+        .anime-card:hover { border-color: var(--accent); transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
 
         #player-view { display: none; }
-        .player-shell { background: #000; border-radius: 16px; overflow: hidden; border: 1px solid #333; position: relative; aspect-ratio: 16/9; }
+        .player-shell { background: #000; border-radius: 16px; overflow: hidden; border: 1px solid #333; position: relative; aspect-ratio: 16/9; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
         iframe { width: 100%; height: 100%; border: none; position: absolute; top: 0; left: 0; }
 
-        /* PREMIUM FADING CC OVERLAY */
+        /* ADVANCED CC OVERLAY */
         .cc-overlay { position: absolute; bottom: 12%; width: 100%; text-align: center; pointer-events: none; z-index: 9999; }
         .cc-text { 
-            background: rgba(0,0,0,0.85); color: #fff; padding: 10px 20px; 
-            font-size: 1.5rem; font-weight: bold; border: 1px solid var(--accent); 
-            border-radius: 6px; display: inline-block; max-width: 85%;
+            background: rgba(0,0,0,0.85); color: #fff; padding: 10px 22px; 
+            font-size: 1.5rem; font-weight: 700; border: 1px solid var(--accent); 
+            border-radius: 8px; display: inline-block; max-width: 85%;
             word-wrap: break-word; line-height: 1.4;
             transition: opacity 0.2s ease; opacity: 0; 
         }
 
-        .ai-bar { background: var(--panel); padding: 15px; border-radius: 0 0 16px 16px; display: flex; align-items: center; border: 1px solid #333; border-top: none; }
-        .sync-btn { background: #222; color: #fff; border: 1px solid #444; padding: 6px 14px; border-radius: 4px; cursor: pointer; margin: 0 5px; font-weight: bold; }
+        /* SYNC CONTROLS */
+        .ai-bar { background: var(--panel); padding: 15px 25px; border-radius: 0 0 16px 16px; display: flex; align-items: center; border: 1px solid #333; border-top: none; }
+        .sync-btn { background: #1a1a1a; color: #fff; border: 1px solid #444; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin: 0 5px; font-weight: bold; transition: 0.2s; }
         .sync-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-        .season-label { margin: 20px 0 10px; font-weight: bold; color: var(--accent); text-transform: uppercase; font-size: 0.8rem; }
-        .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 8px; margin-bottom: 20px; }
-        .ep-item { background: #1a1a1a; padding: 12px 0; text-align: center; border-radius: 6px; cursor: pointer; border: 1px solid #333; }
-        .ep-item.active { background: var(--accent); color: #000; font-weight: bold; }
-        .back { color: var(--accent); cursor: pointer; margin-bottom: 15px; font-weight: bold; display: inline-block; }
+        .season-label { margin: 25px 0 12px; font-weight: 900; color: var(--accent); text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; }
+        .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); gap: 10px; margin-bottom: 25px; }
+        .ep-item { background: #1a1a1a; padding: 14px 0; text-align: center; border-radius: 8px; cursor: pointer; border: 1px solid #333; font-weight: 600; }
+        .ep-item.active { background: var(--accent); color: #000; border-color: var(--accent); }
+        .back { color: var(--accent); cursor: pointer; margin-bottom: 15px; font-weight: bold; display: inline-block; text-transform: uppercase; font-size: 0.8rem; }
     </style>
 </head>
 <body>
@@ -50,18 +51,18 @@
 </div>
 
 <div id="player-view" class="container">
-    <div class="back" onclick="showHome()">← BACK</div>
+    <div class="back" onclick="showHome()">← Back to Library</div>
     <div class="player-shell">
-        <iframe id="videoIframe" allow="autoplay; fullscreen"></iframe>
+        <iframe id="videoIframe" allow="autoplay; fullscreen" referrerpolicy="no-referrer"></iframe>
         <div class="cc-overlay"><span class="cc-text" id="ai-output"></span></div>
     </div>
     
     <div class="ai-bar">
-        <span style="font-size: 0.75rem; color: #888; margin-right: 15px;">GHOST SYNC:</span>
+        <span style="font-size: 0.7rem; color: #888; margin-right: 15px; font-weight: 900;">GHOST SYNC:</span>
         <button class="sync-btn" onclick="adjustSync(-1)">-1s</button>
-        <div id="offset-display" style="font-weight: 900; width: 50px; text-align: center; color: var(--accent);">0s</div>
+        <div id="offset-display" style="font-weight: 900; width: 50px; text-align: center; color: var(--accent); font-size: 1.1rem;">0s</div>
         <button class="sync-btn" onclick="adjustSync(1)">+1s</button>
-        <button class="sync-btn" style="margin-left:auto; background: var(--accent); color:#000; border:none;" onclick="toggleAI()">TOGGLE LIVE MIC</button>
+        <button class="sync-btn" style="margin-left:auto; background: var(--accent); color:#000; border:none;" onclick="toggleAI()">ENABLE AI ENGINE</button>
     </div>
     <div id="episode-list-container"></div>
 </div>
@@ -70,14 +71,14 @@
     const library = {
         "aot": { title: "Attack on Titan", seasons: [
             { name: "Season 1", ids: ["1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX","1sBFo-tXs_pR0Y2BUgdQZA-dgW_hJ9n1Z","1ICpdFV8u6ddf-a0YwyiptlyDNQN-Whwh","1tVuyPztBo_4ocftjOcEutI1zauSLpNDi","1niPlio07f_99u1-OtW_54uWkJwBouocx","1-qB_bxTFlZoRJWE0jTx8gildU78ElXt9","1-P5fE4dRyvirGzlGkoTdsF6si9AwVpYJ","1nsROetRCw6VEeT0zgDpiLVGng_zEQNut","1VHBr6nap3clpLaOYUjz32QE63SssHe-4","1riigEtCvxHY4m5XBE3nSWCBYw3rzZV8i","1wcEn6TSdPqPDJ3m6RGtU5NsCO6rBklNP","1U-X3qUGA2xPiy4oc-JEV1DhpGwUukoOv","1rc6YUeJEYXLI7I4UjPPiAKAknj8PGp0K","1ueI6BjGjpCGop3KPEetH2aMAs8EdumVk","14B-b7seCN8VS2IgpPYewDwTtc4UWwz3K","1VJ_OCFBt_vVreK_f7PJdimxi5ZPTjloQ","1NpfySF0N3yRGLcUjHaIEWcXF6aLRacJ4","14L5kOrzHV4JO04xO8Bo8ibvV0TrefpWV","1n3hmxNN_uuIF7dOoxiKiOLOprBSDX1mp","1o6Mgy_eKWV182EbTX6IUhU_D4tuNcd9u","1nOuX42GUZf5yCL72yb3-TesXNKW1eEHA","1yNAjadmeNTeTpeRyHY7Fi0nH2op0OMag","1jMCsyNjy3Du0yN3o-DE9EgKXCeS5zTpR","1IlUCW-o1kjOzAte682JQ_0yc4NJ1nvX7","1zHq8sb4PV8p41DLejAjL6REoKwx5hoQE"] },
-            { name: "Season 2", ids: ["1uX2W_M2rV5tYV_P6E9Tf0v7K0mFzGjI2", "1E-0O9r0R-x66_V-Placeholder"] }
+            { name: "Season 2", ids: ["1uX2W_M2rV5tYV_P6E9Tf0v7K0mFzGjI2", "1-V_6XW-G0o3Z3bZ4K_L0o-V-G_G0o3Z", "ID_EP_28", "ID_EP_29", "ID_EP_30", "ID_EP_31", "ID_EP_32", "ID_EP_33", "ID_EP_34", "ID_EP_35", "ID_EP_36", "ID_EP_37"] }
         ]},
         "drstone": { title: "Dr. Stone", seasons: [{ name: "S1", ids: ["12etYKc9g_NHYJtwYKl1ix50V8ygmlmuO", "1Ld99fPLtcxALJy9r2MsTPvBIr8ouF5IO"] }]},
         "bloodhounds": { title: "Bloodhounds", seasons: [{ name: "S1", ids: [] }]},
         "witchhat": { title: "Witch Hat Atelier", seasons: [{ name: "S1", ids: [] }]}
     };
 
-    let recognition, aiActive = false, currentOffset = 0;
+    let recognition, aiActive = false, currentOffset = 0, ccTimeout, restartInterval;
 
     function setupAI() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -86,14 +87,11 @@
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = "en-US";
-        recognition.maxAlternatives = 1;
 
         recognition.onresult = (event) => {
             let transcript = "";
             for (let i = event.resultIndex; i < event.results.length; i++) {
-                if (event.results[i].isFinal || event.results[i][0].confidence > 0.3) {
-                    transcript = event.results[i][0].transcript;
-                }
+                transcript = event.results[i][0].transcript;
             }
             updateCC(transcript);
         };
@@ -101,19 +99,40 @@
     }
 
     function updateCC(text) {
-        const output = document.getElementById("ai-output");
-        output.style.opacity = 0;
+        // APPLY THE OFFSET DELAY (Ghost Sync)
+        const delay = Math.max(0, currentOffset * 1000);
+        
         setTimeout(() => {
-            output.innerText = text;
-            output.style.opacity = 1;
-        }, 150);
+            const output = document.getElementById("ai-output");
+            clearTimeout(ccTimeout);
+            output.style.opacity = 0;
+            
+            setTimeout(() => {
+                output.innerText = text;
+                output.style.opacity = 1;
+            }, 120);
+
+            // AUTO-CLEAR AFTER 4 SECONDS
+            ccTimeout = setTimeout(() => { output.style.opacity = 0; }, 4000);
+        }, delay);
     }
 
     function toggleAI() {
         if (!recognition) setupAI();
         try {
-            if (aiActive) { recognition.stop(); aiActive = false; updateCC("AI MIC OFF"); }
-            else { recognition.start(); aiActive = true; updateCC("AI LISTENING..."); }
+            if (aiActive) {
+                clearInterval(restartInterval);
+                recognition.stop();
+                aiActive = false;
+                updateCC("ENGINE OFFLINE");
+            } else {
+                recognition.start();
+                aiActive = true;
+                // REFRESH ENGINE EVERY 30s TO PREVENT CHROME LAG
+                restartInterval = setInterval(() => { try { recognition.stop(); recognition.start(); } catch(e){} }, 30000);
+                updateCC("ENGINE ONLINE...");
+                setTimeout(() => { if(document.getElementById("ai-output").innerText.includes("ONLINE")) updateCC(""); }, 1500);
+            }
         } catch(e) {}
     }
 
