@@ -1,182 +1,246 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ANIX | AI Live</title>
-    <style>
-        :root { --bg: #050505; --accent: #ffb11b; --panel: #111113; --text: #e0e0e0; }
-        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
-        
-        .nav { background: #000; padding: 1rem 5%; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        .logo { color: var(--accent); font-weight: 900; font-size: 1.8rem; text-decoration: none; cursor: pointer; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unblocked Games Hub</title>
+<style>
+  body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    color: #fff;
+    background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #00ff00, #00bfff, #0000ff, #8a00d4);
+    background-size: 400% 400%;
+    animation: gradientAnimation 15s ease infinite;
+    transition: background 0.5s, color 0.5s;
+  }
 
-        .container { max-width: 1000px; margin: 2rem auto; padding: 0 20px; }
-        
-        /* Premium Player Shell */
-        .player-shell { position: relative; background: #000; border-radius: 16px; overflow: hidden; border: 1px solid #333; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
-        .video-box { width: 100%; aspect-ratio: 16/9; }
-        iframe { width: 100%; height: 100%; border: none; }
+  @keyframes gradientAnimation {
+    0%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+    100%{background-position:0% 50%;}
+  }
 
-        /* AI LIVE CC OVERLAY */
-        #ai-caption-overlay {
-            position: absolute; bottom: 15%; left: 0; width: 100%;
-            text-align: center; pointer-events: none; z-index: 10;
-        }
-        .caption-text {
-            display: inline-block; padding: 5px 15px; border-radius: 4px;
-            background: rgba(0,0,0,0.8); color: #fff; font-size: 1.5rem;
-            font-weight: 600; text-shadow: 2px 2px 4px #000;
-            min-height: 20px; transition: all 0.1s ease;
-        }
+  h1 { text-align:center; font-size:3rem; margin-bottom:30px; cursor: pointer; }
 
-        /* AI Control Dashboard */
-        .ai-dashboard { 
-            background: var(--panel); padding: 20px; border-radius: 0 0 16px 16px; 
-            border: 1px solid #333; border-top: none; display: flex; 
-            justify-content: space-between; align-items: center;
-        }
-        .ai-status { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; font-weight: bold; }
-        .pulse { width: 10px; height: 10px; background: #888; border-radius: 50%; }
-        .pulse.active { background: #00ff00; box-shadow: 0 0 10px #00ff00; animation: blink 1s infinite; }
+  .login-container {
+    width:100%; max-width:400px; margin:0 auto;
+    background: rgba(0,0,0,0.6);
+    padding:20px; border-radius:10px;
+    text-align:center; backdrop-filter: blur(5px);
+  }
 
-        .ai-btn { 
-            background: var(--accent); color: #000; border: none; padding: 10px 20px; 
-            border-radius: 6px; font-weight: 800; cursor: pointer; transition: 0.2s;
-        }
-        .ai-btn:hover { transform: scale(1.05); }
+  .login-input {
+    width:100%; padding:10px; margin:10px 0;
+    border:none; border-radius:5px;
+  }
 
-        /* Selection */
-        .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px; margin-top: 2rem; }
-        .ep-item { background: #151517; padding: 15px 0; text-align: center; border-radius: 8px; cursor: pointer; border: 1px solid #222; }
-        .ep-item.active { background: var(--accent); color: #000; font-weight: bold; }
+  .login-button {
+    width:100%; padding:12px;
+    background:#ff4500; color:#fff;
+    border:none; border-radius:5px; cursor:pointer;
+    font-size:18px;
+  }
 
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-        #home-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
-        .anime-card { background: #111; padding: 40px 20px; border-radius: 12px; text-align: center; cursor: pointer; border: 1px solid #222; }
-        #player-view { display: none; }
-    </style>
+  #error-message { color:red; margin-top:10px; }
+
+  #gameSection { display:none; opacity:0; transition:opacity 0.8s ease; }
+  
+  #darkModeButton {
+    position:absolute; top:20px; right:20px;
+    padding:12px; background:#333; color:#fff;
+    border:none; border-radius:5px; cursor:pointer;
+    z-index: 1001;
+  }
+
+  #searchContainer {
+    display:flex; justify-content:center; gap:10px;
+    margin-bottom:30px; flex-wrap:wrap;
+  }
+
+  #searchBox {
+    width:100%; max-width:300px;
+    padding:12px; border:none; border-radius:5px;
+    background: rgba(255,255,255,0.2); color:white;
+    backdrop-filter: blur(5px);
+  }
+
+  #searchButton {
+    padding:14px 22px; background:#e63900;
+    border:none; border-radius:5px; color:white; cursor:pointer;
+  }
+
+  #categoryFilterContainer { text-align:center; margin-bottom:20px; }
+  .categoryButton {
+    padding:10px; background:#333; color:white;
+    border:none; border-radius:5px; cursor:pointer; margin:5px;
+  }
+
+  .categoryButton:hover { background:#e63900; }
+
+  #gameList {
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+    gap:20px; width:90%; max-width:1000px; margin:30px auto 0;
+  }
+
+  .game {
+    background: rgba(255,255,255,0.05);
+    padding:20px 15px; border-radius:15px; text-align:center;
+    backdrop-filter: blur(8px);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  .game:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255,69,0,0.7);
+  }
+
+  .game img { width: 100%; border-radius: 10px; margin-bottom: 10px; aspect-ratio: 2/3; object-fit: cover; }
+
+  .game a {
+    display:inline-block; background:#ff4500; padding:10px 20px;
+    color:white; border-radius:5px; text-decoration:none; border: none;
+    cursor: pointer; font-size: 16px; font-weight: bold;
+  }
+
+  .game a.anix-btn { background: #00bcd4; color: #000; }
+
+  .dark-mode { background:#121212; color:#fff; }
+</style>
 </head>
 <body>
 
-<nav class="nav"><a class="logo" onclick="showHome()">ANIX</a></nav>
+<h1 onclick="location.reload()">Unblocked Games Hub</h1>
 
-<div id="home-view" class="container"></div>
+<div id="loginContainer" class="login-container">
+  <h2>Login</h2>
+  <input id="username" class="login-input" placeholder="Username" />
+  <input id="password" class="login-input" type="password" placeholder="Password" />
+  <button class="login-button" onclick="validateLogin()">Login</button>
+  <p id="error-message"></p>
+</div>
 
-<div id="player-view" class="container">
-    <div style="margin-bottom: 15px; cursor: pointer; color: var(--accent);" onclick="showHome()">← BACK</div>
-    
-    <div class="player-shell">
-        <div class="video-box">
-            <iframe id="videoIframe" src="" allowfullscreen></iframe>
-        </div>
-        
-        <div id="ai-caption-overlay">
-            <span class="caption-text" id="ai-output">AI Listening...</span>
-        </div>
-    </div>
+<div id="gameSection">
+  <button id="darkModeButton">Toggle Dark Mode</button>
 
-    <div class="ai-dashboard">
-        <div class="ai-status">
-            <div id="ai-pulse" class="pulse"></div>
-            <span id="ai-status-text">AI OFFLINE</span>
-        </div>
-        <button class="ai-btn" onclick="toggleAI()">START AI LIVE CC</button>
-    </div>
+  <div id="searchContainer">
+    <input type="text" id="searchBox" placeholder="Search privately..." />
+    <button id="searchButton" onclick="searchWeb()" disabled>🔍 Search</button>
+  </div>
 
-    <div class="ep-grid" id="epList"></div>
+  <div id="categoryFilterContainer">
+    <button class="categoryButton" onclick="loadGames('All')">All</button>
+    <button class="categoryButton" onclick="loadGames('Anix')">Anix</button>
+    <button class="categoryButton" onclick="loadGames('Arcade')">Arcade</button>
+    <button class="categoryButton" onclick="loadGames('Puzzle')">Puzzle</button>
+    <button class="categoryButton" onclick="loadGames('Sports')">Sports</button>
+    <button class="categoryButton" onclick="loadGames('Sandbox')">Sandbox</button>
+    <button class="categoryButton" onclick="loadGames('Shooter')">Shooter</button>
+    <button class="categoryButton" onclick="loadGames('Strategy')">Strategy</button>
+    <button class="categoryButton" onclick="loadGames('Platformer')">Platformer</button>
+    <button class="categoryButton" onclick="loadGames('Fighting')">Fighting</button>
+  </div>
+
+  <div id="gameList"></div>
+
+  <div style="text-align:center; margin-top:40px;">
+    <h2>Join Our Discord</h2>
+    <p>
+      <a href="https://discord.gg/D9ASGfSjk4" target="_blank" style="color:white;font-size:18px;">Click Me</a>
+    </p>
+  </div>
 </div>
 
 <script>
-    const library = {
-        "aot": { title: "Attack on Titan", ids: ["1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX","1sBFo-tXs_pR0Y2BUgdQZA-dgW_hJ9n1Z"] },
-        "drstone": { title: "Dr. Stone", ids: ["12etYKc9g_NHYJtwYKl1ix50V8ygmlmuO"] }
-    };
+// Login Logic
+function validateLogin(auto=false){
+    const u = document.getElementById("username").value.trim();
+    const p = document.getElementById("password").value.trim();
+    const err = document.getElementById("error-message");
 
-    let recognition;
-    let isAiActive = false;
-
-    // AI Speech Model Logic
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new Speech();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US';
-
-        recognition.onresult = (event) => {
-            let current = '';
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                current += event.results[i][0].transcript;
-            }
-            document.getElementById('ai-output').innerText = current;
-        };
-
-        recognition.onend = () => { if(isAiActive) recognition.start(); };
+    if(u==="ryzen" && p==="4060"){
+      if(!auto){
+        localStorage.setItem('ugHub_user', u);
+        localStorage.setItem('ugHub_pass', p);
+      }
+      document.getElementById("loginContainer").style.display="none";
+      const sec=document.getElementById("gameSection");
+      sec.style.display="block";
+      setTimeout(()=>sec.style.opacity=1,100);
+    } else if(!auto){
+      err.textContent="Invalid username or password.";
     }
+}
 
-    function toggleAI() {
-        const pulse = document.getElementById('ai-pulse');
-        const text = document.getElementById('ai-status-text');
-        const btn = document.querySelector('.ai-btn');
+window.addEventListener('DOMContentLoaded', () => {
+    const savedUser = localStorage.getItem('ugHub_user');
+    const savedPass = localStorage.getItem('ugHub_pass');
+    if(savedUser && savedPass) validateLogin(true);
+});
 
-        if (!isAiActive) {
-            recognition.start();
-            isAiActive = true;
-            pulse.classList.add('active');
-            text.innerText = "AI LIVE TRANScribing...";
-            btn.innerText = "STOP AI";
-            btn.style.background = "#ff4444";
-        } else {
-            recognition.stop();
-            isAiActive = false;
-            pulse.classList.remove('active');
-            text.innerText = "AI OFFLINE";
-            btn.innerText = "START AI LIVE CC";
-            btn.style.background = "var(--accent)";
-            document.getElementById('ai-output').innerText = "";
-        }
+// Database
+const games = [
+    {id:'anix', name:'ANIX Streaming', category:'Anix', description:'Watch AOT, Dr. Stone & More!', url:'games/anix/index.html', poster:'https://image.tmdb.org/t/p/w500/8C9wYwN7G1E5Y5E4Y8v6Y9E6E8.jpg'},
+    {id:'2048',name:'2048',category:'Puzzle',description:'Combine tiles to reach 2048.',url:'games/2048/index.html'},
+    {id:'advanced-parkour',name:'Advanced Parkour',category:'Platformer',description:'Jump and run through parkour.',url:'games/advanced-parkour/index.html'},
+    {id:'afterblast',name:'Afterblast',category:'Shooter',description:'Action-packed blasting fun!',url:'games/afterblast/index.html'},
+    {id:'agar-io',name:'Agar.io',category:'Arcade',description:'Eat cells and grow bigger.',url:'games/agar-io/index.html'},
+    {id:'car-racing',name:'Car Racing',category:'Sports',description:'Race cars and beat your best time.',url:'games/car-racing/index.html'},
+    {id:'checkers',name:'Checkers',category:'Strategy',description:'Classic board game.',url:'games/checkers/index.html'},
+    {id:'chess',name:'Chess',category:'Strategy',description:'Classic strategy game.',url:'games/chess/index.html'},
+    {id:'crossy-road',name:'Crossy Road',category:'Arcade',description:'Cross the road!',url:'games/crossy-road/index.html'},
+    {id:'doodle-jump',name:'Doodle Jump',category:'Arcade',description:'Jump up and avoid falling.',url:'games/doodle-jump/index.html'},
+    {id:'flappybird',name:'Flappy Bird',category:'Arcade',description:'Fly the bird through pipes!',url:'games/flappybird/index.html'},
+    {id:'galaga',name:'Galaga',category:'Shooter',description:'Defend the galaxy.',url:'games/galaga/index.html'},
+    {id:'minecraft',name:'Minecraft',category:'Sandbox',description:'Build and explore.',url:'games/mine/index.html'},
+    {id:'pacman',name:'Pac-Man',category:'Arcade',description:'Classic maze chase game.',url:'games/pacman/index.html'},
+    {id:'pong',name:'Pong',category:'Sports',description:'Classic ping-pong!',url:'games/pong/index.html'},
+    {id:'snake',name:'Snake',category:'Arcade',description:'Eat to grow!',url:'games/snake/index.html'},
+    {id:'space-invaders',name:'Space Invaders',category:'Shooter',description:'Defend against aliens!',url:'games/space-invaders/index.html'},
+    {id:'street-fighter',name:'Street Fighter',category:'Fighting',description:'Battle arcade style.',url:'games/street-fighter/index.html'},
+    {id:'super-mario',name:'Super Mario',category:'Platformer',description:'Classic platforming.',url:'games/super-mario/index.html'},
+    {id:'tetris',name:'Tetris',category:'Puzzle',description:'Fit the falling blocks!',url:'games/tetris/index.html'},
+    {id:'tiktok',name:'TikTok',category:'Social',description:'Watch trending videos!',url:'games/tiktok/index.html'},
+    {id:'void',name:'Void Network v5',category:'Puzzle',description:'Roblox, Minecraft & More!',url:'https://poxel.idisk.space'}
+];
+
+function loadGames(cat='All'){
+    const list=document.getElementById("gameList");
+    list.innerHTML="";
+    const filtered=cat==='All'?games:games.filter(g=>g.category===cat);
+    
+    filtered.forEach(g=>{
+      const isAnix = g.category === 'Anix';
+      list.innerHTML+=`
+      <div class="game">
+        ${g.poster ? `<img src="${g.poster}" alt="${g.name}">` : ''}
+        <h3>${g.name}</h3>
+        <p>${g.description}</p>
+        <a href="${g.url}" class="${isAnix ? 'anix-btn' : ''}">${isAnix ? 'Watch Now' : 'Play Now'}</a>
+      </div>`;
+    });
+}
+
+// Search
+function searchWeb(){
+    const q=document.getElementById("searchBox").value.trim();
+    if(q){
+        window.open("https://www.bing.com/search?q=" + encodeURIComponent(q), "_blank");
     }
+}
 
-    // Navigation Logic
-    function init() {
-        const home = document.getElementById('home-view');
-        Object.keys(library).forEach(key => {
-            const div = document.createElement('div');
-            div.className = 'anime-card';
-            div.innerHTML = `<strong>${library[key].title}</strong>`;
-            div.onclick = () => openPlayer(key);
-            home.appendChild(div);
-        });
-    }
+// Dark Mode
+document.getElementById("darkModeButton").addEventListener("click", ()=>{
+    document.body.classList.toggle("dark-mode");
+});
 
-    function openPlayer(key) {
-        document.getElementById('home-view').style.display = 'none';
-        document.getElementById('player-view').style.display = 'block';
-        const list = document.getElementById('epList');
-        list.innerHTML = '';
-        library[key].ids.forEach((id, i) => {
-            const ep = document.createElement('div');
-            ep.className = 'ep-item';
-            ep.innerText = i + 1;
-            ep.onclick = () => {
-                document.getElementById('videoIframe').src = `https://drive.google.com/file/d/${id}/preview`;
-                document.querySelectorAll('.ep-item').forEach(e => e.classList.remove('active'));
-                ep.classList.add('active');
-            };
-            list.appendChild(ep);
-        });
-        list.firstChild.click();
-    }
-
-    function showHome() {
-        document.getElementById('home-view').style.display = 'grid';
-        document.getElementById('player-view').style.display = 'none';
-        document.getElementById('videoIframe').src = '';
-        if(isAiActive) toggleAI();
-    }
-
-    init();
+document.addEventListener("DOMContentLoaded",()=>{
+    loadGames();
+    const box=document.getElementById("searchBox");
+    const btn=document.getElementById("searchButton");
+    box.addEventListener("input",()=> btn.disabled = box.value.trim()==="");
+});
 </script>
 </body>
 </html>
