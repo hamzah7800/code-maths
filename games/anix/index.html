@@ -5,38 +5,169 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ANIX | Library</title>
     <style>
-        :root { --bg: #050505; --accent: #ffb11b; --panel: #111113; --text: #eee; }
-        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+        :root { 
+            --bg: #050505; 
+            --accent: #ffb11b; 
+            --panel: #111113; 
+            --text: #eee; 
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+
+        body { 
+            margin: 0; 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            overflow-x: hidden; 
+            -webkit-font-smoothing: antialiased;
+        }
         
         /* Nav */
-        .nav { background: #000; padding: 1rem 5%; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        .logo { color: var(--accent); font-weight: 900; font-size: 1.8rem; text-decoration: none; cursor: pointer; }
+        .nav { 
+            background: #000; 
+            padding: 1rem 5%; 
+            border-bottom: 1px solid #222; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .logo { 
+            color: var(--accent); 
+            font-weight: 900; 
+            font-size: 1.8rem; 
+            text-decoration: none; 
+            cursor: pointer; 
+            user-select: none;
+        }
         
-        .container { max-width: 1000px; margin: 2rem auto; padding: 0 20px; }
+        .container { 
+            width: 100%;
+            max-width: 1100px; 
+            margin: 1.5rem auto; 
+            padding: 0 1rem; 
+        }
         
-        /* Grid */
-        .anime-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.2rem; }
-        .anime-card { background: var(--panel); padding: 50px 20px; border-radius: 12px; text-align: center; cursor: pointer; border: 1px solid #222; transition: 0.3s ease; }
-        .anime-card:hover { border-color: var(--accent); transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        /* Grid Layouts - Adapts on small screens */
+        .anime-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+            gap: 1.2rem; 
+        }
 
-        /* Player */
+        @media (min-width: 480px) {
+            .anime-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+        }
+
+        .anime-card { 
+            background: var(--panel); 
+            padding: 60px 15px; 
+            border-radius: 12px; 
+            text-align: center; 
+            cursor: pointer; 
+            border: 1px solid #222; 
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; 
+            user-select: none;
+        }
+
+        @media (hover: hover) {
+            .anime-card:hover { 
+                border-color: var(--accent); 
+                transform: translateY(-5px); 
+                box-shadow: 0 10px 20px rgba(0,0,0,0.5); 
+            }
+        }
+
+        /* Player wrapper scaling natively across aspect ratios */
         #player-view { display: none; }
-        .player-shell { background: #000; border-radius: 16px; overflow: hidden; border: 1px solid #333; position: relative; aspect-ratio: 16/9; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
-        iframe { width: 100%; height: 100%; border: none; position: absolute; top: 0; left: 0; }
+        .player-shell { 
+            background: #000; 
+            border-radius: 12px; 
+            overflow: hidden; 
+            border: 1px solid #222; 
+            position: relative; 
+            width: 100%;
+            aspect-ratio: 16/9; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6); 
+            margin-bottom: 1.5rem;
+        }
+        iframe { 
+            width: 100%; 
+            height: 100%; 
+            border: none; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+        }
 
-        /* Episode List UI */
-        .season-label { margin: 25px 0 12px; font-weight: 900; color: var(--accent); text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; }
-        .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); gap: 10px; margin-bottom: 25px; }
-        .ep-item { background: #1a1a1a; padding: 14px 0; text-align: center; border-radius: 8px; cursor: pointer; border: 1px solid #333; font-weight: 600; transition: 0.2s; }
-        .ep-item:hover { border-color: var(--accent); color: var(--accent); }
-        .ep-item.active { background: var(--accent); color: #000; border-color: var(--accent); }
+        /* Episode UI Items - Mobile First Touch Target Sizes */
+        .season-label { 
+            margin: 20px 0 10px; 
+            font-weight: 900; 
+            color: var(--accent); 
+            text-transform: uppercase; 
+            font-size: 0.85rem; 
+            letter-spacing: 2px; 
+        }
+        .ep-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); 
+            gap: 8px; 
+            margin-bottom: 20px; 
+        }
+        .ep-item { 
+            background: #1a1a1a; 
+            padding: 12px 0; 
+            text-align: center; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            border: 1px solid #333; 
+            font-weight: 600; 
+            font-size: 0.9rem;
+            min-height: 44px; /* Apple/Android standards compliance for finger targets */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, border-color 0.2s;
+            user-select: none;
+        }
+        @media (hover: hover) {
+            .ep-item:hover { border-color: var(--accent); color: var(--accent); }
+        }
+        .ep-item.active { 
+            background: var(--accent); 
+            color: #000; 
+            border-color: var(--accent); 
+        }
         
-        .back { color: var(--accent); cursor: pointer; margin-bottom: 15px; font-weight: bold; display: inline-block; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
+        .back { 
+            color: var(--accent); 
+            cursor: pointer; 
+            margin-bottom: 15px; 
+            font-weight: bold; 
+            display: inline-flex; 
+            align-items: center;
+            text-transform: uppercase; 
+            font-size: 0.85rem; 
+            letter-spacing: 1px; 
+            padding: 8px 0;
+            user-select: none;
+        }
+        
+        .empty-notice {
+            color: #777;
+            font-style: italic;
+            padding: 10px 0;
+        }
     </style>
 </head>
 <body>
 
-<nav class="nav"><div class="logo" onclick="location.reload()">ANIX</div></nav>
+<nav class="nav">
+    <div class="logo" onclick="showHome()">ANIX</div>
+</nav>
 
 <div id="home-view" class="container">
     <div class="anime-grid" id="mainGrid"></div>
@@ -84,13 +215,14 @@
                 }
             ]
         },
-        "drstone": { title: "Dr. Stone", seasons: [{ name: "S1", ids: ["12etYKc9g_NHYJtwYKl1ix50V8ygmlmuO", "1Ld99fPLtcxALJy9r2MsTPvBIr8ouF5IO"] }] },
-        "bloodhounds": { title: "Bloodhounds", seasons: [{ name: "S1", ids: [] }] },
-        "witchhat": { title: "Witch Hat Atelier", seasons: [{ name: "S1", ids: [] }] }
+        "drstone": { title: "Dr. Stone", seasons: [{ name: "Season 1", ids: ["12etYKc9g_NHYJtwYKl1ix50V8ygmlmuO", "1Ld99fPLtcxALJy9r2MsTPvBIr8ouF5IO"] }] },
+        "bloodhounds": { title: "Bloodhounds", seasons: [{ name: "Season 1", ids: [] }] },
+        "witchhat": { title: "Witch Hat Atelier", seasons: [{ name: "Season 1", ids: [] }] }
     };
 
     function init() {
         const grid = document.getElementById('mainGrid');
+        grid.innerHTML = '';
         Object.keys(library).forEach(key => {
             const card = document.createElement('div');
             card.className = 'anime-card';
@@ -103,35 +235,70 @@
     function openPlayer(key) {
         document.getElementById('home-view').style.display = 'none';
         document.getElementById('player-view').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
         const container = document.getElementById('episode-list-container');
         container.innerHTML = '';
 
-        library[key].seasons.forEach(s => {
+        let firstItem = null;
+        let firstId = null;
+
+        const series = library[key];
+        
+        // Dynamic continuous episode numbering track across seasons
+        let cumulativeEpisodeCount = 0; 
+
+        series.seasons.forEach(s => {
             const label = document.createElement('div');
             label.className = 'season-label';
             label.innerText = s.name;
             container.appendChild(label);
 
+            if (!s.ids || s.ids.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'empty-notice';
+                empty.innerText = 'No episodes available yet.';
+                container.appendChild(empty);
+                return;
+            }
+
             const grid = document.createElement('div');
             grid.className = 'ep-grid';
+            
             s.ids.forEach((id, i) => {
+                cumulativeEpisodeCount++;
                 const ep = document.createElement('div');
                 ep.className = 'ep-item';
-                ep.innerText = (s.name === "Season 2" ? i + 26 : i + 1); // Auto-numbering for AOT
+                ep.innerText = cumulativeEpisodeCount;
+                
+                const targetId = id;
                 ep.onclick = () => {
+                    if (targetId.includes('PLACEHOLDER')) {
+                        alert("This episode source isn't ready yet!");
+                        return;
+                    }
                     const iframe = document.getElementById('videoIframe');
-                    iframe.src = ''; // Clear previous state
-                    setTimeout(() => {
-                        iframe.src = `https://drive.google.com/file/d/${id}/preview`;
-                    }, 50);
+                    iframe.src = `https://drive.google.com/file/d/${targetId}/preview`;
                     
                     document.querySelectorAll('.ep-item').forEach(el => el.classList.remove('active'));
                     ep.classList.add('active');
                 };
+
+                // Track first valid episode to auto-start play logic gracefully
+                if (!firstId && !id.includes('PLACEHOLDER')) {
+                    firstId = id;
+                    firstItem = ep;
+                }
+
                 grid.appendChild(ep);
             });
             container.appendChild(grid);
         });
+
+        // Autoplay the first actual playable item found upon navigation hook
+        if (firstItem && firstId) {
+            firstItem.click();
+        }
     }
 
     function showHome() {
