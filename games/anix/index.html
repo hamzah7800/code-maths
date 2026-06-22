@@ -3,311 +3,683 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ANIX | Library</title>
+    <title>ANIX | Premium Stream Center</title>
     <style>
         :root { 
-            --bg: #050505; 
-            --accent: #ffb11b; 
-            --panel: #111113; 
-            --text: #eee; 
+            --bg: #08080a; 
+            --accent: #ff002b; 
+            --panel: #111115; 
+            --panel-light: #1c1c24;
+            --text: #ffffff; 
+            --text-muted: #8e8e93; 
+            --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
         
-        * {
-            box-sizing: border-box;
-        }
-
         body { 
             margin: 0; 
-            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            font-family: var(--font); 
             background: var(--bg); 
             color: var(--text); 
-            overflow-x: hidden; 
+            overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
         }
+
+        /* Top Navigation */
+        .navbar {
+            background: rgba(8, 8, 10, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1rem 4%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 92%;
+            top: 0;
+            z-index: 1000;
+        }
+        .logo {
+            color: var(--accent);
+            font-weight: 900;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .nav-links { display: flex; gap: 30px; align-items: center; }
+        .nav-links span { color: var(--text-muted); font-weight: 600; cursor: pointer; transition: color 0.2s; }
+        .nav-links span:hover { color: var(--text); }
+        .nav-links span.active { color: var(--accent); }
+
+        /* Search Bar */
+        .search-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: var(--panel-light);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 4px 12px;
+        }
+        .search-container input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            outline: none;
+            font-size: 0.85rem;
+            width: 140px;
+            transition: width 0.3s;
+        }
+        .search-container input:focus { width: 220px; }
+
+        /* Showcase Banner */
+        .spotlight {
+            height: 55vh;
+            display: flex;
+            align-items: center;
+            padding: 0 4%;
+            background: linear-gradient(to right, #08080a 30%, rgba(8,8,10,0.2) 100%), 
+                        url('https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1200&auto=format&fit=crop') center 20%/cover no-repeat;
+            margin-top: 60px;
+        }
+        .spotlight-content { max-width: 600px; display: flex; flex-direction: column; gap: 15px; }
+        .spotlight-title { font-size: 3.2rem; font-weight: 800; margin: 0; line-height: 1.1; }
+        .spotlight-desc { color: var(--text-muted); line-height: 1.5; margin: 0; font-size: 0.95rem; }
+        .play-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            align-self: flex-start;
+        }
+        .play-btn:hover { transform: scale(1.03); }
+
+        /* Media Hub Lists */
+        .content-container { padding: 2rem 4%; }
+        .row-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 1rem; letter-spacing: 0.5px; }
+        .scroller { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 15px; scroll-behavior: smooth; }
+        .scroller::-webkit-scrollbar { height: 5px; }
+        .scroller::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
         
-        /* Nav */
-        .nav { 
-            background: #000; 
-            padding: 1rem 5%; 
-            border-bottom: 1px solid #222; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
+        .card {
+            min-width: 170px;
+            max-width: 170px;
+            background: var(--panel);
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+            border: 1px solid rgba(255,255,255,0.03);
+            position: relative;
         }
-        .logo { 
-            color: var(--accent); 
-            font-weight: 900; 
-            font-size: 1.8rem; 
-            text-decoration: none; 
-            cursor: pointer; 
-            user-select: none;
-        }
-        
-        .container { 
-            width: 100%;
-            max-width: 1100px; 
-            margin: 1.5rem auto; 
-            padding: 0 1rem; 
-        }
-        
-        /* Grid Layouts - Adapts on small screens */
-        .anime-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
-            gap: 1.2rem; 
-        }
+        .card:hover { transform: translateY(-5px); border-color: rgba(255, 0, 43, 0.4); }
+        .card img { width: 100%; height: 240px; object-fit: cover; background: #1c1c24; }
+        .card-meta { padding: 10px; }
+        .card-title { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+        .card-sub { font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
 
-        @media (min-width: 480px) {
-            .anime-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
-        }
-
-        .anime-card { 
-            background: var(--panel); 
-            padding: 60px 15px; 
-            border-radius: 12px; 
-            text-align: center; 
-            cursor: pointer; 
-            border: 1px solid #222; 
-            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; 
-            user-select: none;
-        }
-
-        @media (hover: hover) {
-            .anime-card:hover { 
-                border-color: var(--accent); 
-                transform: translateY(-5px); 
-                box-shadow: 0 10px 20px rgba(0,0,0,0.5); 
-            }
-        }
-
-        /* Player wrapper scaling natively across aspect ratios */
-        #player-view { display: none; }
-        .player-shell { 
-            background: #000; 
-            border-radius: 12px; 
-            overflow: hidden; 
-            border: 1px solid #222; 
-            position: relative; 
-            width: 100%;
-            aspect-ratio: 16/9; 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6); 
-            margin-bottom: 1.5rem;
-        }
-        iframe { 
-            width: 100%; 
-            height: 100%; 
-            border: none; 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-        }
-
-        /* Episode UI Items - Mobile First Touch Target Sizes */
-        .season-label { 
-            margin: 20px 0 10px; 
-            font-weight: 900; 
-            color: var(--accent); 
-            text-transform: uppercase; 
-            font-size: 0.85rem; 
-            letter-spacing: 2px; 
-        }
-        .ep-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); 
-            gap: 8px; 
-            margin-bottom: 20px; 
-        }
-        .ep-item { 
-            background: #1a1a1a; 
-            padding: 12px 0; 
-            text-align: center; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            border: 1px solid #333; 
-            font-weight: 600; 
-            font-size: 0.9rem;
-            min-height: 44px; /* Apple/Android standards compliance for finger targets */
+        .watchlist-dot {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s, border-color 0.2s;
-            user-select: none;
+            font-size: 0.9rem;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 2;
         }
-        @media (hover: hover) {
-            .ep-item:hover { border-color: var(--accent); color: var(--accent); }
-        }
-        .ep-item.active { 
-            background: var(--accent); 
-            color: #000; 
-            border-color: var(--accent); 
-        }
+        .card:hover .watchlist-dot { opacity: 1; }
+        .card.in-watchlist .watchlist-dot { opacity: 1; background: #00e676; }
+
+        /* Theater Area */
+        #theater { display: none; padding: 120px 4% 40px 4%; max-width: 1300px; margin: 0 auto; }
+        .theater-layout { display: grid; grid-template-columns: 1fr 360px; gap: 30px; }
+        @media(max-width: 950px) { .theater-layout { grid-template-columns: 1fr; } }
         
-        .back { 
-            color: var(--accent); 
-            cursor: pointer; 
-            margin-bottom: 15px; 
-            font-weight: bold; 
-            display: inline-flex; 
+        .player-box {
+            position: relative;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            border: 1px solid var(--panel-light);
+        }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* Pointer Overlay to Catch Pop-up Triggers */
+        .click-shield {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 5;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .controls-panel {
+            background: var(--panel);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--panel-light);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .controls-panel h2 { margin: 0; font-size: 1.4rem; font-weight: 700; }
+        .controls-panel p { margin: 0; font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
+        
+        .action-row { display: flex; gap: 10px; margin-top: 5px; }
+        .action-btn {
+            flex: 1;
+            background: var(--panel-light);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
             align-items: center;
-            text-transform: uppercase; 
-            font-size: 0.85rem; 
-            letter-spacing: 1px; 
-            padding: 8px 0;
-            user-select: none;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.2s;
         }
-        
-        .empty-notice {
-            color: #777;
-            font-style: italic;
+        .action-btn:hover { background: rgba(255,255,255,0.05); }
+        .action-btn.active { background: var(--accent); border-color: var(--accent); }
+
+        .selector-box { display: flex; flex-direction: column; gap: 8px; }
+        .selector-box label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        select {
+            background: var(--panel-light);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .grid-header { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .episode-container { max-height: 180px; overflow-y: auto; margin-top: 5px; }
+        .ep-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .ep-btn {
+            background: var(--panel-light);
             padding: 10px 0;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
         }
+        .ep-btn.active { background: var(--accent); }
+        
+        .back-btn { color: var(--text-muted); cursor: pointer; font-weight: 600; margin-bottom: 15px; display: inline-block; }
+        .back-btn:hover { color: #fff; }
+
+        /* Comment Section Dashboard Layout */
+        .engagement-box {
+            margin-top: 25px;
+            border-top: 1px solid var(--panel-light);
+            padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .comment-input-wrap { display: flex; gap: 8px; }
+        .comment-input-wrap input {
+            flex: 1;
+            background: var(--panel-light);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px;
+            padding: 10px 12px;
+            color: #fff;
+            outline: none;
+            font-size: 0.85rem;
+        }
+        .comment-input-wrap button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0 16px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .comments-feed { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .comment-node { background: var(--panel-light); padding: 10px 12px; border-radius: 6px; font-size: 0.85rem; line-height: 1.4; }
+        .comment-node .c-user { font-weight: 700; color: var(--accent); margin-bottom: 2px; display: flex; justify-content: space-between; }
+        .comment-node .c-time { font-size: 0.7rem; color: var(--text-muted); font-weight: normal; }
+
+        /* Generic Center Layout (Profiles / Config panels) */
+        #profile-view, #watchlist-view { display: none; padding: 120px 4% 40px 4%; max-width: 1000px; margin: 0 auto; }
+        .config-card { background: var(--panel); border: 1px solid var(--panel-light); border-radius: 12px; padding: 30px; max-width: 500px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+        .form-group label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .form-group input { background: var(--panel-light); border: 1px solid rgba(255,255,255,0.08); padding: 12px; border-radius: 6px; color: #fff; outline: none; }
+        .save-btn { background: var(--accent); color: white; border: none; padding: 12px 24px; font-weight: 700; border-radius: 6px; cursor: pointer; }
+
+        .generic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 25px; margin-top: 20px; }
+        .empty-state { color: var(--text-muted); font-size: 0.95rem; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-<nav class="nav">
-    <div class="logo" onclick="showHome()">ANIX</div>
+<nav class="navbar">
+    <div class="logo" onclick="changeView('home')">ANIX</div>
+    <div class="nav-links">
+        <span class="nav-item active" id="nav-home" onclick="changeView('home')">Home</span>
+        <span class="nav-item" id="nav-watchlist" onclick="changeView('watchlist')">My Watchlist</span>
+        <span class="nav-item" id="nav-profile" onclick="changeView('profile')">Profile Configuration</span>
+        <div class="search-container">
+            <input type="text" id="globalSearch" placeholder="Search titles..." oninput="handleGlobalSearch(this.value)">
+        </div>
+    </div>
 </nav>
 
-<div id="home-view" class="container">
-    <div class="anime-grid" id="mainGrid"></div>
+<div id="home-view">
+    <div class="spotlight">
+        <div class="spotlight-content">
+            <h1 class="spotlight-title">Dr. STONE</h1>
+            <p class="spotlight-desc">Thousands of years after a mysterious phenomenon turns all of humanity to stone, the extraordinarily intelligent, science-driven boy, Senku Ishigami, awakens.</p>
+            <button class="play-btn" onclick="startFeatured()">Stream Now</button>
+        </div>
+    </div>
+
+    <div class="content-container">
+        <div id="anime-section" style="margin-bottom: 2.5rem;">
+            <div class="row-title">Anime Vault</div>
+            <div class="scroller" id="animeGrid"></div>
+        </div>
+        <div id="movies-section">
+            <div class="row-title">Featured Blockbusters</div>
+            <div class="scroller" id="moviesGrid"></div>
+        </div>
+    </div>
 </div>
 
-<div id="player-view" class="container">
-    <div class="back" onclick="showHome()">← Back to Library</div>
-    <div class="player-shell">
-        <iframe id="videoIframe" allow="autoplay; fullscreen" referrerpolicy="no-referrer"></iframe>
+<div id="watchlist-view">
+    <h1 class="row-title" style="font-size: 2rem;">My Watchlist Collection</h1>
+    <div class="generic-grid" id="watchlistGrid"></div>
+</div>
+
+<div id="profile-view">
+    <h1 class="row-title" style="font-size: 2rem; margin-bottom: 1.5rem;">User Environment Profile</h1>
+    <div class="config-card">
+        <div class="form-group">
+            <label for="profileUsername">System Handle alias</label>
+            <input type="text" id="profileUsername" placeholder="Guest Streamer">
+        </div>
+        <button class="save-btn" onclick="commitUserProfile()">Commit Configuration</button>
     </div>
-    <div id="episode-list-container"></div>
+</div>
+
+<div id="theater">
+    <div class="back-btn" onclick="changeView('home')">← Return Home</div>
+    <div class="theater-layout">
+        <div class="player-box">
+            <div class="click-shield" id="shield"></div>
+            <iframe id="videoPlayer" allow="autoplay; fullscreen"></iframe>
+        </div>
+        
+        <div class="controls-panel">
+            <h2 id="viewTitle">Loading...</h2>
+            <p id="viewDesc"></p>
+            
+            <div class="action-row">
+                <button class="action-btn" id="watchlistToggleBtn" onclick="toggleWatchlistState()">
+                    <span id="wBtnIcon">＋</span> <span id="wBtnText">Add Watchlist</span>
+                </button>
+            </div>
+
+            <div class="selector-box">
+                <label for="serverSelect">VidSrc Live Mirror Gateway</label>
+                <select id="serverSelect" onchange="loadStreamingSource()">
+                    <option value="https://vidsrcme.ru">Server 1 (vidsrcme.ru - Primary)</option>
+                    <option value="https://vidsrcme.su">Server 2 (vidsrcme.su)</option>
+                    <option value="https://vidsrc-me.ru">Server 3 (vidsrc-me.ru)</option>
+                    <option value="https://vidsrc-me.su">Server 4 (vidsrc-me.su)</option>
+                    <option value="https://vidsrc-embed.ru">Server 5 (vidsrc-embed.ru)</option>
+                    <option value="https://vidsrc-embed.su">Server 6 (vidsrc-embed.su)</option>
+                    <option value="https://vsrc.su">Server 7 (vsrc.su Mirror)</option>
+                </select>
+            </div>
+
+            <div class="selector-box" id="seasonBlock" style="display:none;">
+                <label for="seasonSelect">Season</label>
+                <select id="seasonSelect" onchange="buildEpisodeGrid()"></select>
+            </div>
+
+            <div class="selector-box" id="episodeBlock" style="display:none;">
+                <div class="grid-header">Select Episode</div>
+                <div class="episode-container">
+                    <div class="ep-grid" id="epGrid"></div>
+                </div>
+            </div>
+
+            <div class="engagement-box">
+                <div class="grid-header">Local Stream Discussion</div>
+                <div class="comment-input-wrap">
+                    <input type="text" id="commentDraft" placeholder="Type community broadcast...">
+                    <button onclick="publishUserComment()">Send</button>
+                </div>
+                <div class="comments-feed" id="commentsBox"></div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-    const library = {
-        "aot": { 
-            title: "Attack on Titan", 
-            seasons: [
-                { 
-                    name: "Season 1", 
-                    ids: [
-                        "1_motPglkqFZAtlvOyoVG4Do8ZP88dMGX","1sBFo-tXs_pR0Y2BUgdQZA-dgW_hJ9n1Z",
-                        "1ICpdFV8u6ddf-a0YwyiptlyDNQN-Whwh","1tVuyPztBo_4ocftjOcEutI1zauSLpNDi",
-                        "1niPlio07f_99u1-OtW_54uWkJwBouocx","1-qB_bxTFlZoRJWE0jTx8gildU78ElXt9",
-                        "1-P5fE4dRyvirGzlGkoTdsF6si9AwVpYJ","1nsROetRCw6VEeT0zgDpiLVGng_zEQNut",
-                        "1VHBr6nap3clpLaOYUjz32QE63SssHe-4","1riigEtCvxHY4m5XBE3nSWCBYw3rzZV8i",
-                        "1wcEn6TSdPqPDJ3m6RGtU5NsCO6rBklNP","1U-X3qUGA2xPiy4oc-JEV1DhpGwUukoOv",
-                        "1rc6YUeJEYXLI7I4UjPPiAKAknj8PGp0K","1ueI6BjGjpCGop3KPEetH2aMAs8EdumVk",
-                        "14B-b7seCN8VS2IgpPYewDwTtc4UWwz3K","1VJ_OCFBt_vVreK_f7PJdimxi5ZPTjloQ",
-                        "1NpfySF0N3yRGLcUjHaIEWcXF6aLRacJ4","14L5kOrzHV4JO04xO8Bo8ibvV0TrefpWV",
-                        "1n3hmxNN_uuIF7dOoxiKiOLOprBSDX1mp","1o6Mgy_eKWV182EbTX6IUhU_D4tuNcd9u",
-                        "1nOuX42GUZf5yCL72yb3-TesXNKW1eEHA","1yNAjadmeNTeTpeRyHY7Fi0nH2op0OMag",
-                        "1jMCsyNjy3Du0yN3o-DE9EgKXCeS5zTpR","1IlUCW-o1kjOzAte682JQ_0yc4NJ1nvX7",
-                        "1zHq8sb4PV8p41DLejAjL6REoKwx5hoQE"
-                    ] 
-                },
-                { 
-                    name: "Season 2", 
-                    ids: [
-                        "1uX2W_M2rV5tYV_P6E9Tf0v7K0mFzGjI2", "ID_PLACEHOLDER_27", "ID_PLACEHOLDER_28",
-                        "ID_PLACEHOLDER_29", "ID_PLACEHOLDER_30", "ID_PLACEHOLDER_31",
-                        "ID_PLACEHOLDER_32", "ID_PLACEHOLDER_33", "ID_PLACEHOLDER_34",
-                        "ID_PLACEHOLDER_35", "ID_PLACEHOLDER_36", "ID_PLACEHOLDER_37"
-                    ] 
-                }
-            ]
-        },
-        "drstone": { title: "Dr. Stone", seasons: [{ name: "Season 1", ids: ["12etYKc9g_NHYJtwYKl1ix50V8ygmlmuO", "1Ld99fPLtcxALJy9r2MsTPvBIr8ouF5IO"] }] },
-        "bloodhounds": { title: "Bloodhounds", seasons: [{ name: "Season 1", ids: [] }] },
-        "witchhat": { title: "Witch Hat Atelier", seasons: [{ name: "Season 1", ids: [] }] }
+    const DIRECTORY = {
+        anime: [
+            { id: 86031, name: "Dr. STONE", img: "https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=400&auto=format&fit=crop", rating: 8.5, year: "2019", type: "tv", seasons: 3, eps: 24, desc: "Thousands of years after a mysterious phenomenon turns all of humanity to stone, the extraordinarily intelligent, science-driven boy, Senku Ishigami, awakens." },
+            { id: 95479, name: "Jujutsu Kaisen", img: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=400&auto=format&fit=crop", rating: 8.6, year: "2020", type: "tv", seasons: 2, eps: 23, desc: "Yuji Itadori swallows a cursed finger to save his school friends, becoming the host of Ryomen Sukuna." },
+            { id: 1429, name: "Attack on Titan", img: "https://images.unsplash.com/photo-1560169897-fc0cdbdfa4d5?q=80&w=400&auto=format&fit=crop", rating: 8.9, year: "2013", type: "tv", seasons: 4, eps: 25, desc: "Humanity is forced to live inside cities surrounded by enormous walls due to the appearance of giant Titans." },
+            { id: 31964, name: "Demon Slayer", img: "https://images.unsplash.com/photo-1618336753974-aae8e04506aa?q=80&w=400&auto=format&fit=crop", rating: 8.7, year: "2019", type: "tv", seasons: 4, eps: 11, desc: "Tanjiro Kamado sets out to become a demon slayer after his family is slaughtered and his sister turned into a demon." },
+            { id: 46261, name: "My Hero Academia", img: "https://images.unsplash.com/photo-1620662557041-96d8ecc2434d?q=80&w=400&auto=format&fit=crop", rating: 8.4, year: "2016", type: "tv", seasons: 7, eps: 25, desc: "In a world where superpower quirks are common, Izuku Midoriya dreams of becoming the ultimate Hero." }
+        ],
+        movies: [
+            { id: 157336, name: "Interstellar", img: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=400&auto=format&fit=crop", rating: 8.4, year: "2014", type: "movie", desc: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival." },
+            { id: 27205, name: "Inception", img: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=400&auto=format&fit=crop", rating: 8.4, year: "2010", type: "movie", desc: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task." },
+            { id: 19995, name: "Avatar", img: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=400&auto=format&fit=crop", rating: 7.5, year: "2009", type: "movie", desc: "A paraplegic Marine dispatched to the moon Pandora on a unique mission becomes torn between following his orders and protecting the world he feels is his home." },
+            { id: 299534, name: "Avengers: Endgame", img: "https://images.unsplash.com/photo-1635805737707-575885ab0820?q=80&w=400&auto=format&fit=crop", rating: 8.3, year: "2019", type: "movie", desc: "After the devastating events of Infinity War, the universe is in ruins. With the help of remaining allies, the Avengers assemble once more." }
+        ]
     };
 
-    function init() {
-        const grid = document.getElementById('mainGrid');
-        grid.innerHTML = '';
-        Object.keys(library).forEach(key => {
-            const card = document.createElement('div');
-            card.className = 'anime-card';
-            card.innerHTML = `<strong>${library[key].title}</strong>`;
-            card.onclick = () => openPlayer(key);
-            grid.appendChild(card);
-        });
+    let activeItem = null;
+    let activeEp = 1;
+    let USER_PROFILE = { username: "Guest Streamer" };
+    let WATCHLIST_STORE = [];
+    let DISCUSSION_DATABASE = {};
+
+    function initLibrary() {
+        fetchPersistentStorage();
+        populateRow(document.getElementById('animeGrid'), DIRECTORY.anime);
+        populateRow(document.getElementById('moviesGrid'), DIRECTORY.movies);
+        document.getElementById('profileUsername').value = USER_PROFILE.username;
     }
 
-    function openPlayer(key) {
-        document.getElementById('home-view').style.display = 'none';
-        document.getElementById('player-view').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    function fetchPersistentStorage() {
+        try {
+            const profileData = localStorage.getItem('ANIX_profile');
+            if (profileData) USER_PROFILE = JSON.parse(profileData);
 
-        const container = document.getElementById('episode-list-container');
-        container.innerHTML = '';
+            const watchlistData = localStorage.getItem('ANIX_watchlist');
+            if (watchlistData) WATCHLIST_STORE = JSON.parse(watchlistData);
 
-        let firstItem = null;
-        let firstId = null;
-
-        const series = library[key];
-        
-        // Dynamic continuous episode numbering track across seasons
-        let cumulativeEpisodeCount = 0; 
-
-        series.seasons.forEach(s => {
-            const label = document.createElement('div');
-            label.className = 'season-label';
-            label.innerText = s.name;
-            container.appendChild(label);
-
-            if (!s.ids || s.ids.length === 0) {
-                const empty = document.createElement('div');
-                empty.className = 'empty-notice';
-                empty.innerText = 'No episodes available yet.';
-                container.appendChild(empty);
-                return;
-            }
-
-            const grid = document.createElement('div');
-            grid.className = 'ep-grid';
-            
-            s.ids.forEach((id, i) => {
-                cumulativeEpisodeCount++;
-                const ep = document.createElement('div');
-                ep.className = 'ep-item';
-                ep.innerText = cumulativeEpisodeCount;
-                
-                const targetId = id;
-                ep.onclick = () => {
-                    if (targetId.includes('PLACEHOLDER')) {
-                        alert("This episode source isn't ready yet!");
-                        return;
-                    }
-                    const iframe = document.getElementById('videoIframe');
-                    iframe.src = `https://drive.google.com/file/d/${targetId}/preview`;
-                    
-                    document.querySelectorAll('.ep-item').forEach(el => el.classList.remove('active'));
-                    ep.classList.add('active');
-                };
-
-                // Track first valid episode to auto-start play logic gracefully
-                if (!firstId && !id.includes('PLACEHOLDER')) {
-                    firstId = id;
-                    firstItem = ep;
-                }
-
-                grid.appendChild(ep);
-            });
-            container.appendChild(grid);
-        });
-
-        // Autoplay the first actual playable item found upon navigation hook
-        if (firstItem && firstId) {
-            firstItem.click();
+            const commentData = localStorage.getItem('ANIX_discussions');
+            if (commentData) DISCUSSION_DATABASE = JSON.parse(commentData);
+        } catch (e) {
+            console.error("Local Storage Engine Read Fault", e);
         }
     }
 
-    function showHome() {
-        document.getElementById('home-view').style.display = 'block';
-        document.getElementById('player-view').style.display = 'none';
-        document.getElementById('videoIframe').src = '';
+    function syncLocalStorage(key, payload) {
+        try {
+            localStorage.setItem(key, JSON.stringify(payload));
+        } catch (e) {
+            console.error("Local Storage Engine Mutation Failure", e);
+        }
     }
 
-    init();
+    function populateRow(element, items) {
+        element.innerHTML = '';
+        if (items.length === 0) {
+            element.innerHTML = '<div class="empty-state">No streaming results match query parameter array.</div>';
+            return;
+        }
+        items.forEach(item => {
+            const isTracked = WATCHLIST_STORE.includes(item.id);
+            const el = document.createElement('div');
+            el.className = `card ${isTracked ? 'in-watchlist' : ''}`;
+            el.setAttribute('data-id', item.id);
+            el.innerHTML = `
+                <div class="watchlist-dot">${isTracked ? '✓' : '＋'}</div>
+                <img src="${item.img}" alt="${item.name} poster" onerror="this.src='https://images.unsplash.com/photo-1618336753974-aae8e04506aa?q=80&w=400&auto=format&fit=crop'">
+                <div class="card-meta">
+                    <div class="card-title">${item.name}</div>
+                    <div class="card-sub"><span>★ ${item.rating}</span><span>${item.year}</span></div>
+                </div>
+            `;
+            el.onclick = () => launchTheater(item);
+            element.appendChild(el);
+        });
+    }
+
+    function startFeatured() { launchTheater(DIRECTORY.anime[0]); }
+
+    function launchTheater(item) {
+        activeItem = item;
+        activeEp = 1;
+        
+        changeView('theater');
+        document.getElementById('viewTitle').innerText = item.name;
+        document.getElementById('viewDesc').innerText = item.desc;
+
+        refreshWatchlistInterfaceButton();
+        buildDiscussionFeed();
+
+        if(item.type === 'tv') {
+            document.getElementById('seasonBlock').style.display = 'flex';
+            document.getElementById('episodeBlock').style.display = 'flex';
+            
+            const dropdown = document.getElementById('seasonSelect');
+            dropdown.innerHTML = '';
+            for(let s = 1; s <= item.seasons; s++) {
+                dropdown.innerHTML += `<option value="${s}">Season ${s}</option>`;
+            }
+            buildEpisodeGrid();
+        } else {
+            document.getElementById('seasonBlock').style.display = 'none';
+            document.getElementById('episodeBlock').style.display = 'none';
+            loadStreamingSource();
+        }
+    }
+
+    function buildEpisodeGrid() {
+        const grid = document.getElementById('epGrid');
+        grid.innerHTML = '';
+        let totalEps = activeItem.eps;
+        
+        for(let e = 1; e <= totalEps; e++) {
+            const btn = document.createElement('div');
+            btn.className = `ep-btn ${e === activeEp ? 'active' : ''}`;
+            btn.innerText = e;
+            btn.onclick = () => {
+                activeEp = e;
+                document.querySelectorAll('.ep-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                loadStreamingSource();
+            };
+            grid.appendChild(btn);
+        }
+        loadStreamingSource();
+    }
+
+    function loadStreamingSource() {
+        const baseUrl = document.getElementById('serverSelect').value;
+        const iframe = document.getElementById('videoPlayer');
+        const season = document.getElementById('seasonSelect') ? document.getElementById('seasonSelect').value : 1;
+        
+        let finalUrl = "";
+        if(activeItem.type === 'movie') {
+            finalUrl = `${baseUrl}/embed/movie/${activeItem.id}`;
+        } else {
+            finalUrl = `${baseUrl}/embed/tv/${activeItem.id}/${season}/${activeEp}`;
+        }
+
+        iframe.src = finalUrl;
+        document.getElementById('shield').style.display = 'block';
+    }
+
+    // Interceptor captures click actions to prevent multi-window ads from escaping
+    document.getElementById('shield').addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        this.style.display = 'none';
+        setTimeout(() => {
+            this.style.display = 'block';
+        }, 1800);
+    }, true);
+
+    /* WATCHLIST BUSINESS UTILITIES */
+    function toggleWatchlistState() {
+        if (!activeItem) return;
+        const index = WATCHLIST_STORE.indexOf(activeItem.id);
+        if (index > -1) {
+            WATCHLIST_STORE.splice(index, 1);
+        } else {
+            WATCHLIST_STORE.push(activeItem.id);
+        }
+        syncLocalStorage('ANIX_watchlist', WATCHLIST_STORE);
+        refreshWatchlistInterfaceButton();
+        
+        // Dynamic re-render arrays if they exist in runtime memory DOM
+        populateRow(document.getElementById('animeGrid'), DIRECTORY.anime);
+        populateRow(document.getElementById('moviesGrid'), DIRECTORY.movies);
+    }
+
+    function refreshWatchlistInterfaceButton() {
+        const btn = document.getElementById('watchlistToggleBtn');
+        const icon = document.getElementById('wBtnIcon');
+        const text = document.getElementById('wBtnText');
+        
+        if (WATCHLIST_STORE.includes(activeItem.id)) {
+            btn.classList.add('active');
+            icon.innerText = '✓';
+            text.innerText = 'In Watchlist';
+        } else {
+            btn.classList.remove('active');
+            icon.innerText = '＋';
+            text.innerText = 'Add Watchlist';
+        }
+    }
+
+    function renderWatchlistGrid() {
+        const container = document.getElementById('watchlistGrid');
+        const combinedPool = [...DIRECTORY.anime, ...DIRECTORY.movies];
+        const subset = combinedPool.filter(item => WATCHLIST_STORE.includes(item.id));
+        populateRow(container, subset);
+    }
+
+    /* PROFILE METADATA ENGINE */
+    function commitUserProfile() {
+        const payloadName = document.getElementById('profileUsername').value.trim();
+        USER_PROFILE.username = payloadName ? payloadName : "Guest Streamer";
+        syncLocalStorage('ANIX_profile', USER_PROFILE);
+        alert("Configuration context flushed to system cache!");
+    }
+
+    /* FEED DISCUSSIONS INTERACTIVE TERMINAL */
+    function publishUserComment() {
+        const inputField = document.getElementById('commentDraft');
+        const bufferText = inputField.value.trim();
+        if (!bufferText || !activeItem) return;
+
+        if (!DISCUSSION_DATABASE[activeItem.id]) {
+            DISCUSSION_DATABASE[activeItem.id] = [];
+        }
+
+        const timestampStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const textObject = {
+            sender: USER_PROFILE.username,
+            body: bufferText,
+            time: timestampStr
+        };
+
+        DISCUSSION_DATABASE[activeItem.id].push(textObject);
+        syncLocalStorage('ANIX_discussions', DISCUSSION_DATABASE);
+        
+        inputField.value = "";
+        buildDiscussionFeed();
+    }
+
+    function buildDiscussionFeed() {
+        const channel = document.getElementById('commentsBox');
+        channel.innerHTML = "";
+        if (!activeItem) return;
+
+        const stream = DISCUSSION_DATABASE[activeItem.id] || [];
+        if (stream.length === 0) {
+            channel.innerHTML = '<div class="empty-state" style="font-size:0.75rem;">No logs found on this streaming channel pipeline.</div>';
+            return;
+        }
+
+        // Display newest messages at top
+        [...stream].reverse().forEach(log => {
+            const node = document.createElement('div');
+            node.className = 'comment-node';
+            node.innerHTML = `
+                <div class="c-user">${escapeHtml(log.sender)} <span class="c-time">${log.time}</span></div>
+                <div>${escapeHtml(log.body)}</div>
+            `;
+            channel.appendChild(node);
+        });
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    /* FILTRATION PIPELINE INDEXING */
+    function handleGlobalSearch(query) {
+        const cleanQuery = query.toLowerCase().trim();
+        if (cleanQuery === "") {
+            populateRow(document.getElementById('animeGrid'), DIRECTORY.anime);
+            populateRow(document.getElementById('moviesGrid'), DIRECTORY.movies);
+            return;
+        }
+        
+        const subAnime = DIRECTORY.anime.filter(i => i.name.toLowerCase().includes(cleanQuery));
+        const subMovies = DIRECTORY.movies.filter(i => i.name.toLowerCase().includes(cleanQuery));
+        
+        populateRow(document.getElementById('animeGrid'), subAnime);
+        populateRow(document.getElementById('moviesGrid'), subMovies);
+    }
+
+    /* VIEW CONTROLLER MATRIX STATE MACHINE */
+    function changeView(view) {
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.getElementById('home-view').style.display = 'none';
+        document.getElementById('theater').style.display = 'none';
+        document.getElementById('profile-view').style.display = 'none';
+        document.getElementById('watchlist-view').style.display = 'none';
+
+        if(view === 'home') {
+            document.getElementById('home-view').style.display = 'block';
+            document.getElementById('nav-home').classList.add('active');
+            document.getElementById('videoPlayer').src = '';
+        } else if(view === 'theater') {
+            document.getElementById('theater').style.display = 'block';
+        } else if(view === 'profile') {
+            document.getElementById('profile-view').style.display = 'block';
+            document.getElementById('nav-profile').classList.add('active');
+            document.getElementById('videoPlayer').src = '';
+        } else if(view === 'watchlist') {
+            document.getElementById('watchlist-view').style.display = 'block';
+            document.getElementById('nav-watchlist').classList.add('active');
+            document.getElementById('videoPlayer').src = '';
+            renderWatchlistGrid();
+        }
+    }
+
+    initLibrary();
 </script>
 </body>
 </html>
